@@ -60,10 +60,10 @@ public class Constants {
 		public static final TalonFXConfiguration kDriveConfig = new TalonFXConfiguration();
 		static {
 			kDriveConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-			kDriveConfig.CurrentLimits.SupplyCurrentLimit = 45; // limits current supplied to motor (avoid brownout)
+			kDriveConfig.CurrentLimits.SupplyCurrentLimit = 45; // For avoiding brownout
 			kDriveConfig.CurrentLimits.SupplyCurrentLowerLimit = 45;
 			kDriveConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
-			kDriveConfig.CurrentLimits.StatorCurrentLimit = 80; // limits output current (for higher acceleration)
+			kDriveConfig.CurrentLimits.StatorCurrentLimit = 80; // Output current (proportional to acceleration)
 			kDriveConfig.CurrentLimits.StatorCurrentLimitEnable = true;
 			kDriveConfig.ClosedLoopRamps.VoltageClosedLoopRampPeriod = kRampRate;
 			kDriveConfig.OpenLoopRamps.VoltageOpenLoopRampPeriod = kRampRate;
