@@ -1,18 +1,36 @@
 package frc.robot.subsystems;
 
+import java.util.List;
+
 import org.photonvision.PhotonCamera;
 import org.photonvision.targeting.PhotonPipelineResult;
+
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class APTag {
 	PhotonCamera camera;
 
 	public APTag() {
-		camera = new PhotonCamera("Cool Camera");
+		camera = new PhotonCamera("Cool camera");
 	}
 
 	public boolean getHasTargets() {
-		PhotonPipelineResult result = camera.getAllUnreadResults().get(0);
+		List<PhotonPipelineResult> results = camera.getAllUnreadResults();
 
-		return result.getFiducialId() == 1;
+		if (results.size() < 1) {
+			return false;
+		}
+
+		PhotonPipelineResult result = results.get(0);
+
+		SmartDashboard.putBoolean("Has Targets", result.hasTargets());
+
+		if (result.hasTargets()) {
+			return result.getBestTarget().getFiducialId() == 1;
+		}
+
+		else {
+			return false;
+		}
 	}
 }
