@@ -10,7 +10,7 @@ public class APTag {
 		camera = new PhotonCamera("Cool Camera");
 	}
 
-	boolean getHasTarget() {
+	public boolean getHasTargets() {
 		PhotonPipelineResult result = camera.getAllUnreadResults().get(0);
 
 		return result.hasTargets();
