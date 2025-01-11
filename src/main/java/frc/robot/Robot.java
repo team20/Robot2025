@@ -83,10 +83,12 @@ public class Robot extends TimedRobot {
 	@Override
 	public void testPeriodic() {
 		if (m_ApTag.getHasTargets()) {
-			m_motor.set(0.3);
-		}
+			m_motor.set(0.4);
 
-		else {
+		} else {
+
+		}
+		{
 			m_motor.set(0.0);
 		}
 	}

@@ -21,7 +21,7 @@ public class APTag {
 			return false;
 		}
 
-		PhotonPipelineResult result = results.get(0);
+		PhotonPipelineResult result = camera.getAllUnreadResults().get(0);
 
 		SmartDashboard.putBoolean("Has Targets", result.hasTargets());
 
