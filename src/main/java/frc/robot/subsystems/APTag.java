@@ -13,6 +13,6 @@ public class APTag {
 	public boolean getHasTargets() {
 		PhotonPipelineResult result = camera.getAllUnreadResults().get(0);
 
-		return result.hasTargets();
+		return result.getFiducialId() == 1;
 	}
 }
