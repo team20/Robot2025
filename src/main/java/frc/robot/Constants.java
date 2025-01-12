@@ -1,10 +1,16 @@
 package frc.robot;
 
+import static edu.wpi.first.units.Units.*;
+import static java.lang.Float.*;
+
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.revrobotics.spark.config.SparkBaseConfig;
+import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.Time;
 
 public class Constants {
 	public static final class ControllerConstants {
@@ -12,6 +18,17 @@ public class Constants {
 		public static final int kOperatorControllerPort = 1;
 		public static final double kDeadzone = 0.05;
 		public static final double kTriggerDeadzone = .05;
+	}
+
+	public static final class CheeseStickConstants {
+		public static final int kMotorPort = -1; // TODO: Figure out what motor port is needed
+		public static final SparkBaseConfig kMotorConfig = new SparkMaxConfig().inverted(false);
+		public static final Time kResetLength = Second.of(NaN); // TODO: Figure out how long it takes for the springs to
+																// reset
+		public static final double kOpenDistance = NaN; // TODO: Figure out what grip distance is needed
+		public static final double kMotorSpeed = NaN; // TODO: Figure out what grip speed is needed
+		public static final double kTolerance = NaN; // TODO: Figure out what grip tolerance is needed
+		public static final double kGripTimeout = NaN; // TODO: Figure out what grip timeout is needed
 	}
 
 	public static final class DriveConstants {
