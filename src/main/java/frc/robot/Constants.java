@@ -26,7 +26,7 @@ public class Constants {
 		public static final Time kResetLength = Second.of(NaN); // TODO: Figure out how long it takes for the springs to
 																// reset
 		public static final double kOpenDistance = NaN; // TODO: Figure out what grip distance is needed
-		public static final double kMotorSpeed = NaN; // TODO: Figure out what grip speed is needed
+		public static final double kP = NaN; // TODO: Figure out what grip speed is needed
 		public static final double kTolerance = NaN; // TODO: Figure out what grip tolerance is needed
 		public static final double kGripTimeout = NaN; // TODO: Figure out what grip timeout is needed
 	}

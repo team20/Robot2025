@@ -13,6 +13,7 @@ import java.util.function.DoubleSupplier;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkMax;
 
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -86,26 +87,29 @@ public class CheeseStickSubsystem extends SubsystemBase {
 	 * @return The command.
 	 */
 	private Command createMoveCommand(double distance) {
+		Timer timer = new Timer();
+		PIDController PID = new PIDController(kP, 0, 0);
+		PID.setTolerance(kTolerance);
 		return new Command() {
-			private Timer m_timer;
-
 			/**
-			 * Initializes command by starting a timer and moving the motor.
-			 * - The timer is used in case the cheese stick is obstructed
-			 * - The speed is fixed, but the direction is computed dynamically.
+			 * Starts the timeout timer.
 			 */
 			public void initialize() {
-				m_timer = new Timer();
-				m_timer.start();
-				double delta = distance - m_encoder.getPosition();
-				m_motor.set(Math.copySign(delta, kMotorSpeed));
+				timer.start();
+			}
+
+			/**
+			 * Evaluate the PID controller.
+			 */
+			public void execute() {
+				m_motor.set(PID.calculate(m_position.getAsDouble()));
 			}
 
 			/**
 			 * Checks if the position is within tolerance or if the timeout has ocurred.
 			 */
 			public boolean isFinished() {
-				return Math.abs(distance - m_encoder.getPosition()) < kTolerance || m_timer.hasElapsed(kGripTimeout);
+				return PID.atSetpoint() || timer.hasElapsed(kGripTimeout);
 			}
 
 			/**
@@ -113,6 +117,7 @@ public class CheeseStickSubsystem extends SubsystemBase {
 			 */
 			public void end(boolean interrupted) {
 				m_motor.set(0);
+				PID.close();
 			}
 		};
 	}
