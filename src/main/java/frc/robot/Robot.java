@@ -7,14 +7,27 @@ package frc.robot;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
+import frc.robot.Constants.ControllerConstants;
+import frc.robot.subsystems.DriveSubsystem;
 
 public class Robot extends TimedRobot {
 	private Command m_autonomousCommand;
-
-	private final RobotContainer m_robotContainer;
+	private final DriveSubsystem m_driveSubsystem = new DriveSubsystem();
+	private final CommandPS4Controller m_driverController = new CommandPS4Controller(
+			ControllerConstants.kDriverControllerPort);
 
 	public Robot() {
-		m_robotContainer = new RobotContainer();
+		bindDriveControls();
+	}
+
+	public void bindDriveControls() {
+		m_driveSubsystem.setDefaultCommand(
+				m_driveSubsystem.driveCommand(
+						() -> -m_driverController.getLeftY(),
+						() -> -m_driverController.getLeftX(),
+						() -> m_driverController.getR2Axis() - m_driverController.getL2Axis(),
+						m_driverController.getHID()::getSquareButton));
 	}
 
 	@Override
@@ -36,7 +49,7 @@ public class Robot extends TimedRobot {
 
 	@Override
 	public void autonomousInit() {
-		m_autonomousCommand = m_robotContainer.getAutonomousCommand();
+		m_autonomousCommand = null;
 
 		if (m_autonomousCommand != null) {
 			m_autonomousCommand.schedule();
