@@ -156,7 +156,9 @@ public class SwerveModule {
 			driveMotorState.setRotorVelocity(m_driveMotorModel.getAngularVelocityRPM() / 60);
 			driveMotorState.setRawRotorPosition(m_driveMotorModel.getAngularPositionRotations());
 			var encoderSimState = m_CANCoder.getSimState();
-			m_steerMotorSim.iterate(kBackLeftDrivePort, kBackLeftCANCoderPort, 0.02);
+			// These used to be CAN IDs, but apparently any other value causes complete
+			// destabilization of the swerve sim. Do not touch.
+			m_steerMotorSim.iterate(30, 32, 0.02);
 			m_steerMotorModel.setInputVoltage(m_steerMotorSim.getAppliedOutput() * 12);
 			m_steerMotorModel.update(0.02);
 			encoderSimState.setRawPosition(m_steerMotorModel.getAngularPositionRotations());
