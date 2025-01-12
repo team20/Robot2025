@@ -14,6 +14,8 @@ import com.studica.frc.AHRS;
 import com.studica.frc.AHRS.NavXComType;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -21,9 +23,11 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -65,7 +69,7 @@ public class DriveSubsystem extends SubsystemBase {
 		// collide with anything
 		var config = new SysIdRoutine.Config(Volts.of(2.5).div(Seconds.of(1)), null, Seconds.of(3));
 		m_sysidRoutine = new SysIdRoutine(config, new SysIdRoutine.Mechanism(volt -> {
-			var state = new SwerveModuleState(volt.magnitude(), new Rotation2d(Math.PI / 2));
+			var state = new SwerveModuleState(volt.magnitude(), new Rotation2d(0.0));
 			m_frontLeft.setModuleState(state);
 			m_frontRight.setModuleState(state);
 			m_backLeft.setModuleState(state);
@@ -205,6 +209,28 @@ public class DriveSubsystem extends SubsystemBase {
 
 			drive(fwdSpeed, strSpeed, rotSpeed, isFieldRelative.getAsBoolean());
 		}).withName("DefaultDriveCommand");
+	}
+
+	/**
+	 * Drives forward for a certain distance
+	 * 
+	 * @param dist Distance to move in meters
+	 * 
+	 * @return Command for driving a distance
+	 */
+	public Command driveForDistance(double dist) {
+		SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(kS, kDriveV, kA);
+		ProfiledPIDController pid = new ProfiledPIDController(kDriveP, kI, kD,
+				new TrapezoidProfile.Constraints(1.0, 2.0));
+
+		return startRun(() -> {
+			pid.setGoal(getPose().getX() + dist);
+		}, () -> {
+			SmartDashboard.putNumber("SetpointVelocity", pid.getSetpoint().velocity);
+			SmartDashboard.putNumber("SetpointPosition", pid.getSetpoint().position);
+
+			drive(pid.calculate(getPose().getX()) + feedforward.calculate(pid.getSetpoint().velocity), 0.0, 0.0, true);
+		}).withName("AutoDriveCommand");
 	}
 
 	/**

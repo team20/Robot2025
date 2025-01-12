@@ -5,6 +5,8 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
@@ -16,8 +18,12 @@ public class Robot extends TimedRobot {
 	private final DriveSubsystem m_driveSubsystem = new DriveSubsystem();
 	private final CommandPS4Controller m_driverController = new CommandPS4Controller(
 			ControllerConstants.kDriverControllerPort);
+	private SendableChooser<Command> m_autoSelector = new SendableChooser<Command>();
 
 	public Robot() {
+		m_autoSelector.addOption("Leave", m_driveSubsystem.driveForDistance(3.0));
+		SmartDashboard.putData(m_autoSelector);
+
 		bindDriveControls();
 	}
 
@@ -49,7 +55,7 @@ public class Robot extends TimedRobot {
 
 	@Override
 	public void autonomousInit() {
-		m_autonomousCommand = null;
+		m_autonomousCommand = m_autoSelector.getSelected();
 
 		if (m_autonomousCommand != null) {
 			m_autonomousCommand.schedule();
