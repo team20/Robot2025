@@ -29,11 +29,6 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 //TODO: Setpoint and hold?
 
 public class ElevatorSubsystem extends SubsystemBase {
-	public enum ElevatorStage {
-		BASE,
-		MIDDLE,
-		TOP
-	}
 
 	private final SparkMax m_rightMotor = new SparkMax(kElevatorMotorRightPort, MotorType.kBrushless); // Master
 	private final SparkMax m_leftMotor = new SparkMax(kElevatorMotorLeftPort, MotorType.kBrushless); // Follower
@@ -44,8 +39,6 @@ public class ElevatorSubsystem extends SubsystemBase {
 
 	private double m_setPositionLeft = 0;
 	private double m_setPositionRight = 0;
-
-	private ElevatorStage m_elevatorStage;
 
 	/** Creates a new ElevatorSubsystem. */
 	public ElevatorSubsystem() {
