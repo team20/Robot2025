@@ -8,11 +8,11 @@ import static frc.robot.Constants.DriveConstants.*;
 
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.revrobotics.sim.SparkMaxSim;
+import com.revrobotics.sim.SparkFlexSim;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
@@ -33,17 +33,17 @@ public class SwerveModule {
 	private final PIDController m_steerController = new PIDController(kP, kI, kD);
 	private final CANcoder m_CANCoder;
 	private final TalonFX m_driveMotor;
-	private final SparkMax m_steerMotor;
+	private final SparkFlex m_steerMotor;
 
-	private final SparkMaxSim m_steerMotorSim;
+	private final SparkFlexSim m_steerMotorSim;
 	private final DCMotorSim m_driveMotorModel;
 	private final DCMotorSim m_steerMotorModel;
 
 	public SwerveModule(int canId, int drivePort, int steerPort) {
 		m_CANCoder = new CANcoder(canId);
 		m_driveMotor = new TalonFX(drivePort);
-		m_steerMotor = new SparkMax(steerPort, MotorType.kBrushless);
-		m_steerMotorSim = new SparkMaxSim(m_steerMotor, DCMotor.getNEO(1));
+		m_steerMotor = new SparkFlex(steerPort, MotorType.kBrushless);
+		m_steerMotorSim = new SparkFlexSim(m_steerMotor, DCMotor.getNEO(1));
 		m_driveMotor.getConfigurator().apply(DriveConstants.kDriveConfig);
 		var config = new SparkMaxConfig();
 		config.idleMode(IdleMode.kBrake).voltageCompensation(12);
