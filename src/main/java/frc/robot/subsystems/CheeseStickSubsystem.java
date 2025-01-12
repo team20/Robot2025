@@ -4,7 +4,7 @@ import static com.revrobotics.spark.SparkBase.PersistMode.*;
 import static com.revrobotics.spark.SparkBase.ResetMode.*;
 import static com.revrobotics.spark.SparkLowLevel.MotorType.*;
 import static com.revrobotics.spark.config.SparkBaseConfig.IdleMode.*;
-import static edu.wpi.first.units.Units.*;
+import static edu.wpi.first.wpilibj2.command.Commands.*;
 import static frc.robot.Constants.CheeseStickConstants.*;
 
 import java.util.function.BooleanSupplier;
@@ -14,7 +14,6 @@ import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkMax;
 
 import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
@@ -39,16 +38,13 @@ public class CheeseStickSubsystem extends SubsystemBase {
 	 * @return The command.
 	 */
 	public Command resetPositionCommand() {
-		return runOnce(() -> {
-			m_motor.configure(kMotorConfig.idleMode(kCoast), kResetSafeParameters, kNoPersistParameters);
-			try {
-				Thread.sleep((int) kResetLength.in(Millisecond));
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			m_motor.configure(kMotorConfig.idleMode(kBrake), kResetSafeParameters, kNoPersistParameters);
-			m_encoder.setPosition(0);
-		});
+		return runOnce(
+				() -> m_motor.configure(kMotorConfig.idleMode(kCoast), kResetSafeParameters, kNoPersistParameters))
+						.andThen(waitTime(kResetLength)).andThen(() -> {
+							m_motor.configure(
+									kMotorConfig.idleMode(kBrake), kResetSafeParameters, kNoPersistParameters);
+							m_encoder.setPosition(0);
+						});
 	}
 
 	/**
@@ -87,17 +83,9 @@ public class CheeseStickSubsystem extends SubsystemBase {
 	 * @return The command.
 	 */
 	private Command createMoveCommand(double distance) {
-		Timer timer = new Timer();
 		PIDController PID = new PIDController(kP, 0, 0);
 		PID.setTolerance(kTolerance);
 		return new Command() {
-			/**
-			 * Starts the timeout timer.
-			 */
-			public void initialize() {
-				timer.start();
-			}
-
 			/**
 			 * Evaluate the PID controller.
 			 */
@@ -109,7 +97,7 @@ public class CheeseStickSubsystem extends SubsystemBase {
 			 * Checks if the position is within tolerance or if the timeout has ocurred.
 			 */
 			public boolean isFinished() {
-				return PID.atSetpoint() || timer.hasElapsed(kGripTimeout);
+				return PID.atSetpoint();
 			}
 
 			/**
@@ -119,7 +107,7 @@ public class CheeseStickSubsystem extends SubsystemBase {
 				m_motor.set(0);
 				PID.close();
 			}
-		};
+		}.withTimeout(kGripTimeout);
 	}
 
 	/**
