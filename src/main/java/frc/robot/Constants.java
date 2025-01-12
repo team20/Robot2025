@@ -70,4 +70,21 @@ public class Constants {
 		}
 	}
 
+	public static final class WristConstants {
+		// CAN IDs
+		public static final int kWristPort = 60;
+		public static final int kSmartCurrentLimit = 45;
+		public static final int kSecondaryCurrentLimit = 45;
+
+		// Make sure these are tuned (can do with SysId)
+		public static final double kP = 0.09;
+		public static final double kI = 0.0;
+		public static final double kD = 0;
+		public static final double kS = 0;
+		public static final double kV = 0.11;
+		public static final double kA = 0.009;
+
+		public static final double kTolerance = 0;
+	}
+
 }
