@@ -33,7 +33,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 public class ElevatorSubsystem extends SubsystemBase {
 
 	private final SparkMax m_masterMotor = new SparkMax(kElevatorMotorRightPort, MotorType.kBrushless);
-	private final SparkMax m_followerMotor = new SparkMax(kElevatorMotorLeftPort, MotorType.kBrushless);
+	// private final SparkMax m_followerMotor = new SparkMax(kElevatorMotorLeftPort,
+	// MotorType.kBrushless);
 
 	private final RelativeEncoder m_masterEncoder = m_masterMotor.getEncoder(); // TODO: Is this the right encoder?
 
@@ -54,13 +55,14 @@ public class ElevatorSubsystem extends SubsystemBase {
 				.feedbackSensor(FeedbackSensor.kPrimaryEncoder)
 				.pid(kP, kI, kD);
 
-		var followerConfig = new SparkMaxConfig();
-		followerConfig.apply(config);
-		followerConfig
-				.follow(kElevatorMotorRightPort); // TODO: INVERTED?
+		// var followerConfig = new SparkMaxConfig();
+		// followerConfig.apply(config);
+		// followerConfig
+		// .follow(kElevatorMotorRightPort); // TODO: INVERTED?
 
 		m_masterMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-		m_followerMotor.configure(followerConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+		// m_followerMotor.configure(followerConfig, ResetMode.kResetSafeParameters,
+		// PersistMode.kPersistParameters);
 
 		resetEncoder();
 	}
