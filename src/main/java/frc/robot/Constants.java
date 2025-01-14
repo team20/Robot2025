@@ -68,6 +68,9 @@ public class Constants {
 			kDriveConfig.ClosedLoopRamps.VoltageClosedLoopRampPeriod = kRampRate;
 			kDriveConfig.OpenLoopRamps.VoltageOpenLoopRampPeriod = kRampRate;
 		}
+
+		public static final double kModuleResponseTimeSeconds = 0.02;
+
 	}
 
 }

@@ -16,6 +16,7 @@ import com.studica.frc.AHRS.NavXComType;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
@@ -24,6 +25,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -42,6 +44,8 @@ public class DriveSubsystem extends SubsystemBase {
 	private final AHRS m_gyro = new AHRS(NavXComType.kMXP_SPI);
 	// https://docs.wpilib.org/en/latest/docs/software/advanced-controls/system-identification/index.html
 	private final SysIdRoutine m_sysidRoutine;
+
+	private Pose2d m_pose = new Pose2d(0, 0, new Rotation2d());
 
 	private final StructPublisher<Pose2d> m_posePublisher;
 	private final StructArrayPublisher<SwerveModuleState> m_targetModuleStatePublisher;
@@ -88,7 +92,7 @@ public class DriveSubsystem extends SubsystemBase {
 	 * @return The heading
 	 */
 	public Rotation2d getHeading() {
-		return m_gyro.getRotation2d();
+		return RobotBase.isReal() ? m_gyro.getRotation2d() : m_pose.getRotation();
 	}
 
 	/**
@@ -107,7 +111,7 @@ public class DriveSubsystem extends SubsystemBase {
 	 * @return The pose of the robot.
 	 */
 	public Pose2d getPose() {
-		return m_odometry.getPoseMeters();
+		return m_pose;
 	}
 
 	/**
@@ -130,6 +134,12 @@ public class DriveSubsystem extends SubsystemBase {
 	private SwerveModuleState[] calculateModuleStates(ChassisSpeeds speeds, boolean isFieldRelative) {
 		if (isFieldRelative) {
 			speeds = ChassisSpeeds.fromFieldRelativeSpeeds(speeds, getHeading());
+		}
+		if (RobotBase.isSimulation()) {
+			var transform = new Transform2d(speeds.vxMetersPerSecond * kModuleResponseTimeSeconds * 3,
+					speeds.vyMetersPerSecond * kModuleResponseTimeSeconds * 3, new Rotation2d(
+							speeds.omegaRadiansPerSecond * kModuleResponseTimeSeconds * 3));
+			m_pose = m_pose.plus(transform);
 		}
 		SwerveModuleState[] states = m_kinematics.toSwerveModuleStates(speeds);
 		SwerveDriveKinematics.desaturateWheelSpeeds(states, kTeleopMaxVoltage);
@@ -170,7 +180,9 @@ public class DriveSubsystem extends SubsystemBase {
 
 	@Override
 	public void periodic() {
-		m_posePublisher.set(m_odometry.update(getHeading(), getModulePositions()));
+		if (RobotBase.isReal())
+			m_pose = m_odometry.update(getHeading(), getModulePositions());
+		m_posePublisher.set(m_pose);
 		SwerveModuleState[] states = { m_frontLeft.getModuleState(), m_frontRight.getModuleState(),
 				m_backLeft.getModuleState(), m_backRight.getModuleState() };
 		m_currentModuleStatePublisher.set(states);
@@ -240,4 +252,15 @@ public class DriveSubsystem extends SubsystemBase {
 	public Command sysidDynamic(SysIdRoutine.Direction direction) {
 		return m_sysidRoutine.dynamic(direction);
 	}
+
+	/**
+	 * Closes this {@code DriveSubsystem} to support JUnit tests.
+	 */
+	public void close() {
+		m_frontLeft.close();
+		m_frontRight.close();
+		m_backLeft.close();
+		m_backRight.close();
+	}
+
 }

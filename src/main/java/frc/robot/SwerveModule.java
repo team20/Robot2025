@@ -165,4 +165,13 @@ public class SwerveModule {
 			encoderSimState.setVelocity(m_steerMotorModel.getAngularVelocityRPM());
 		}
 	}
+
+	/**
+	 * Closes this {@code SwerveModule} to support JUnit tests.
+	 */
+	public void close() {
+		m_CANCoder.close();
+		m_driveMotor.close();
+		m_steerMotor.close();
+	}
 }
