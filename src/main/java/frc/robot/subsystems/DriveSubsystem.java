@@ -10,12 +10,17 @@ import static frc.robot.Constants.DriveConstants.*;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
+import org.photonvision.targeting.PhotonTrackedTarget;
+
 import com.studica.frc.AHRS;
 import com.studica.frc.AHRS.NavXComType;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
@@ -24,6 +29,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -42,6 +48,8 @@ public class DriveSubsystem extends SubsystemBase {
 	private final AHRS m_gyro = new AHRS(NavXComType.kMXP_SPI);
 	// https://docs.wpilib.org/en/latest/docs/software/advanced-controls/system-identification/index.html
 	private final SysIdRoutine m_sysidRoutine;
+	private final SwerveDrivePoseEstimator m_poseEstimator;
+	private final Vision m_vision;
 
 	private final StructPublisher<Pose2d> m_posePublisher;
 	private final StructArrayPublisher<SwerveModuleState> m_targetModuleStatePublisher;
@@ -80,6 +88,8 @@ public class DriveSubsystem extends SubsystemBase {
 			e.printStackTrace();
 		}
 		m_odometry = new SwerveDriveOdometry(m_kinematics, getHeading(), getModulePositions());
+		m_vision = new Vision();
+		m_poseEstimator = new SwerveDrivePoseEstimator(m_kinematics, getHeading(), getModulePositions(), getPose());
 	}
 
 	/**
@@ -108,6 +118,12 @@ public class DriveSubsystem extends SubsystemBase {
 	 */
 	public Pose2d getPose() {
 		return m_odometry.getPoseMeters();
+	}
+
+	public void addVisionMeasurement() {
+		PhotonTrackedTarget target = m_vision.getBestTarget(); // TODO should this just be integrated into Vision
+		Pose2d visionPose = m_vision.getVisionPose(target).toPose2d();
+		m_poseEstimator.addVisionMeasurement(visionPose, Timer.getFPGATimestamp());
 	}
 
 	/**
@@ -205,6 +221,64 @@ public class DriveSubsystem extends SubsystemBase {
 
 			drive(fwdSpeed, strSpeed, rotSpeed, isFieldRelative.getAsBoolean());
 		}).withName("DefaultDriveCommand");
+	}
+
+	/**
+	 * Creates a command to drive the robot with joystick input.
+	 *
+	 * @param forwardSpeed Forward speed supplier. Positive values make the robot
+	 *        go forward (+X direction).
+	 * @param strafeSpeed Strafe speed supplier. Positive values make the robot
+	 *        go to the left (+Y direction).
+	 * @param rotation Rotation speed supplier. Positive values make the
+	 *        robot rotate CCW.
+	 * @param isFieldRelative Supplier for determining if driving should be field
+	 *        relative.
+	 * @return A command to drive the robot.
+	 */
+	public Command tagDriveCommand(DoubleSupplier forwardSpeed, DoubleSupplier strafeSpeed,
+			DoubleSupplier rotation, BooleanSupplier isFieldRelative) {
+		return run(() -> {
+			// Get the forward, strafe, and rotation speed, using a deadband on the joystick
+			// input so slight movements don't move the robot
+			// this can definitely be cleaned up but i didn't feel like it
+			double rotSpeed = MathUtil.applyDeadband(rotation.getAsDouble(), ControllerConstants.kDeadzone);
+			double fwdSpeed = MathUtil.applyDeadband(forwardSpeed.getAsDouble(), ControllerConstants.kDeadzone);
+			double strSpeed = MathUtil.applyDeadband(strafeSpeed.getAsDouble(), ControllerConstants.kDeadzone);
+			rotSpeed = Math.signum(rotSpeed) * Math.pow(rotSpeed, 2);
+			fwdSpeed = Math.signum(fwdSpeed) * Math.pow(fwdSpeed, 2);
+			strSpeed = Math.signum(strSpeed) * Math.pow(strSpeed, 2);
+
+			// Detect nearest April Tag and get translation data from joysticks and tag
+			// Calculate translation between driver movement and target movement to tag
+			PhotonTrackedTarget target = m_vision.getBestTarget();
+			Translation2d jsTranslation = new Translation2d(forwardSpeed.getAsDouble(), strafeSpeed.getAsDouble());
+			Translation2d targetPos = m_vision.getTranslationToTarget(target);
+			Translation2d posDiff = jsTranslation.minus(targetPos);
+
+			// Get rotation data from joysticks and April Tag
+			// Calculate angle between driver rotation and target rotation to tag
+			Rotation2d jsRotation = new Rotation2d(forwardSpeed.getAsDouble(), strafeSpeed.getAsDouble());
+			Rotation2d targetAngle = m_vision.getYawToPose(target);
+			Rotation2d angleDiff = jsRotation.minus(targetAngle);
+
+			// Use PID controller to calculate needed speeds for movement towards April Tag
+			PIDController tagController = new PIDController(0.2, 0, 0); // TODO idk what PID constants to use
+			if (Math.abs(posDiff.getX()) < 3) {
+				fwdSpeed += tagController.calculate(jsTranslation.getX(), targetPos.getX());
+			} else if (Math.abs(posDiff.getY()) < 3) {
+				strSpeed += tagController.calculate(jsTranslation.getY(), targetPos.getY());
+			} else if (Math.abs(angleDiff.getDegrees()) < 30) { // TODO idk how close "close" is
+				rotSpeed += tagController.calculate(jsRotation.getRotations(), targetAngle.getRotations());
+			}
+
+			// Convert speeds to volts
+			rotSpeed *= kTeleopMaxTurnVoltage;
+			fwdSpeed *= kTeleopMaxVoltage;
+			strSpeed *= kTeleopMaxVoltage;
+
+			drive(fwdSpeed, strSpeed, rotSpeed, isFieldRelative.getAsBoolean());
+		}).withName("TagDriveCommand");
 	}
 
 	/**
