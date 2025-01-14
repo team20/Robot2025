@@ -4,11 +4,14 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
 import frc.robot.Constants.ControllerConstants;
+import frc.robot.commands.DriveCommand;
 import frc.robot.subsystems.DriveSubsystem;
 
 public class Robot extends TimedRobot {
@@ -82,6 +85,15 @@ public class Robot extends TimedRobot {
 	@Override
 	public void testInit() {
 		CommandScheduler.getInstance().cancelAll();
+		// we can test critical subsystems and commands here.
+		// test DriveSubsystem#drive(...): move forward, backward, strafe left, strafe
+		// right, and turn left and right
+		m_driveSubsystem.testCommand().andThen(
+				// test DriveCommand: move to (.2, .2, 90)
+				new DriveCommand(m_driveSubsystem, new Pose2d(.2, .2, Rotation2d.fromDegrees(90)), .1, 3)).andThen(
+						// test DriveCommand: move to (0, 0, 0)
+						new DriveCommand(m_driveSubsystem, new Pose2d(0, 0, Rotation2d.fromDegrees(0)), .1, 3))
+				.schedule();
 	}
 
 	@Override

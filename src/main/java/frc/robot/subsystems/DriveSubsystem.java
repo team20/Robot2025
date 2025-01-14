@@ -53,7 +53,8 @@ public class DriveSubsystem extends SubsystemBase {
 
 	/** Creates a new DriveSubsystem. */
 	public DriveSubsystem() {
-		m_posePublisher = NetworkTableInstance.getDefault().getStructTopic("/SmartDashboard/Pose", Pose2d.struct)
+		m_posePublisher = NetworkTableInstance.getDefault()
+				.getStructTopic("/SmartDashboard/Pose@DriveSubsystem", Pose2d.struct)
 				.publish();
 		m_targetModuleStatePublisher = NetworkTableInstance.getDefault()
 				.getStructArrayTopic("/SmartDashboard/Target Swerve Modules States", SwerveModuleState.struct)
@@ -261,6 +262,22 @@ public class DriveSubsystem extends SubsystemBase {
 		m_frontRight.close();
 		m_backLeft.close();
 		m_backRight.close();
+	}
+
+	/**
+	 * Creates a {@code Command} for testing this {@code DriveSubsystem}. The robot
+	 * must move forward, backward, strafe left, strafe right, and turn left and
+	 * right.
+	 * 
+	 * @return a {@code Command} for testing this {@code DriveSubsystem}
+	 */
+	public Command testCommand() {
+		return run(() -> drive(.1, 0, 0, false)).withTimeout(.5)
+				.andThen(run(() -> drive(-.1, 0, 0, false)).withTimeout(.5))
+				.andThen(run(() -> drive(0, .1, 0, false)).withTimeout(.5))
+				.andThen(run(() -> drive(0, -.1, 0, false)).withTimeout(.5))
+				.andThen(run(() -> drive(0, 0, .3, false)).withTimeout(.5))
+				.andThen(run(() -> drive(0, 0, -.3, false)).withTimeout(.5));
 	}
 
 }
