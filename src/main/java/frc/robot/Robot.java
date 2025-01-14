@@ -67,6 +67,14 @@ public class Robot extends TimedRobot {
 
 	@Override
 	public void autonomousPeriodic() {
+		int id = m_ApTag.getTargetId();
+		if (id == 2) {
+			m_motor.set(-0.4);
+		} else if (id == 1) {
+			m_motor.set(0.4);
+		} else {
+			m_motor.set(0);
+		}
 	}
 
 	@Override
@@ -95,15 +103,6 @@ public class Robot extends TimedRobot {
 
 	@Override
 	public void testPeriodic() {
-		if (m_ApTag.getHasTargets()) {
-			m_motor.set(0.4);
-
-		} else {
-
-		}
-		{
-			m_motor.set(0.0);
-		}
 	}
 
 	@Override

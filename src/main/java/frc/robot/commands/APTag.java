@@ -16,23 +16,23 @@ public class APTag {
 		camera = new PhotonCamera("Cool camera");
 	}
 
-	public boolean getHasTargets() {
+	public int getTargetId() {
 		List<PhotonPipelineResult> results = camera.getAllUnreadResults();
 
 		if (results.size() < 1) {
-			return false;
+			return -1;
 		}
 
-		PhotonPipelineResult result = camera.getAllUnreadResults().get(0);
+		PhotonPipelineResult result = results.get(0);
 
 		SmartDashboard.putBoolean("Has Targets", result.hasTargets());
 
 		if (result.hasTargets()) {
-			return result.getBestTarget().getFiducialId() == 1;
+			return result.getBestTarget().getFiducialId();
 		}
 
 		else {
-			return false;
+			return -1;
 		}
 	}
 }
