@@ -29,7 +29,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 public class PhotonPoseEstimationSubsystem extends SubsystemBase {
 
 	/**
-	 * The {@code PhotonCamera} used by the {@code PhotonPoseEstimationSubsystem}.
+	 * The {@code PhotonCamera} used by this {@code PhotonPoseEstimationSubsystem}.
 	 */
 	private PhotonCamera m_camera;
 
