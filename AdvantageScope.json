@@ -10,7 +10,8 @@
           "width": 300,
           "expanded": [
             "/SmartDashboard",
-            "/SmartDashboard/Pose"
+            "/SmartDashboard/Pose",
+            "/SmartDashboard/Pose@DriveSubsystem/translation"
           ]
         },
         "tabs": {
@@ -75,7 +76,17 @@
               "type": 3,
               "title": "3D Field",
               "controller": {
-                "sources": [],
+                "sources": [
+                  {
+                    "type": "robot",
+                    "logKey": "NT:/SmartDashboard/Pose@DriveSubsystem",
+                    "logType": "Pose2d",
+                    "visible": true,
+                    "options": {
+                      "model": "2025 KitBot"
+                    }
+                  }
+                ],
                 "game": "2025 Field",
                 "origin": "blue"
               },
@@ -92,6 +103,41 @@
                   0,
                   0.5,
                   0
+                ]
+              },
+              "controlsHeight": 200
+            },
+            {
+              "type": 3,
+              "title": "3D Field",
+              "controller": {
+                "sources": [
+                  {
+                    "type": "robot",
+                    "logKey": "NT:/SmartDashboard/Pose@DriveSubsystem",
+                    "logType": "Pose2d",
+                    "visible": true,
+                    "options": {
+                      "model": "2025 KitBot"
+                    }
+                  }
+                ],
+                "game": "2025 Field",
+                "origin": "blue"
+              },
+              "controllerUUID": "47ogsmsytce2rvccyxnfqa64ahr76k9g",
+              "renderer": {
+                "cameraIndex": 0,
+                "orbitFov": 50,
+                "cameraPosition": [
+                  8.4241125,
+                  0.4999999999999983,
+                  -4.025899999999999
+                ],
+                "cameraTarget": [
+                  7.4241125,
+                  0.4999999999999982,
+                  -4.025899999999999
                 ]
               },
               "controlsHeight": 200

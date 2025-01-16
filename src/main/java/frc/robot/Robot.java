@@ -86,13 +86,12 @@ public class Robot extends TimedRobot {
 	public void testInit() {
 		CommandScheduler.getInstance().cancelAll();
 		// we can test critical subsystems and commands here.
-		// test DriveSubsystem#drive(...): move forward, backward, strafe left, strafe
-		// right, and turn left and right
-		m_driveSubsystem.testCommand().andThen(
+		m_driveSubsystem.testCommand() // test DriveSubsystem#drive(...)
+				// move forward, backward, strafe left, strafe right, and turn left and right
+				.andThen(new DriveCommand(m_driveSubsystem, new Pose2d(.2, .2, Rotation2d.fromDegrees(90)), .1, 3))
 				// test DriveCommand: move to (.2, .2, 90)
-				new DriveCommand(m_driveSubsystem, new Pose2d(.2, .2, Rotation2d.fromDegrees(90)), .1, 3)).andThen(
-						// test DriveCommand: move to (0, 0, 0)
-						new DriveCommand(m_driveSubsystem, new Pose2d(0, 0, Rotation2d.fromDegrees(0)), .1, 3))
+				.andThen(new DriveCommand(m_driveSubsystem, new Pose2d(0, 0, Rotation2d.fromDegrees(0)), .1, 3))
+				// test DriveCommand: move to (0, 0, 0)
 				.schedule();
 	}
 
