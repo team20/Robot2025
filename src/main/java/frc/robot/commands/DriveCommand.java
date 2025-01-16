@@ -11,8 +11,8 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.DriveSubsystem;
 
 /**
- * The {@code DriveCommand} is responsible for moving the robot from the current
- * pose to a certain target pose.
+ * This {@code DriveCommand} aims to maneuver the robot from its current pose to
+ * a certain target pose.
  * It utilizes three {@code ProfiledPIDController}s to precisely control the
  * robot in the x, y, and yaw dimensions.
  * 
@@ -32,7 +32,7 @@ public class DriveCommand extends Command {
 	private Supplier<Pose2d> m_poseSupplier;
 
 	/**
-	 * The target pose to which the robot should move.
+	 * The target pose to which the robot needs to move.
 	 */
 	private Pose2d m_targetPose;
 
@@ -59,7 +59,7 @@ public class DriveCommand extends Command {
 	 * robot to a certain target pose.
 	 * 
 	 * @param driveSubsystem the {@code DriveSubsystem} to use
-	 * @param targetPose the target pose to which the robot should move.
+	 * @param targetPose the target pose to which the robot needs to move
 	 * @param distanceTolerance the distance error in meters which is tolerable
 	 * @param angleTolerance the angle error in degrees which is tolerable
 	 */
@@ -76,7 +76,7 @@ public class DriveCommand extends Command {
 	 * @param driveSubsystem the {@code DriveSubsystem} to use
 	 * @param poseSupplier the {@code Supplier} providing the current {@code Pose2d}
 	 *        of the robot
-	 * @param targetPose the target pose to which the robot should move.
+	 * @param targetPose the target pose to which the robot needs to move
 	 * @param distanceTolerance the distance error in meters which is tolerable
 	 * @param angleTolerance the angle error in degrees which is tolerable
 	 */
