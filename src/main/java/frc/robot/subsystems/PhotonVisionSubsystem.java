@@ -22,20 +22,20 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 /**
- * This {@code PhotonPoseEstimationSubsystem} uses a {@code PhotonCamera} and a
+ * This {@code PhotonVisionSubsystem} uses a {@code PhotonCamera} and a
  * {@code PhotonPoseEstimator} to keep track of the current {@code Pose2d} of
  * the robot.
  */
-public class PhotonPoseEstimationSubsystem extends SubsystemBase {
+public class PhotonVisionSubsystem extends SubsystemBase {
 
 	/**
-	 * The {@code PhotonCamera} used by this {@code PhotonPoseEstimationSubsystem}.
+	 * The {@code PhotonCamera} used by this {@code PhotonVisionSubsystem}.
 	 */
 	private PhotonCamera m_camera;
 
 	/**
 	 * The {@code PhotonPoseEstimator} used by this
-	 * {@code PhotonPoseEstimationSubsystem}.
+	 * {@code PhotonVisionSubsystem}.
 	 */
 	private PhotonPoseEstimator m_poseEstimator;
 
@@ -46,7 +46,7 @@ public class PhotonPoseEstimationSubsystem extends SubsystemBase {
 
 	/**
 	 * The {@code AprilTagFieldLayout} used by this
-	 * {@code PhotonPoseEstimationSubsystem}.
+	 * {@code PhotonVisionSubsystem}.
 	 */
 	private AprilTagFieldLayout m_fieldLayout;
 
@@ -57,16 +57,16 @@ public class PhotonPoseEstimationSubsystem extends SubsystemBase {
 	private final StructPublisher<Pose2d> m_posePublisher;
 
 	/**
-	 * Constructs a {@code PhotonPoseEstimationSubsystem}.
+	 * Constructs a {@code PhotonVisionSubsystem}.
 	 */
-	public PhotonPoseEstimationSubsystem() {
+	public PhotonVisionSubsystem() {
 		m_camera = new PhotonCamera("Cool camera");
 		// TODO enter the correct x, y, and z-coordinate values
 		Transform3d robotToCam = new Transform3d(new Translation3d(0.5, 0.0, 0.5), new Rotation3d(0, 0, 0));
 		m_fieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
 		m_poseEstimator = new PhotonPoseEstimator(m_fieldLayout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, robotToCam);
 		m_posePublisher = NetworkTableInstance.getDefault()
-				.getStructTopic("/SmartDashboard/Pose@PhotonPoseEstimationSubsystem", Pose2d.struct)
+				.getStructTopic("/SmartDashboard/Pose@PhotonVisionSubsystem", Pose2d.struct)
 				.publish();
 	}
 
@@ -95,10 +95,10 @@ public class PhotonPoseEstimationSubsystem extends SubsystemBase {
 
 	/**
 	 * Returns the {@code AprilTagFieldLayout} used by this
-	 * {@code PhotonPoseEstimationSubsystem}.
+	 * {@code PhotonVisionSubsystem}.
 	 * 
 	 * @return the {@code AprilTagFieldLayout} used by this
-	 *         {@code PhotonPoseEstimationSubsystem}
+	 *         {@code PhotonVisionSubsystem}
 	 */
 	public AprilTagFieldLayout getFieldLayout() {
 		return m_fieldLayout;
