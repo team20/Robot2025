@@ -1,9 +1,8 @@
-//TODO: Make this into a subsystem inline
-
 package frc.robot.subsystems;
 
 import java.util.Map;
 
+import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.PhotonPoseEstimator.PoseStrategy;
@@ -40,15 +39,14 @@ public class PhotonVisionSubsystem extends SubsystemBase {
 	private PhotonPoseEstimator m_poseEstimator;
 
 	/**
-	 * The latest estimated {@code Pose2d} of the robot.
+	 * The latest {@code EstimatedRobotPose} of the robot.
 	 */
-	private Pose2d m_pose;
+	private EstimatedRobotPose m_pose;
 
 	/**
-	 * The {@code AprilTagFieldLayout} used by this
-	 * {@code PhotonVisionSubsystem}.
+	 * The {@code AprilTagFieldLayout} used by the {@code PhotonVisionSubsystem}.
 	 */
-	private AprilTagFieldLayout m_fieldLayout;
+	public static AprilTagFieldLayout fieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
 
 	/**
 	 * The {@code StructPublisher} for reporting the current {@code Pose2d} of
@@ -58,13 +56,17 @@ public class PhotonVisionSubsystem extends SubsystemBase {
 
 	/**
 	 * Constructs a {@code PhotonVisionSubsystem}.
+	 * 
+	 * @param cameraName the nickname of the camera to be used by the
+	 *        {@code PhotonVisionSubsystem} (found in the PhotonVision UI).
 	 */
-	public PhotonVisionSubsystem() {
-		m_camera = new PhotonCamera("Cool camera");
+	public PhotonVisionSubsystem(String cameraName) { // "Cool camera"
+		m_camera = new PhotonCamera(cameraName);
 		// TODO enter the correct x, y, and z-coordinate values
 		Transform3d robotToCam = new Transform3d(new Translation3d(0.5, 0.0, 0.5), new Rotation3d(0, 0, 0));
-		m_fieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
-		m_poseEstimator = new PhotonPoseEstimator(m_fieldLayout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, robotToCam);
+		// TODO choose the best PoseStrategy
+		m_poseEstimator = new PhotonPoseEstimator(fieldLayout,
+				PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, robotToCam);
 		m_posePublisher = NetworkTableInstance.getDefault()
 				.getStructTopic("/SmartDashboard/Pose@PhotonVisionSubsystem", Pose2d.struct)
 				.publish();
@@ -77,31 +79,21 @@ public class PhotonVisionSubsystem extends SubsystemBase {
 	public void periodic() {
 		for (var r : m_camera.getAllUnreadResults()) {
 			var e = m_poseEstimator.update(r);
-			if (e.isPresent()) {
-				m_pose = e.get().estimatedPose.toPose2d();
-				m_posePublisher.set(m_pose);
-			}
+			if (e.isPresent())
+				m_pose = e.get();
 		}
+		m_posePublisher.set(m_pose == null ? null : m_pose.estimatedPose.toPose2d());
 	}
 
 	/**
-	 * Returns the estimated {@code Pose2d} of the robot.
+	 * Returns the most recent {@code EstimatedRobotPose} of the robot (may be
+	 * outdated if recent pose detections failed consecutively).
 	 * 
-	 * @return the estimated {@code Pose2d} of the robot
+	 * @return the most recent {@code EstimatedRobotPose} of the robot (may be
+	 *         outdated if recent pose detections failed consecutively)
 	 */
-	public Pose2d getPose() {
+	public EstimatedRobotPose getPose() {
 		return m_pose;
-	}
-
-	/**
-	 * Returns the {@code AprilTagFieldLayout} used by this
-	 * {@code PhotonVisionSubsystem}.
-	 * 
-	 * @return the {@code AprilTagFieldLayout} used by this
-	 *         {@code PhotonVisionSubsystem}
-	 */
-	public AprilTagFieldLayout getFieldLayout() {
-		return m_fieldLayout;
 	}
 
 	/**
@@ -110,9 +102,19 @@ public class PhotonVisionSubsystem extends SubsystemBase {
 	 * @return the {@code AprilTag} closest to the robot
 	 */
 	public AprilTag getClosestTag() {
-		return m_pose == null ? null
-				: m_fieldLayout.getTags().stream()
-						.map(t -> Map.entry(t, PhotonUtils.getDistanceToPose(m_pose, t.pose.toPose2d())))
+		return getClosestTag(m_pose == null ? null : m_pose.estimatedPose.toPose2d());
+	}
+
+	/**
+	 * Returns the {@code AprilTag} closest to the specified {@code Pose2d}.
+	 * 
+	 * @param pose a {@code Pose2d}
+	 * @return the {@code AprilTag} closest to the specified {@code Pose2d}
+	 */
+	public static AprilTag getClosestTag(Pose2d pose) {
+		return pose == null ? null
+				: fieldLayout.getTags().stream()
+						.map(t -> Map.entry(t, PhotonUtils.getDistanceToPose(pose, t.pose.toPose2d())))
 						.reduce((e1, e2) -> e1.getValue() < e2.getValue() ? e1 : e2).get().getKey();
 	}
 
