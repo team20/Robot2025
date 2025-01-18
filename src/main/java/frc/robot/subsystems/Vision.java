@@ -3,34 +3,62 @@
 package frc.robot.subsystems;
 
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 
+import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.PhotonPoseEstimator.PoseStrategy;
 import org.photonvision.PhotonUtils;
+import org.photonvision.simulation.PhotonCameraSim;
+import org.photonvision.simulation.VisionSystemSim;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Vision {
-	PhotonCamera camera;
-	AprilTagFieldLayout aprilTagFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
-	PhotonPoseEstimator poseEstimator = new PhotonPoseEstimator(
+	PhotonCamera m_camera;
+	PhotonCameraSim m_cameraSim;
+	VisionSystemSim m_sim;
+	Transform3d robotToCamera = new Transform3d(0.5, 0.5, 0.5, new Rotation3d());
+	Matrix<N3, N1> currentSTD;
+	AprilTagFieldLayout aprilTagFieldLayout = AprilTagFieldLayout
+			.loadField(AprilTagFields.k2025Reefscape);
+	PhotonPoseEstimator m_poseEstimator = new PhotonPoseEstimator(
 			aprilTagFieldLayout,
 			PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
-			new Transform3d(0.5, 0.5, 0.5, new Rotation3d())); // TODO change z for tag height
+			robotToCamera); // TODO change z for tag height
 
 	// Creates a new Vision class.
 	public Vision() {
-		camera = new PhotonCamera("Cool camera");
+		m_camera = new PhotonCamera("Cool camera");
+		// Initializes vision simulation system and camera
+		if (RobotBase.isSimulation()) {
+			m_sim = new VisionSystemSim("sim");
+			m_sim.addAprilTags(aprilTagFieldLayout);
+			m_cameraSim = new PhotonCameraSim(m_camera);
+			m_sim.addCamera(m_cameraSim, robotToCamera);
+			m_cameraSim.enableDrawWireframe(true); // check if this affects robot
+		} else {
+			m_sim = null;
+			m_cameraSim = null;
+		}
+
 	}
 
 	/**
@@ -39,7 +67,7 @@ public class Vision {
 	 * @return The Fiducial ID of the viewed April Tag.
 	 */
 	public int getTargetId() {
-		List<PhotonPipelineResult> results = camera.getAllUnreadResults();
+		List<PhotonPipelineResult> results = m_camera.getAllUnreadResults();
 
 		if (results.size() < 1) {
 			return -1;
@@ -58,6 +86,10 @@ public class Vision {
 		}
 	}
 
+	// public List<PhotonTrackedTarget> getTargets() {
+	// return m_camera.getAllUnreadResults().get(0);
+	// }
+
 	/**
 	 * Identifies the best target seen by the camera
 	 * (should be run periodically for up-to-date results).
@@ -65,7 +97,7 @@ public class Vision {
 	 * @return The best target (April Tag)
 	 */
 	public PhotonTrackedTarget getBestTarget() {
-		return camera.getAllUnreadResults().get(0).getBestTarget();
+		return m_camera.getAllUnreadResults().get(0).getBestTarget();
 	}
 
 	/**
@@ -76,6 +108,23 @@ public class Vision {
 	 */
 	public Pose3d getTargetPose(PhotonTrackedTarget target) {
 		return aprilTagFieldLayout.getTagPose(target.getFiducialId()).get();
+	}
+
+	/**
+	 * Gets the field-relative pose of the robot.
+	 * 
+	 * @param target The target (April Tag) viewed by the camera.
+	 * @return The robot's pose
+	 */
+	public Pose3d getVisionPose() {
+		PhotonTrackedTarget target = getBestTarget();
+		if (aprilTagFieldLayout.getTagPose(target.getFiducialId()).isPresent()) {
+			return PhotonUtils.estimateFieldToRobotAprilTag(
+					target.getBestCameraToTarget(),
+					getTargetPose(target),
+					new Transform3d(-0.5, -0.5, -0.5, new Rotation3d())); // TODO fix camera to robot
+		} else
+			return null;
 	}
 
 	/**
@@ -130,5 +179,61 @@ public class Vision {
 		return PhotonUtils.getYawToPose(
 				getVisionPose(target).toPose2d(),
 				getTargetPose(target).toPose2d());
+	}
+
+	public void updateEstSTD(Optional<EstimatedRobotPose> estPose, List<PhotonTrackedTarget> targets) {
+		currentSTD = VecBuilder.fill(2, 2, 4); // TODO taken from PhotonVision example code
+		if (!estPose.isEmpty()) {
+			var estSTD = currentSTD;
+			Pose3d tagPose;
+			int numTags = 0;
+			double avgDist = 0;
+			for (var t : targets) {
+				try {
+					tagPose = getTargetPose(t);
+				} catch (NoSuchElementException e) {
+					continue;
+				}
+				numTags++;
+				avgDist += PhotonUtils.getDistanceToPose(estPose.get().estimatedPose.toPose2d(), tagPose.toPose2d());
+				// TODO turn into a method?
+			}
+
+			if (numTags != 0) {
+				avgDist /= numTags;
+				if (numTags > 1)
+					estSTD = VecBuilder.fill(0.5, 0.5, 1); // TODO taken from PhotonVision example code
+				if (numTags == 1 && avgDist > 4)
+					estSTD = VecBuilder.fill(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE); // from example code
+				else
+					estSTD = estSTD.times(1 + (Math.pow(avgDist, 2) / 30)); // math taken from PhotonVision example code
+				currentSTD = estSTD;
+			}
+		}
+	}
+
+	public Optional<EstimatedRobotPose> getEstimatedGlobalPose() {
+		Optional<EstimatedRobotPose> estimation = Optional.empty();
+		for (var r : m_camera.getAllUnreadResults()) {
+			estimation = m_poseEstimator.update(r);
+			updateEstSTD(estimation, r.getTargets());
+
+			if (RobotBase.isSimulation()) {
+				estimation.ifPresentOrElse(
+						est -> m_sim.getDebugField().getObject("VisionEstimation")
+								.setPose(est.estimatedPose.toPose2d()),
+						() -> m_sim.getDebugField().getObject("VisionEstimation").setPoses());
+			}
+		}
+		return estimation;
+	}
+
+	/**
+	 * Gets the robot's rotation (angle/yaw) to the target.
+	 * 
+	 * @param botPose The tar
+	 */
+	public void updateVisionSim(Pose2d botPose) {
+		m_sim.update(botPose);
 	}
 }

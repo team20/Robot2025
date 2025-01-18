@@ -44,20 +44,25 @@ public class DriveSubsystem extends SubsystemBase {
 
 	private final SwerveDriveKinematics m_kinematics = new SwerveDriveKinematics(
 			kFrontLeftLocation, kFrontRightLocation, kBackLeftLocation, kBackRightLocation);
-	private final SwerveDriveOdometry m_odometry;
 	private final AHRS m_gyro = new AHRS(NavXComType.kMXP_SPI);
 	// https://docs.wpilib.org/en/latest/docs/software/advanced-controls/system-identification/index.html
 	private final SysIdRoutine m_sysidRoutine;
 	private final SwerveDrivePoseEstimator m_poseEstimator;
 	private final Vision m_vision;
+	private final DriveSim m_driveSim;
+	private final SwerveDriveOdometry m_odometry;
 
 	private final StructPublisher<Pose2d> m_posePublisher;
+	private final StructPublisher<Pose2d> m_visionPosePublisher;
 	private final StructArrayPublisher<SwerveModuleState> m_targetModuleStatePublisher;
 	private final StructArrayPublisher<SwerveModuleState> m_currentModuleStatePublisher;
 
 	/** Creates a new DriveSubsystem. */
 	public DriveSubsystem() {
-		m_posePublisher = NetworkTableInstance.getDefault().getStructTopic("/SmartDashboard/Pose", Pose2d.struct)
+		m_posePublisher = NetworkTableInstance.getDefault().getStructTopic("/SmartDashboard/Pose2d", Pose2d.struct)
+				.publish();
+		m_visionPosePublisher = NetworkTableInstance.getDefault()
+				.getStructTopic("/SmartDashboard/VisionPose", Pose2d.struct)
 				.publish();
 		m_targetModuleStatePublisher = NetworkTableInstance.getDefault()
 				.getStructArrayTopic("/SmartDashboard/Target Swerve Modules States", SwerveModuleState.struct)
@@ -87,9 +92,11 @@ public class DriveSubsystem extends SubsystemBase {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+		m_driveSim = new DriveSim(m_kinematics, getHeading(), getModulePositions());
 		m_odometry = new SwerveDriveOdometry(m_kinematics, getHeading(), getModulePositions());
 		m_vision = new Vision();
-		m_poseEstimator = new SwerveDrivePoseEstimator(m_kinematics, getHeading(), getModulePositions(), getPose());
+		m_poseEstimator = new SwerveDrivePoseEstimator(m_kinematics, getHeading(), getModulePositions(),
+				m_driveSim.getSimPose());
 	}
 
 	/**
@@ -109,15 +116,6 @@ public class DriveSubsystem extends SubsystemBase {
 		m_frontRight.resetDriveEncoder();
 		m_backLeft.resetDriveEncoder();
 		m_backRight.resetDriveEncoder();
-	}
-
-	/**
-	 * Returns robot pose.
-	 * 
-	 * @return The pose of the robot.
-	 */
-	public Pose2d getPose() {
-		return m_odometry.getPoseMeters();
 	}
 
 	public void addVisionMeasurement() {
@@ -184,12 +182,42 @@ public class DriveSubsystem extends SubsystemBase {
 		setModuleStates(calculateModuleStates(new ChassisSpeeds(speedFwd, speedSide, speedRot), isFieldRelative));
 	}
 
+	/**
+	 * Returns robot pose.
+	 * 
+	 * @return The pose of the robot.
+	 */
+	public Pose2d getPose() {
+		return m_odometry.getPoseMeters();
+	}
+
 	@Override
 	public void periodic() {
-		m_posePublisher.set(m_odometry.update(getHeading(), getModulePositions()));
-		SwerveModuleState[] states = { m_frontLeft.getModuleState(), m_frontRight.getModuleState(),
+		// m_posePublisher.set(m_odometry.update(getHeading(), getModulePositions()));
+
+		SwerveModuleState[] states = { m_frontLeft.getModuleState(),
+				m_frontRight.getModuleState(),
 				m_backLeft.getModuleState(), m_backRight.getModuleState() };
 		m_currentModuleStatePublisher.set(states);
+
+		m_poseEstimator.update(getHeading(), getModulePositions());
+		var estPose = m_vision.getEstimatedGlobalPose();
+		estPose.ifPresent(
+				est -> {
+					m_visionPosePublisher.set(est.estimatedPose.toPose2d());
+					m_poseEstimator.addVisionMeasurement(
+							est.estimatedPose.toPose2d(),
+							est.timestampSeconds,
+							m_vision.currentSTD);
+				});
+		m_posePublisher.set(m_poseEstimator.getEstimatedPosition());
+	}
+
+	@Override
+	public void simulationPeriodic() {
+		m_vision.updateVisionSim(m_driveSim.getSimPose());
+		m_driveSim.updateSimPose(getHeading(), getModulePositions());
+		// m_posePublisher.set(m_driveSim.getSimPose());
 	}
 
 	/**
@@ -293,6 +321,11 @@ public class DriveSubsystem extends SubsystemBase {
 	public Command resetOdometryCommand(Pose2d pose) {
 		return runOnce(() -> m_odometry.resetPosition(getHeading(), getModulePositions(), pose))
 				.withName("ResetOdometryCommand");
+	}
+
+	public Command resetDriveSimCommand(Pose2d pose) {
+		return runOnce(() -> m_driveSim.resetSimPose(getHeading(), getModulePositions(), pose))
+				.withName("ResetDriveSimCommand");
 	}
 
 	/**
