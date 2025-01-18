@@ -4,9 +4,15 @@
 
 package frc.robot;
 
+import java.util.Map;
+import org.littletonrobotics.urcl.URCL;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.DataLogManager;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
@@ -19,8 +25,15 @@ public class Robot extends TimedRobot {
 	private final DriveSubsystem m_driveSubsystem = new DriveSubsystem();
 	private final CommandPS4Controller m_driverController = new CommandPS4Controller(
 			ControllerConstants.kDriverControllerPort);
+	private final PowerDistribution m_pdh = new PowerDistribution();
 
 	public Robot() {
+		SmartDashboard.putData(m_pdh);
+		SmartDashboard.putData(CommandScheduler.getInstance());
+		DataLogManager.start();
+		DataLogManager.logNetworkTables(true);
+		URCL.start(Map.of(11, "FR Turn", 21, "BR Turn", 31, "BL Turn", 41, "FL Turn"));
+		DriverStation.startDataLog(DataLogManager.getLog());
 		bindDriveControls();
 	}
 
