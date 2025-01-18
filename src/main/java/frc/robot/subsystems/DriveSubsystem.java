@@ -93,6 +93,7 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
 
 	@Override
 	public void close() {
+		m_gyro.close();
 		m_frontLeft.close();
 		m_frontRight.close();
 		m_backLeft.close();
