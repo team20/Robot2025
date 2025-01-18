@@ -55,7 +55,7 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
 	/** Creates a new DriveSubsystem. */
 	public DriveSubsystem() {
 		m_posePublisher = NetworkTableInstance.getDefault()
-				.getStructTopic("/SmartDashboard/Robot Pose", Pose2d.struct)
+				.getStructTopic("/SmartDashboard/Pose@DriveSubsystem", Pose2d.struct)
 				.publish();
 		m_currentChassisSpeedsPublisher = NetworkTableInstance.getDefault()
 				.getStructTopic("/SmartDashboard/Chassis Speeds", ChassisSpeeds.struct)

@@ -1,0 +1,152 @@
+{
+	"hubs": [
+		{
+			"x": 185,
+			"y": 97,
+			"width": 1100,
+			"height": 650,
+			"state": {
+				"sidebar": {
+					"width": 300,
+					"expanded": [
+						"/SmartDashboard",
+						"/SmartDashboard/Pose",
+						"/SmartDashboard/Pose@DriveSubsystem/translation"
+					]
+				},
+				"tabs": {
+					"selected": 2,
+					"tabs": [
+						{
+							"type": 0,
+							"title": "",
+							"controller": null,
+							"controllerUUID": "9pk2g822swp13wx0e3cac3alt2mhx7di",
+							"renderer": "#/",
+							"controlsHeight": 0
+						},
+						{
+							"type": 1,
+							"title": "Line Graph",
+							"controller": {
+								"leftSources": [],
+								"rightSources": [],
+								"discreteSources": [],
+								"leftLockedRange": null,
+								"rightLockedRange": null,
+								"leftUnitConversion": {
+									"type": null,
+									"factor": 1
+								},
+								"rightUnitConversion": {
+									"type": null,
+									"factor": 1
+								},
+								"leftFilter": 0,
+								"rightFilter": 0
+							},
+							"controllerUUID": "abujznmoo4dslalnqhlkzynew3qcali5",
+							"renderer": null,
+							"controlsHeight": 200
+						},
+						{
+							"type": 2,
+							"title": "Odometry",
+							"controller": {
+								"sources": [
+									{
+										"type": "robot",
+										"logKey": "NT:/SmartDashboard/Pose@DriveSubsystem",
+										"logType": "Pose2d",
+										"visible": true,
+										"options": {}
+									}
+								],
+								"game": "2025 Field",
+								"bumpers": "auto",
+								"origin": "blue",
+								"orientation": 0,
+								"size": 30
+							},
+							"controllerUUID": "bmgqrhbyjsrwa6xvd41krqbb7zic2qs3",
+							"renderer": null,
+							"controlsHeight": 200
+						},
+						{
+							"type": 3,
+							"title": "3D Field",
+							"controller": {
+								"sources": [
+									{
+										"type": "robot",
+										"logKey": "NT:/SmartDashboard/Pose@DriveSubsystem",
+										"logType": "Pose2d",
+										"visible": true,
+										"options": {
+											"model": "2025 KitBot"
+										}
+									}
+								],
+								"game": "2025 Field",
+								"origin": "blue"
+							},
+							"controllerUUID": "s90apnbcnwxsih7nu9s7uxyhdzitzy2w",
+							"renderer": {
+								"cameraIndex": -1,
+								"orbitFov": 50,
+								"cameraPosition": [
+									1.4695761589768238e-15,
+									5.999999999999999,
+									-12
+								],
+								"cameraTarget": [
+									0,
+									0.5,
+									0
+								]
+							},
+							"controlsHeight": 200
+						},
+						{
+							"type": 3,
+							"title": "3D Field",
+							"controller": {
+								"sources": [
+									{
+										"type": "robot",
+										"logKey": "NT:/SmartDashboard/Pose@DriveSubsystem",
+										"logType": "Pose2d",
+										"visible": true,
+										"options": {
+											"model": "2025 KitBot"
+										}
+									}
+								],
+								"game": "2025 Field",
+								"origin": "blue"
+							},
+							"controllerUUID": "47ogsmsytce2rvccyxnfqa64ahr76k9g",
+							"renderer": {
+								"cameraIndex": 0,
+								"orbitFov": 50,
+								"cameraPosition": [
+									8.4241125,
+									0.4999999999999983,
+									-4.025899999999999
+								],
+								"cameraTarget": [
+									7.4241125,
+									0.4999999999999982,
+									-4.025899999999999
+								]
+							},
+							"controlsHeight": 200
+						}
+					]
+				}
+			}
+		}
+	],
+	"satellites": [],
+	"version": "4.1.1"
+}

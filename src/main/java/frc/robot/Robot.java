@@ -5,7 +5,9 @@
 package frc.robot;
 
 import java.util.Map;
+
 import org.littletonrobotics.urcl.URCL;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DataLogManager;
@@ -101,7 +103,7 @@ public class Robot extends TimedRobot {
 		// we can test critical subsystems and commands here.
 		m_driveSubsystem.testCommand() // test DriveSubsystem#drive(...)
 				// move forward, backward, strafe left, strafe right, and turn left and right
-				.andThen(new DriveCommand(m_driveSubsystem, new Pose2d(.2, .2, Rotation2d.fromDegrees(90)), .1, 3))
+				.andThen(new DriveCommand(m_driveSubsystem, new Pose2d(.3, .3, Rotation2d.fromDegrees(90)), .1, 3))
 				// test DriveCommand: move to (.2, .2, 90)
 				.andThen(new DriveCommand(m_driveSubsystem, new Pose2d(0, 0, Rotation2d.fromDegrees(0)), .1, 3))
 				// test DriveCommand: move to (0, 0, 0)
