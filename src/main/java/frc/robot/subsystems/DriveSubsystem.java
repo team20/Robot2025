@@ -13,10 +13,10 @@ import java.util.function.DoubleSupplier;
 import com.studica.frc.AHRS;
 import com.studica.frc.AHRS.NavXComType;
 
+import edu.wpi.first.hal.SimDouble;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
@@ -26,13 +26,14 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.simulation.SimDeviceSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.ControllerConstants;
 import frc.robot.SwerveModule;
 
-public class DriveSubsystem extends SubsystemBase {
+public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
 	private final SwerveModule m_frontLeft;
 	private final SwerveModule m_frontRight;
 	private final SwerveModule m_backLeft;
@@ -42,19 +43,22 @@ public class DriveSubsystem extends SubsystemBase {
 			kFrontLeftLocation, kFrontRightLocation, kBackLeftLocation, kBackRightLocation);
 	private final SwerveDriveOdometry m_odometry;
 	private final AHRS m_gyro = new AHRS(NavXComType.kMXP_SPI);
+	private final SimDouble m_gyroSim = new SimDeviceSim("navX-Sensor", m_gyro.getPort()).getDouble("Yaw");
 	// https://docs.wpilib.org/en/latest/docs/software/advanced-controls/system-identification/index.html
 	private final SysIdRoutine m_sysidRoutine;
 
-	private Pose2d m_pose = new Pose2d(0, 0, new Rotation2d());
-
 	private final StructPublisher<Pose2d> m_posePublisher;
+	private final StructPublisher<ChassisSpeeds> m_currentChassisSpeedsPublisher;
 	private final StructArrayPublisher<SwerveModuleState> m_targetModuleStatePublisher;
 	private final StructArrayPublisher<SwerveModuleState> m_currentModuleStatePublisher;
 
 	/** Creates a new DriveSubsystem. */
 	public DriveSubsystem() {
 		m_posePublisher = NetworkTableInstance.getDefault()
-				.getStructTopic("/SmartDashboard/Pose@DriveSubsystem", Pose2d.struct)
+				.getStructTopic("/SmartDashboard/Robot Pose", Pose2d.struct)
+				.publish();
+		m_currentChassisSpeedsPublisher = NetworkTableInstance.getDefault()
+				.getStructTopic("/SmartDashboard/Chassis Speeds", ChassisSpeeds.struct)
 				.publish();
 		m_targetModuleStatePublisher = NetworkTableInstance.getDefault()
 				.getStructArrayTopic("/SmartDashboard/Target Swerve Modules States", SwerveModuleState.struct)
@@ -87,13 +91,21 @@ public class DriveSubsystem extends SubsystemBase {
 		m_odometry = new SwerveDriveOdometry(m_kinematics, getHeading(), getModulePositions());
 	}
 
+	@Override
+	public void close() {
+		m_frontLeft.close();
+		m_frontRight.close();
+		m_backLeft.close();
+		m_backRight.close();
+	}
+
 	/**
 	 * Gets the robot's heading from the gyro.
 	 * 
 	 * @return The heading
 	 */
 	public Rotation2d getHeading() {
-		return RobotBase.isReal() ? m_gyro.getRotation2d() : m_pose.getRotation();
+		return getPose().getRotation();
 	}
 
 	/**
@@ -136,12 +148,6 @@ public class DriveSubsystem extends SubsystemBase {
 		if (isFieldRelative) {
 			speeds = ChassisSpeeds.fromFieldRelativeSpeeds(speeds, getHeading());
 		}
-		if (RobotBase.isSimulation()) {
-			var transform = new Transform2d(speeds.vxMetersPerSecond * kModuleResponseTimeSeconds * 3,
-					speeds.vyMetersPerSecond * kModuleResponseTimeSeconds * 3, new Rotation2d(
-							speeds.omegaRadiansPerSecond * kModuleResponseTimeSeconds * 3));
-			m_pose = m_pose.plus(transform);
-		}
 		SwerveModuleState[] states = m_kinematics.toSwerveModuleStates(speeds);
 		SwerveDriveKinematics.desaturateWheelSpeeds(states, kTeleopMaxVoltage);
 		// Get the current module angles
@@ -176,16 +182,19 @@ public class DriveSubsystem extends SubsystemBase {
 	 * @param isFieldRelative Whether or not the speeds are relative to the field
 	 */
 	public void drive(double speedFwd, double speedSide, double speedRot, boolean isFieldRelative) {
+		if (RobotBase.isSimulation()) {
+			// TODO: Use SysId to get feedforward model for rotation
+			m_gyroSim.set(-speedRot * 20 * 0.02 + m_gyro.getYaw());
+		}
 		setModuleStates(calculateModuleStates(new ChassisSpeeds(speedFwd, speedSide, speedRot), isFieldRelative));
 	}
 
 	@Override
 	public void periodic() {
-		if (RobotBase.isReal())
-			m_pose = m_odometry.update(getHeading(), getModulePositions());
-		m_posePublisher.set(m_pose);
+		m_posePublisher.set(m_odometry.update(getHeading(), getModulePositions()));
 		SwerveModuleState[] states = { m_frontLeft.getModuleState(), m_frontRight.getModuleState(),
 				m_backLeft.getModuleState(), m_backRight.getModuleState() };
+		m_currentChassisSpeedsPublisher.set(m_kinematics.toChassisSpeeds(states));
 		m_currentModuleStatePublisher.set(states);
 	}
 
@@ -255,16 +264,6 @@ public class DriveSubsystem extends SubsystemBase {
 	}
 
 	/**
-	 * Closes this {@code DriveSubsystem} to support JUnit tests.
-	 */
-	public void close() {
-		m_frontLeft.close();
-		m_frontRight.close();
-		m_backLeft.close();
-		m_backRight.close();
-	}
-
-	/**
 	 * Creates a {@code Command} for testing this {@code DriveSubsystem}. The robot
 	 * must move forward, backward, strafe left, strafe right, and turn left and
 	 * right.
@@ -279,5 +278,4 @@ public class DriveSubsystem extends SubsystemBase {
 				.andThen(run(() -> drive(0, 0, .3, false)).withTimeout(.5))
 				.andThen(run(() -> drive(0, 0, -.3, false)).withTimeout(.5));
 	}
-
 }
