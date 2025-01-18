@@ -13,12 +13,13 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
 import frc.robot.Constants.ControllerConstants;
 import frc.robot.subsystems.DriveSubsystem;
-import frc.robot.subsystems.Vision;
+import frc.robot.subsystems.PhotonVisionSubsystem;
 
 public class Robot extends TimedRobot {
 	private Command m_autonomousCommand;
 	private SparkMax m_motor;
-	private final Vision m_vision = new Vision();
+	// private final Vision m_vision = new Vision();
+	private final PhotonVisionSubsystem m_PhotonVisionSubsystem = new PhotonVisionSubsystem("Cool camera");
 	private final DriveSubsystem m_driveSubsystem = new DriveSubsystem();
 	private final CommandPS4Controller m_driverController = new CommandPS4Controller(
 			ControllerConstants.kDriverControllerPort);
