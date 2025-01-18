@@ -4,10 +4,15 @@
 
 package frc.robot;
 
-import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.SparkMax;
+import java.util.Map;
 
+import org.littletonrobotics.urcl.URCL;
+
+import edu.wpi.first.wpilibj.DataLogManager;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
@@ -17,15 +22,21 @@ import frc.robot.subsystems.Vision;
 
 public class Robot extends TimedRobot {
 	private Command m_autonomousCommand;
-	private SparkMax m_motor;
 	private final Vision m_vision = new Vision();
 	// private final PhotonVisionSubsystem m_PhotonVisionSubsystem = new
 	// PhotonVisionSubsystem("Cool camera");
 	private final DriveSubsystem m_driveSubsystem = new DriveSubsystem();
 	private final CommandPS4Controller m_driverController = new CommandPS4Controller(
 			ControllerConstants.kDriverControllerPort);
+	private final PowerDistribution m_pdh = new PowerDistribution();
 
 	public Robot() {
+		SmartDashboard.putData(m_pdh);
+		SmartDashboard.putData(CommandScheduler.getInstance());
+		DataLogManager.start();
+		DataLogManager.logNetworkTables(true);
+		URCL.start(Map.of(11, "FR Turn", 21, "BR Turn", 31, "BL Turn", 41, "FL Turn"));
+		DriverStation.startDataLog(DataLogManager.getLog());
 		bindDriveControls();
 	}
 
@@ -43,8 +54,6 @@ public class Robot extends TimedRobot {
 								() -> -m_driverController.getLeftX(),
 								() -> m_driverController.getR2Axis() - m_driverController.getL2Axis(),
 								m_driverController.getHID()::getSquareButton));
-		m_motor = new SparkMax(1, MotorType.kBrushless);
-
 	}
 
 	@Override
@@ -75,14 +84,6 @@ public class Robot extends TimedRobot {
 
 	@Override
 	public void autonomousPeriodic() {
-		int id = m_vision.getTargetId();
-		if (id == 2) {
-			m_motor.set(-0.4);
-		} else if (id == 1) {
-			m_motor.set(0.4);
-		} else {
-			m_motor.set(0);
-		}
 	}
 
 	@Override
