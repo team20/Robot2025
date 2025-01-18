@@ -105,7 +105,7 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
 	 * @return The heading
 	 */
 	public Rotation2d getHeading() {
-		return getPose().getRotation();
+		return m_gyro.getRotation2d();
 	}
 
 	/**
@@ -124,7 +124,7 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
 	 * @return The pose of the robot.
 	 */
 	public Pose2d getPose() {
-		return m_pose;
+		return m_odometry.getPoseMeters();
 	}
 
 	/**
