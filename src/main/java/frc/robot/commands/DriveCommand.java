@@ -6,6 +6,8 @@ import java.util.function.Supplier;
 
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.DriveSubsystem;
@@ -32,9 +34,13 @@ public class DriveCommand extends Command {
 	private Supplier<Pose2d> m_poseSupplier;
 
 	/**
-	 * The target pose to which the robot needs to move.
+	 * The {@code Supplier<Pose2d>} that calculates the target pose to which the
+	 * robot should move.
+	 * This is used at the commencement of this {@code DriveCommand} (i.e.,
+	 * when the scheduler begins to periodically execute this {@code
+	 * DriveCommand}).
 	 */
-	private Pose2d m_targetPose;
+	private Supplier<Pose2d> m_targetPoseSupplier;
 
 	/**
 	 * The {@code ProfiledPIDController} for controlling the robot in the x
@@ -66,7 +72,7 @@ public class DriveCommand extends Command {
 	public DriveCommand(DriveSubsystem driveSubsystem, Pose2d targetPose,
 			double distanceTolerance,
 			double angleTolerance) {
-		this(driveSubsystem, () -> driveSubsystem.getPose(), targetPose, distanceTolerance, angleTolerance);
+		this(driveSubsystem, () -> driveSubsystem.getPose(), () -> targetPose, distanceTolerance, angleTolerance);
 	}
 
 	/**
@@ -76,16 +82,22 @@ public class DriveCommand extends Command {
 	 * @param driveSubsystem the {@code DriveSubsystem} to use
 	 * @param poseSupplier the {@code Supplier} providing the current {@code Pose2d}
 	 *        of the robot
-	 * @param targetPose the target pose to which the robot needs to move
+	 * @param targetPoseSupplier a {@code Supplier<Pose2d>} that provides the
+	 *        target pose to which the robot should move.
+	 *        This is used at the commencement of this
+	 *        {@code DriveCommand} (i.e., when the scheduler
+	 *        begins to periodically execute this
+	 *        {@code DriveCommand})
 	 * @param distanceTolerance the distance error in meters which is tolerable
 	 * @param angleTolerance the angle error in degrees which is tolerable
 	 */
-	public DriveCommand(DriveSubsystem driveSubsystem, Supplier<Pose2d> poseSupplier, Pose2d targetPose,
+	public DriveCommand(DriveSubsystem driveSubsystem, Supplier<Pose2d> poseSupplier,
+			Supplier<Pose2d> targetPoseSupplier,
 			double distanceTolerance,
 			double angleTolerance) {
 		m_driveSubsystem = driveSubsystem;
 		m_poseSupplier = poseSupplier;
-		m_targetPose = targetPose;
+		m_targetPoseSupplier = targetPoseSupplier;
 		var constraints = new TrapezoidProfile.Constraints(kDriveMaxVelocity, kDriveMaxAcceleration);
 		m_controllerX = new ProfiledPIDController(kDriveP, kDriveI, kDriveD, constraints);
 		m_controllerY = new ProfiledPIDController(kDriveP, kDriveI, kDriveD, constraints);
@@ -99,18 +111,79 @@ public class DriveCommand extends Command {
 	}
 
 	/**
+	 * Constructs a {@code Commmand} for moving the robot toward the specified
+	 * target position while ensuring that the robot is away from the target by the
+	 * specified distance.
+	 * 
+	 * @param driveSubsystem the {@code DriveSubsystem} to use
+	 * @param targetPositionSupplier a {@code Supplier<Pose2d>} that provides the
+	 *        target position.
+	 *        This is used at the commencement of the
+	 *        {@code DriveCommand} (i.e., when the scheduler
+	 *        begins to periodically execute the
+	 *        {@code DriveCommand})
+	 * @param poseSupplier the {@code Supplier} providing the current {@code Pose2d}
+	 *        of the robot
+	 * @param distanceToTarget the desired distance between the robot and the
+	 *        target position
+	 * @param distanceTolerance the distance error in meters which is tolerable
+	 * @param angleTolerance the angle error in degrees which is tolerable
+	 * @return a {@code Commmand} for turning the robot to the specified target
+	 *         position
+	 */
+	public static Command moveToward(DriveSubsystem driveSubsystem, Supplier<Translation2d> targetPositionSupplier,
+			Supplier<Pose2d> poseSupplier,
+			double distanceToTarget,
+			double distanceTolerance,
+			double angleTolerance) {
+		return new DriveCommand(driveSubsystem, poseSupplier,
+				() -> poseSupplier.get()
+						.plus(transformationToward(targetPositionSupplier.get(), poseSupplier.get(), distanceToTarget)),
+				distanceTolerance, angleTolerance);
+	}
+
+	/**
+	 * Returns the transformation needed for the robot to face toward the specified
+	 * target position and remain the specified distance away fron the target
+	 * position.
+	 * 
+	 * @param targetPosition the target position whose x and y-coordinate values
+	 *        are in meters
+	 * @param distanceToTarget the desired distance in meters to the target
+	 * @return the transformation needed for the robot to face toward the specified
+	 *         target position and remain the specified distance away fron the
+	 *         target position; {@code null} if it has not been
+	 *         possible to reliably estimate the pose of the robot
+	 */
+	public static Transform2d transformationToward(Translation2d targetPosition, Pose2d currentPose,
+			double distanceToTarget) {
+		Translation2d diff = targetPosition.minus(currentPose.getTranslation());
+		if (diff.getNorm() == 0)
+			return null;
+		var targetPose = new Pose2d(
+				currentPose.getTranslation().plus(diff.times(1 - distanceToTarget / diff.getNorm())),
+				diff.getAngle());
+		return targetPose.minus(currentPose);
+	}
+
+	/**
 	 * Is invoked at the commencement of this {@code DriveCommand} (i.e,
 	 * when the scheduler begins to periodically execute this {@code DriveCommand}).
 	 */
 	@Override
 	public void initialize() {
 		Pose2d pose = m_poseSupplier.get();
+		var targetPose = pose;
+		try {
+			targetPose = m_targetPoseSupplier.get();
+		} catch (Exception e) {
+		}
 		m_controllerX.reset(pose.getX());
 		m_controllerY.reset(pose.getY());
 		m_controllerYaw.reset(pose.getRotation().getDegrees());
-		m_controllerX.setGoal(m_targetPose.getX());
-		m_controllerY.setGoal(m_targetPose.getY());
-		m_controllerYaw.setGoal(m_targetPose.getRotation().getDegrees());
+		m_controllerX.setGoal(targetPose.getX());
+		m_controllerY.setGoal(targetPose.getY());
+		m_controllerYaw.setGoal(targetPose.getRotation().getDegrees());
 	}
 
 	/**

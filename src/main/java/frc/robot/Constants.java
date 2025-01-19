@@ -3,6 +3,8 @@ package frc.robot;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 
@@ -86,6 +88,16 @@ public class Constants {
 		public static final double kTurnMaxVelocity = 120; // up to 240?
 		public static final double kTurnMaxAcceleration = 240; // up to 360?
 
+	}
+
+	public static final class PoseConstants {
+		public static Translation2d kBlueReefPosition = new Translation2d(0, 0); // TODO: find the right values
+		public static Pose2d kBlueCoralStationPose = new Pose2d(0, 0, Rotation2d.fromDegrees(0)); // TODO: find the
+																									// right values
+
+		public static Translation2d kRedReefPosition = new Translation2d(0, 0); // TODO: find the right values
+		public static Pose2d kRedCoralStationPose = new Pose2d(0, 0, Rotation2d.fromDegrees(0)); // TODO: find the right
+																									// values
 	}
 
 }
