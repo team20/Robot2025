@@ -2,10 +2,16 @@ package frc.robot.commands;
 
 import static frc.robot.Constants.DriveConstants.*;
 
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.function.Supplier;
 
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
@@ -22,6 +28,11 @@ import frc.robot.subsystems.DriveSubsystem;
  * @author Andrew Hwang (u.andrew.h@gmail.com)
  */
 public class DriveCommand extends Command {
+
+	/**
+	 * The {@code AprilTagFieldLayout} used by this {@code DriveCommand}.
+	 */
+	public static AprilTagFieldLayout fieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
 
 	/**
 	 * The {@code DriveSubsystem} used by this {@code DriveCommand}.
@@ -234,6 +245,60 @@ public class DriveCommand extends Command {
 	 */
 	public static double applyThreshold(double value, double threshold) {
 		return Math.abs(value) < threshold ? Math.signum(value) * threshold : value;
+	}
+
+	/**
+	 * Determines the ID of the {@code AprilTag} that is closest to the specified
+	 * {@code Pose2d}.
+	 * 
+	 * @param pose a {@code Pose2d}
+	 * @return the ID of the {@code AprilTag} that is closest to the specified
+	 *         {@code Pose2d}
+	 */
+	public static Integer closestTagID(Pose2d pose) {
+		var s = fieldLayout.getTags().stream()
+				// only the tags facing toward the robot
+				.filter(t -> Math.abs(t.pose.toPose2d().getRotation().minus(pose.getRotation()).getDegrees()) > 120)
+				// only the tags near the center of the view
+				.filter(t -> Math.abs(angularDisplacement(pose, t.pose.toPose2d()).getDegrees()) < 30)
+				.map(t -> Map.entry(t.ID, translationalDisplacement(pose, t.pose.toPose2d()))) // displacement
+				.filter(t -> t.getValue() > 0) // only the tags in front of the robot (not behind)
+				.filter(t -> t.getValue() < 3); // only the tags that are within 3 meters away
+		Optional<Entry<Integer, Double>> closest = s.reduce((e1, e2) -> e1.getValue() < e2.getValue() ? e1 : e2);
+		if (closest.isPresent()) {
+			return closest.get().getKey();
+		} else
+			return null;
+	}
+
+	/**
+	 * Calculates the angular displacement given the initial and last
+	 * {@code Pose2d}s.
+	 * 
+	 * @param initial the initial {@code Pose2d}
+	 * @param last the last {@code Pose2d}
+	 * @return the angular displacement given the initial and last
+	 *         {@code Pose2d}s
+	 */
+	public static Rotation2d angularDisplacement(Pose2d initial, Pose2d last) {
+		var t = last.getTranslation().minus(initial.getTranslation());
+		return t.getAngle().minus(initial.getRotation());
+	}
+
+	/**
+	 * Calculates the translational displacement given the initial and last
+	 * {@code Pose2d}s.
+	 * 
+	 * @param initial the initial {@code Pose2d}
+	 * @param last the last {@code Pose2d}
+	 * @return the translational displacement given the initial and last
+	 *         {@code Pose2d}s
+	 */
+	public static double translationalDisplacement(Pose2d initial, Pose2d last) {
+		var t = last.getTranslation().minus(initial.getTranslation());
+		return Math.abs(t.getAngle().minus(initial.getRotation()).getDegrees()) > 90
+				? -t.getNorm()
+				: t.getNorm();
 	}
 
 }

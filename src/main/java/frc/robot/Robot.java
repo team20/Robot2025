@@ -8,8 +8,6 @@ import java.util.Map;
 
 import org.littletonrobotics.urcl.URCL;
 
-import edu.wpi.first.apriltag.AprilTagFieldLayout;
-import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
@@ -33,8 +31,6 @@ public class Robot extends TimedRobot {
 	private final CommandPS4Controller m_driverController = new CommandPS4Controller(
 			ControllerConstants.kDriverControllerPort);
 	private final PowerDistribution m_pdh = new PowerDistribution();
-
-	public static AprilTagFieldLayout fieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
 
 	public Robot() {
 		SmartDashboard.putData(m_pdh);
@@ -61,11 +57,20 @@ public class Robot extends TimedRobot {
 						() -> m_driveSubsystem.getPose(), 2, 0.1, 5));
 		var alignTransformation = new Transform2d(new Pose2d(0, 0, Rotation2d.fromDegrees(0)),
 				new Pose2d(.8, 0, Rotation2d.fromDegrees(180)));
-		for (int i = 2; i <= 4; i++)
+		m_driverController.button(2)
+				.whileTrue(
+						new DriveCommand(m_driveSubsystem, () -> m_driveSubsystem.getPose(),
+								() -> DriveCommand.fieldLayout
+										.getTagPose(DriveCommand.closestTagID(m_driveSubsystem.getPose())).get()
+										.toPose2d()
+										.transformBy(alignTransformation),
+								.1, 3));
+		for (int i = 3; i <= 4; i++)
 			m_driverController.button(i)
 					.whileTrue(
 							new DriveCommand(m_driveSubsystem,
-									fieldLayout.getTagPose(i).get().toPose2d().transformBy(alignTransformation),
+									DriveCommand.fieldLayout.getTagPose(i).get().toPose2d()
+											.transformBy(alignTransformation),
 									.1, 3));
 	}
 
