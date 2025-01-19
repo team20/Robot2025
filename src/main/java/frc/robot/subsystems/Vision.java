@@ -53,7 +53,8 @@ public class Vision {
 			m_sim.addAprilTags(aprilTagFieldLayout);
 			m_cameraSim = new PhotonCameraSim(m_camera);
 			m_sim.addCamera(m_cameraSim, robotToCamera);
-			m_cameraSim.enableDrawWireframe(true); // check if this affects robot
+			m_cameraSim.enableProcessedStream(true);
+			m_cameraSim.enableDrawWireframe(true);
 		} else {
 			m_sim = null;
 			m_cameraSim = null;
