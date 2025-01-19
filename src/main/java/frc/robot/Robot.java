@@ -7,8 +7,13 @@ package frc.robot;
 import java.util.Map;
 
 import org.littletonrobotics.urcl.URCL;
+import org.photonvision.targeting.PhotonPipelineResult;
+
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.SparkMax;
 
 import edu.wpi.first.wpilibj.DataLogManager;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.TimedRobot;
@@ -18,13 +23,19 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
 import frc.robot.Constants.ControllerConstants;
 import frc.robot.subsystems.DriveSubsystem;
+import frc.robot.subsystems.Vision;
 
 public class Robot extends TimedRobot {
+	private DigitalInput input = new DigitalInput(0);
 	private Command m_autonomousCommand;
 	private final DriveSubsystem m_driveSubsystem = new DriveSubsystem();
+	private final Vision m_vision;
+	// private final PhotonVisionSubsystem m_PhotonVisionSubsystem = new
+	// PhotonVisionSubsystem("Cool camera");
 	private final CommandPS4Controller m_driverController = new CommandPS4Controller(
 			ControllerConstants.kDriverControllerPort);
 	private final PowerDistribution m_pdh = new PowerDistribution();
+	SparkMax motor = new SparkMax(1, MotorType.kBrushless);
 
 	public Robot() {
 		SmartDashboard.putData(m_pdh);
@@ -45,10 +56,15 @@ public class Robot extends TimedRobot {
 						m_driverController.getHID()::getSquareButton,
 						m_driverController.getHID()::getL1Button));
 	}
+	// true if further than 7 inches
+	// false if closer than 7 inches
+	// Could have assisted braking when approaching coral station for teleop
+	// Maybe get a way to enable and disable the distance braker
 
 	@Override
 	public void robotPeriodic() {
 		CommandScheduler.getInstance().run();
+		SmartDashboard.putBoolean("Further7in", input.get());
 	}
 
 	@Override
@@ -74,6 +90,18 @@ public class Robot extends TimedRobot {
 
 	@Override
 	public void autonomousPeriodic() {
+		PhotonPipelineResult result = m_vision.getLatestResult();
+		double dist = 2;
+		int reefId = 2;
+
+		if (result.getBestTarget().getFiducialId() == reefId
+				&& m_vision.getDistanceToTarget(result.getBestTarget()) < dist) {
+			motor.set(0.0);
+		} else {
+			motor.set(0.3);
+		}
+	}
+
 	}
 
 	@Override
