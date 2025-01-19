@@ -32,21 +32,21 @@ import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Vision {
-	PhotonCamera m_camera;
-	PhotonCameraSim m_cameraSim;
-	VisionSystemSim m_sim;
-	Transform3d robotToCamera = new Transform3d(0.5, 0.5, 0.5, new Rotation3d());
+	private List<PhotonPipelineResult> m_results;
+	private final PhotonCamera m_camera = new PhotonCamera("Cool camera");;
+	private final PhotonCameraSim m_cameraSim;
+	private final VisionSystemSim m_sim;
+	private final Transform3d robotToCamera = new Transform3d(0.5, 0.5, 0.5, new Rotation3d());
 	Matrix<N3, N1> currentSTD;
-	AprilTagFieldLayout aprilTagFieldLayout = AprilTagFieldLayout
+	private final AprilTagFieldLayout aprilTagFieldLayout = AprilTagFieldLayout
 			.loadField(AprilTagFields.k2025Reefscape);
-	PhotonPoseEstimator m_poseEstimator = new PhotonPoseEstimator(
+	private final PhotonPoseEstimator m_poseEstimator = new PhotonPoseEstimator(
 			aprilTagFieldLayout,
 			PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
 			robotToCamera); // TODO change z for tag height
 
 	// Creates a new Vision class.
 	public Vision() {
-		m_camera = new PhotonCamera("Cool camera");
 		// Initializes vision simulation system and camera
 		if (RobotBase.isSimulation()) {
 			m_sim = new VisionSystemSim("sim");
@@ -67,7 +67,7 @@ public class Vision {
 	 * @return The Fiducial ID of the viewed April Tag.
 	 */
 	public int getTargetId() {
-		List<PhotonPipelineResult> results = m_camera.getAllUnreadResults();
+		List<PhotonPipelineResult> results = this.m_results;
 
 		if (results.size() < 1) {
 			return -1;
@@ -86,9 +86,10 @@ public class Vision {
 		}
 	}
 
-	// public List<PhotonTrackedTarget> getTargets() {
-	// return m_camera.getAllUnreadResults().get(0);
-	// }
+	public List<PhotonPipelineResult> getTargets() {
+		m_results = m_camera.getAllUnreadResults();
+		return m_results;
+	}
 
 	/**
 	 * Identifies the best target seen by the camera
@@ -97,7 +98,7 @@ public class Vision {
 	 * @return The best target (April Tag)
 	 */
 	public PhotonTrackedTarget getBestTarget() {
-		return m_camera.getAllUnreadResults().get(0).getBestTarget();
+		return this.m_results.get(0).getBestTarget();
 	}
 
 	/**
@@ -107,6 +108,7 @@ public class Vision {
 	 * @return The target's pose
 	 */
 	public Pose3d getTargetPose(PhotonTrackedTarget target) {
+		target = (target == null) ? null : target; // TODO check for null in frontend instead
 		return aprilTagFieldLayout.getTagPose(target.getFiducialId()).get();
 	}
 
@@ -116,24 +118,8 @@ public class Vision {
 	 * @param target The target (April Tag) viewed by the camera.
 	 * @return The robot's pose
 	 */
-	public Pose3d getVisionPose() {
-		PhotonTrackedTarget target = getBestTarget();
-		if (aprilTagFieldLayout.getTagPose(target.getFiducialId()).isPresent()) {
-			return PhotonUtils.estimateFieldToRobotAprilTag(
-					target.getBestCameraToTarget(),
-					getTargetPose(target),
-					new Transform3d(-0.5, -0.5, -0.5, new Rotation3d())); // TODO fix camera to robot
-		} else
-			return null;
-	}
-
-	/**
-	 * Gets the field-relative pose of the robot.
-	 * 
-	 * @param target The target (April Tag) viewed by the camera.
-	 * @return The robot's pose
-	 */
 	public Pose3d getVisionPose(PhotonTrackedTarget target) {
+		target = (target == null) ? null : target;
 		if (aprilTagFieldLayout.getTagPose(target.getFiducialId()).isPresent()) {
 			return PhotonUtils.estimateFieldToRobotAprilTag(
 					target.getBestCameraToTarget(),
@@ -150,8 +136,6 @@ public class Vision {
 	 * @return The distance to the target
 	 */
 	public double getDistanceToTarget(PhotonTrackedTarget target) {
-		// TODO Will this pose (haha) a problem if the robot pose and tag pose aren't
-		// retrieved at the same moment?
 		return PhotonUtils.getDistanceToPose(
 				getVisionPose(target).toPose2d(),
 				getTargetPose(target).toPose2d());

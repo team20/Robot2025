@@ -204,6 +204,7 @@ public class DriveSubsystem extends SubsystemBase {
 		var estPose = m_vision.getEstimatedGlobalPose();
 		estPose.ifPresent(
 				est -> {
+					System.out.println("Vision update");
 					m_visionPosePublisher.set(est.estimatedPose.toPose2d());
 					m_poseEstimator.addVisionMeasurement(
 							est.estimatedPose.toPose2d(),
