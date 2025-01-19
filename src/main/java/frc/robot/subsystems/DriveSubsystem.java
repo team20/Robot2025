@@ -30,6 +30,7 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -202,6 +203,14 @@ public class DriveSubsystem extends SubsystemBase {
 		m_poseEstimator.update(getHeading(), getModulePositions());
 		var results = m_vision.refreshResults();
 		if (results.size() > 0) {
+			if (results.get(0).hasTargets()) {
+				for (var target : results.get(0).targets) {
+					if (target.fiducialId == 2) {
+						SmartDashboard.putNumber("Distance from Camera", m_vision.getDistanceToTarget(target));
+					}
+				}
+			}
+
 			var estPose = m_vision.getEstimatedGlobalPose(results);
 			estPose.ifPresent(
 					est -> {
