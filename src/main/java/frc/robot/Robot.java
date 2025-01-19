@@ -29,7 +29,7 @@ public class Robot extends TimedRobot {
 	private DigitalInput input = new DigitalInput(0);
 	private Command m_autonomousCommand;
 	private final DriveSubsystem m_driveSubsystem = new DriveSubsystem();
-	private final Vision m_vision;
+	private final Vision m_vision = new Vision();
 	// private final PhotonVisionSubsystem m_PhotonVisionSubsystem = new
 	// PhotonVisionSubsystem("Cool camera");
 	private final CommandPS4Controller m_driverController = new CommandPS4Controller(
@@ -100,8 +100,6 @@ public class Robot extends TimedRobot {
 		} else {
 			motor.set(0.3);
 		}
-	}
-
 	}
 
 	@Override
