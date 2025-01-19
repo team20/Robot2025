@@ -199,7 +199,6 @@ public class DriveSubsystem extends SubsystemBase {
 				m_frontRight.getModuleState(),
 				m_backLeft.getModuleState(), m_backRight.getModuleState() };
 		m_currentModuleStatePublisher.set(states);
-
 		m_poseEstimator.update(getHeading(), getModulePositions());
 		var estPose = m_vision.getEstimatedGlobalPose();
 		estPose.ifPresent(
@@ -295,9 +294,11 @@ public class DriveSubsystem extends SubsystemBase {
 			PIDController tagController = new PIDController(0.2, 0, 0); // TODO idk what PID constants to use
 			if (Math.abs(posDiff.getX()) < 3) {
 				fwdSpeed += tagController.calculate(jsTranslation.getX(), targetPos.getX());
-			} else if (Math.abs(posDiff.getY()) < 3) {
+			}
+			if (Math.abs(posDiff.getY()) < 3) {
 				strSpeed += tagController.calculate(jsTranslation.getY(), targetPos.getY());
-			} else if (Math.abs(angleDiff.getDegrees()) < 30) { // TODO idk how close "close" is
+			}
+			if (Math.abs(angleDiff.getDegrees()) < 30) { // TODO idk how close "close" is
 				rotSpeed += tagController.calculate(jsRotation.getRotations(), targetAngle.getRotations());
 			}
 
