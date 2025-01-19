@@ -18,13 +18,9 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
 import frc.robot.Constants.ControllerConstants;
 import frc.robot.subsystems.DriveSubsystem;
-import frc.robot.subsystems.Vision;
 
 public class Robot extends TimedRobot {
 	private Command m_autonomousCommand;
-	private final Vision m_vision = new Vision();
-	// private final PhotonVisionSubsystem m_PhotonVisionSubsystem = new
-	// PhotonVisionSubsystem("Cool camera");
 	private final DriveSubsystem m_driveSubsystem = new DriveSubsystem();
 	private final CommandPS4Controller m_driverController = new CommandPS4Controller(
 			ControllerConstants.kDriverControllerPort);
@@ -59,7 +55,6 @@ public class Robot extends TimedRobot {
 	@Override
 	public void robotPeriodic() {
 		CommandScheduler.getInstance().run();
-		m_vision.getTargets();
 	}
 
 	@Override
