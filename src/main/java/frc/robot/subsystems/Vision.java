@@ -109,6 +109,16 @@ public class Vision {
 	}
 
 	/**
+	 * Identifies the best target seen by the camera
+	 * (should be run periodically for up-to-date results).
+	 * 
+	 * @return The best target (April Tag)
+	 */
+	public PhotonTrackedTarget getBestTarget() {
+		return this.m_results.get(0).getBestTarget();
+	}
+
+	/**
 	 * Gets the robot's distance to the target.
 	 * 
 	 * @param target The target (April Tag) viewed by the camera.

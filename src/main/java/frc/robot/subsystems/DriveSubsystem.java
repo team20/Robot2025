@@ -29,6 +29,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -189,6 +190,27 @@ public class DriveSubsystem extends SubsystemBase {
 				m_backLeft.getModuleState(), m_backRight.getModuleState() };
 		m_currentModuleStatePublisher.set(states);
 		m_poseEstimator.update(getHeading(), getModulePositions());
+		var results = m_vision.refreshResults();
+		if (results.size() > 0) {
+			if (results.get(0).hasTargets()) {
+				for (var target : results.get(0).targets) {
+					if (target.fiducialId == 2) {
+						SmartDashboard.putNumber("Distance from Camera", m_vision.getDistanceToTarget(target));
+					}
+				}
+			}
+
+			var estPose = m_vision.getEstimatedGlobalPose(results);
+			estPose.ifPresent(
+					est -> {
+						System.out.println("Vision update");
+						m_visionPosePublisher.set(est.estimatedPose.toPose2d());
+						m_poseEstimator.addVisionMeasurement(
+								est.estimatedPose.toPose2d(),
+								est.timestampSeconds,
+								m_vision.currentSTD);
+					});
+		}
 
 		m_vision.refreshResults(); // TODO move to Robot.java
 		var estPose = m_vision.getEstimatedGlobalPose(m_vision.getResults());
