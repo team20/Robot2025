@@ -200,16 +200,19 @@ public class DriveSubsystem extends SubsystemBase {
 				m_backLeft.getModuleState(), m_backRight.getModuleState() };
 		m_currentModuleStatePublisher.set(states);
 		m_poseEstimator.update(getHeading(), getModulePositions());
-		var estPose = m_vision.getEstimatedGlobalPose();
-		estPose.ifPresent(
-				est -> {
-					System.out.println("Vision update");
-					m_visionPosePublisher.set(est.estimatedPose.toPose2d());
-					m_poseEstimator.addVisionMeasurement(
-							est.estimatedPose.toPose2d(),
-							est.timestampSeconds,
-							m_vision.currentSTD);
-				});
+		var results = m_vision.refreshResults();
+		if (results.size() > 0) {
+			var estPose = m_vision.getEstimatedGlobalPose(results);
+			estPose.ifPresent(
+					est -> {
+						System.out.println("Vision update");
+						m_visionPosePublisher.set(est.estimatedPose.toPose2d());
+						m_poseEstimator.addVisionMeasurement(
+								est.estimatedPose.toPose2d(),
+								est.timestampSeconds,
+								m_vision.currentSTD);
+					});
+		}
 		m_posePublisher.set(m_poseEstimator.getEstimatedPosition());
 	}
 

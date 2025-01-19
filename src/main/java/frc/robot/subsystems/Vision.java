@@ -29,7 +29,6 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.RobotBase;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Vision {
 	private List<PhotonPipelineResult> m_results;
@@ -62,44 +61,9 @@ public class Vision {
 
 	}
 
-	/**
-	 * Gets the ID of the best target seen by the camera.
-	 * 
-	 * @return The Fiducial ID of the viewed April Tag.
-	 */
-	public int getTargetId() {
-		List<PhotonPipelineResult> results = this.m_results;
-
-		if (results.size() < 1) {
-			return -1;
-		}
-
-		PhotonPipelineResult result = results.get(0);
-
-		SmartDashboard.putBoolean("Has Targets", result.hasTargets());
-
-		if (result.hasTargets()) {
-			return result.getBestTarget().getFiducialId();
-		}
-
-		else {
-			return -1;
-		}
-	}
-
-	public List<PhotonPipelineResult> getTargets() {
+	public List<PhotonPipelineResult> refreshResults() {
 		m_results = m_camera.getAllUnreadResults();
 		return m_results;
-	}
-
-	/**
-	 * Identifies the best target seen by the camera
-	 * (should be run periodically for up-to-date results).
-	 * 
-	 * @return The best target (April Tag)
-	 */
-	public PhotonTrackedTarget getBestTarget() {
-		return this.m_results.get(0).getBestTarget();
 	}
 
 	/**
@@ -109,7 +73,6 @@ public class Vision {
 	 * @return The target's pose
 	 */
 	public Pose3d getTargetPose(PhotonTrackedTarget target) {
-		target = (target == null) ? null : target; // TODO check for null in frontend instead
 		return aprilTagFieldLayout.getTagPose(target.getFiducialId()).get();
 	}
 
@@ -120,14 +83,14 @@ public class Vision {
 	 * @return The robot's pose
 	 */
 	public Pose3d getVisionPose(PhotonTrackedTarget target) {
-		target = (target == null) ? null : target;
 		if (aprilTagFieldLayout.getTagPose(target.getFiducialId()).isPresent()) {
 			return PhotonUtils.estimateFieldToRobotAprilTag(
 					target.getBestCameraToTarget(),
 					getTargetPose(target),
 					new Transform3d(-0.5, -0.5, -0.5, new Rotation3d())); // TODO fix camera to robot
-		} else
+		} else {
 			return null;
+		}
 	}
 
 	/**
@@ -197,9 +160,9 @@ public class Vision {
 		}
 	}
 
-	public Optional<EstimatedRobotPose> getEstimatedGlobalPose() {
+	public Optional<EstimatedRobotPose> getEstimatedGlobalPose(List<PhotonPipelineResult> results) {
 		Optional<EstimatedRobotPose> estimation = Optional.empty();
-		for (var r : m_camera.getAllUnreadResults()) {
+		for (var r : results) {
 			estimation = m_poseEstimator.update(r);
 			updateEstSTD(estimation, r.getTargets());
 
