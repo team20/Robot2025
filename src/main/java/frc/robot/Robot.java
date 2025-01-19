@@ -42,14 +42,8 @@ public class Robot extends TimedRobot {
 						() -> -m_driverController.getLeftY(),
 						() -> -m_driverController.getLeftX(),
 						() -> m_driverController.getR2Axis() - m_driverController.getL2Axis(),
-						m_driverController.getHID()::getSquareButton));
-		m_driverController.L1()
-				.whileTrue(
-						m_driveSubsystem.tagDriveCommand(
-								() -> -m_driverController.getLeftY(),
-								() -> -m_driverController.getLeftX(),
-								() -> m_driverController.getR2Axis() - m_driverController.getL2Axis(),
-								m_driverController.getHID()::getSquareButton));
+						m_driverController.getHID()::getSquareButton,
+						m_driverController.getHID()::getL1Button));
 	}
 
 	@Override

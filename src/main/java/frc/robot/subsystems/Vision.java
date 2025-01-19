@@ -28,6 +28,8 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.RobotBase;
 
 public class Vision {
@@ -43,6 +45,8 @@ public class Vision {
 			aprilTagFieldLayout,
 			PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
 			robotToCamera); // TODO change z for tag height
+	private final StructPublisher<Pose2d> m_visionPosePublisher = NetworkTableInstance.getDefault()
+			.getStructTopic("/SmartDashboard/VisionPose", Pose2d.struct).publish();
 
 	// Creates a new Vision class.
 	public Vision() {
@@ -61,9 +65,20 @@ public class Vision {
 
 	}
 
-	public List<PhotonPipelineResult> refreshResults() {
+	public void refreshResults() {
 		m_results = m_camera.getAllUnreadResults();
+	}
+
+	public List<PhotonPipelineResult> getResults() {
 		return m_results;
+	}
+
+	public PhotonPipelineResult getLatestResult() {
+		return m_camera.getLatestResult();
+	}
+
+	public PhotonTrackedTarget getBestTarget(PhotonPipelineResult r) {
+		return r.getBestTarget();
 	}
 
 	/**
@@ -173,6 +188,8 @@ public class Vision {
 						() -> m_sim.getDebugField().getObject("VisionEstimation").setPoses());
 			}
 		}
+		if (estimation.isPresent())
+			m_visionPosePublisher.set(estimation.get().estimatedPose.toPose2d());
 		return estimation;
 	}
 
