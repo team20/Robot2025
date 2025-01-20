@@ -126,7 +126,7 @@ public class PoseEstimationSubsystem extends SubsystemBase {
 			if (target.getPoseAmbiguity() <= .2 && fiducialId >= 0 && tagPose.isPresent()) {
 				Transform3d camToTarget = target.getBestCameraToTarget();
 				Pose3d camPose = tagPose.get().transformBy(camToTarget.inverse());
-				var visionMeasurement = camPose.transformBy(kRobotToCamera);
+				var visionMeasurement = camPose.transformBy(kRobotToCamera.inverse());
 				m_poseEstimator.addVisionMeasurement(visionMeasurement.toPose2d(), timestamp);
 			}
 		}
