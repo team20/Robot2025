@@ -7,9 +7,11 @@ package frc.robot.subsystems;
 import static edu.wpi.first.units.Units.*;
 import static frc.robot.Constants.DriveConstants.*;
 
+import java.util.Map;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
+import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
 import com.studica.frc.AHRS;
@@ -261,11 +263,22 @@ public class DriveSubsystem extends SubsystemBase {
 			fwdSpeed = Math.signum(fwdSpeed) * (fwdSpeed * fwdSpeed);
 			strSpeed = Math.signum(strSpeed) * (strSpeed * strSpeed);
 
-			if (isAlign.getAsBoolean() && m_vision.getLatestResult().hasTargets()) {
+			PhotonPipelineResult result = m_vision.getLatestResult();
+			if (isAlign.getAsBoolean() && result.hasTargets()) {
+
 				// Detect nearest April Tag and get translation data from joysticks and tag
 				// Calculate translation between driver movement and target movement to tag
-				PhotonTrackedTarget target = m_vision.getBestTarget(m_vision.getLatestResult());
-				Translation2d jsTranslation = new Translation2d(forwardSpeed.getAsDouble(), strafeSpeed.getAsDouble());
+				final Translation2d jsTranslation = new Translation2d(forwardSpeed.getAsDouble(),
+						strafeSpeed.getAsDouble());
+				PhotonTrackedTarget target = result.getTargets().stream()
+						.map(
+								t -> Map.entry(
+										t, (1 - m_vision.unitDot(
+												jsTranslation.toVector(),
+												m_vision.getTranslationToTarget(t).toVector()))))
+						.reduce((e1, e2) -> e1.getValue() < e2.getValue() ? e1 : e2).get().getKey();
+				// target = m_vision.getBestTarget(m_vision.getLatestResult());
+
 				Translation2d targetPos = m_vision.getTranslationToTarget(target);
 				Translation2d posDiff = jsTranslation.minus(targetPos);
 

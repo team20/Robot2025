@@ -20,6 +20,7 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -152,6 +153,10 @@ public class Vision {
 		return PhotonUtils.getYawToPose(
 				getVisionPose(target).toPose2d(),
 				getTargetPose(target).toPose2d());
+	}
+
+	public double unitDot(Vector v1, Vector v2) {
+		return v1.unit().dot(v2.unit());
 	}
 
 	public void updateEstSTD(Optional<EstimatedRobotPose> estPose, List<PhotonTrackedTarget> targets) {
