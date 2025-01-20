@@ -24,10 +24,12 @@ import frc.robot.Constants.ControllerConstants;
 import frc.robot.Constants.PoseConstants;
 import frc.robot.commands.DriveCommand;
 import frc.robot.subsystems.DriveSubsystem;
+import frc.robot.subsystems.PoseEstimationSubsystem;
 
 public class Robot extends TimedRobot {
 	private Command m_autonomousCommand;
 	private final DriveSubsystem m_driveSubsystem = new DriveSubsystem();
+	PoseEstimationSubsystem m_poseEstimationSubystem = new PoseEstimationSubsystem("Cool camera", m_driveSubsystem);
 	private final CommandPS4Controller m_driverController = new CommandPS4Controller(
 			ControllerConstants.kDriverControllerPort);
 	private final PowerDistribution m_pdh = new PowerDistribution();

@@ -120,6 +120,16 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
 	}
 
 	/**
+	 * Returns the {@code SwerveDriveKinematics} used by this
+	 * {@code DriveSubsystem}.
+	 * 
+	 * @return the {@code SwerveDriveKinematics} used by this {@code DriveSubsystem}
+	 */
+	public SwerveDriveKinematics kinematics() {
+		return m_kinematics;
+	}
+
+	/**
 	 * Returns robot pose.
 	 * 
 	 * @return The pose of the robot.
@@ -133,7 +143,7 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
 	 * 
 	 * @return The module positions, in order of FL, FR, BL, BR
 	 */
-	private SwerveModulePosition[] getModulePositions() {
+	public SwerveModulePosition[] getModulePositions() {
 		return new SwerveModulePosition[] { m_frontLeft.getModulePosition(), m_frontRight.getModulePosition(),
 				m_backLeft.getModulePosition(), m_backRight.getModulePosition() };
 	}
