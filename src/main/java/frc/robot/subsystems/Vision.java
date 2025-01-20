@@ -78,10 +78,6 @@ public class Vision {
 		return m_camera.getLatestResult();
 	}
 
-	public double unitDot(Vector v1, Vector v2) {
-		return v1.unit().dot(v2.unit());
-	}
-
 	public PhotonTrackedTarget getBestTarget(PhotonPipelineResult r) {
 		return r.getBestTarget();
 	}
