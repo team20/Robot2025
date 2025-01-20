@@ -159,6 +159,10 @@ public class Vision {
 				getTargetPose(target).toPose2d());
 	}
 
+	public double unitDot(Vector v1, Vector v2) {
+		return v1.unit().dot(v2.unit());
+	}
+
 	public void updateEstSTD(Optional<EstimatedRobotPose> estPose, List<PhotonTrackedTarget> targets) {
 		currentSTD = VecBuilder.fill(2, 2, 4); // TODO taken from PhotonVision example code
 		if (!estPose.isEmpty()) {

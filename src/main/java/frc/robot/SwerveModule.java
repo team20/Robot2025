@@ -7,12 +7,12 @@ package frc.robot;
 import static frc.robot.Constants.DriveConstants.*;
 
 import com.ctre.phoenix6.hardware.CANcoder;
-import com.ctre.phoenix6.hardware.TalonFX;
-import com.revrobotics.sim.SparkFlexSim;
+import com.revrobotics.RelativeEncoder;
+import com.revrobotics.sim.SparkMaxSim;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
-import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
@@ -24,7 +24,6 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
-import frc.robot.Constants.DriveConstants;
 
 /**
  * Contains all the hardware and controllers for a swerve module.
@@ -32,19 +31,21 @@ import frc.robot.Constants.DriveConstants;
 public class SwerveModule {
 	private final PIDController m_steerController = new PIDController(kP, kI, kD);
 	private final CANcoder m_CANCoder;
-	private final TalonFX m_driveMotor;
-	private final SparkFlex m_steerMotor;
+	private final SparkMax m_driveMotor;
+	private final SparkMax m_steerMotor;
 
-	private final SparkFlexSim m_steerMotorSim;
+	private final SparkMaxSim m_steerMotorSim;
 	private final DCMotorSim m_driveMotorModel;
 	private final DCMotorSim m_steerMotorModel;
 
+	private final RelativeEncoder m_relativeEncoder;
+
 	public SwerveModule(int canId, int drivePort, int steerPort) {
 		m_CANCoder = new CANcoder(canId);
-		m_driveMotor = new TalonFX(drivePort);
-		m_steerMotor = new SparkFlex(steerPort, MotorType.kBrushless);
-		m_steerMotorSim = new SparkFlexSim(m_steerMotor, DCMotor.getNEO(1));
-		m_driveMotor.getConfigurator().apply(DriveConstants.kDriveConfig);
+		m_driveMotor = new SparkMax(drivePort, MotorType.kBrushless);
+		m_steerMotor = new SparkMax(steerPort, MotorType.kBrushless);
+		m_steerMotorSim = new SparkMaxSim(m_steerMotor, DCMotor.getNEO(1));
+		m_relativeEncoder = m_driveMotor.getEncoder();
 		var config = new SparkMaxConfig();
 		config.idleMode(IdleMode.kBrake).voltageCompensation(12);
 		config.openLoopRampRate(kRampRate).closedLoopRampRate(kRampRate);
@@ -72,7 +73,7 @@ public class SwerveModule {
 	 * @return The position in meters.
 	 */
 	public double getDriveEncoderPosition() {
-		return m_driveMotor.getPosition().getValueAsDouble() * kMetersPerMotorRotation;
+		return m_relativeEncoder.getPosition() * kMetersPerMotorRotation;
 	}
 
 	public double getSteerCurrent() {
@@ -80,14 +81,14 @@ public class SwerveModule {
 	}
 
 	public double getDriveCurrent() {
-		return m_driveMotor.getStatorCurrent().getValueAsDouble();
+		return m_driveMotor.getOutputCurrent();
 	}
 
 	/**
 	 * Resets drive encoder to zero.
 	 */
 	public void resetDriveEncoder() {
-		m_driveMotor.setPosition(0);
+		m_relativeEncoder.setPosition(0);
 	}
 
 	/**
@@ -96,7 +97,7 @@ public class SwerveModule {
 	 * @return The motor speed in voltage
 	 */
 	public double getDriveVoltage() {
-		return m_driveMotor.getMotorVoltage().getValueAsDouble();
+		return m_driveMotor.getAppliedOutput();
 	}
 
 	/**
@@ -105,7 +106,7 @@ public class SwerveModule {
 	 * @return The temperature in degrees Celsius
 	 */
 	public double getDriveTemperature() {
-		return m_driveMotor.getDeviceTemp().getValueAsDouble();
+		return m_driveMotor.getMotorTemperature();
 	}
 
 	/**
@@ -150,11 +151,12 @@ public class SwerveModule {
 
 	private void updateSim() {
 		if (RobotBase.isSimulation()) {
-			var driveMotorState = m_driveMotor.getSimState();
-			m_driveMotorModel.setInputVoltage(driveMotorState.getMotorVoltage());
+			// var driveMotorState = m_driveMotor.getSimState();
+			// m_driveMotorModel.setInputVoltage(driveMotorState.getMotorVoltage());
 			m_driveMotorModel.update(0.02);
-			driveMotorState.setRotorVelocity(m_driveMotorModel.getAngularVelocityRPM() / 60);
-			driveMotorState.setRawRotorPosition(m_driveMotorModel.getAngularPositionRotations());
+			// driveMotorState.setRotorVelocity(m_driveMotorModel.getAngularVelocityRPM() /
+			// 60);
+			// driveMotorState.setRawRotorPosition(m_driveMotorModel.getAngularPositionRotations());
 			var encoderSimState = m_CANCoder.getSimState();
 			// These used to be CAN IDs, but apparently any other value causes complete
 			// destabilization of the swerve sim. Do not touch.
