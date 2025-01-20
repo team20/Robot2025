@@ -3,10 +3,21 @@ package frc.robot;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 
 public class Constants {
+
+	/**
+	 * The {@code AprilTagFieldLayout}.
+	 */
+	public static AprilTagFieldLayout kFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
+
 	public static final class ControllerConstants {
 		public static final int kDriverControllerPort = 0;
 		public static final int kOperatorControllerPort = 1;
@@ -68,6 +79,16 @@ public class Constants {
 			kDriveConfig.ClosedLoopRamps.VoltageClosedLoopRampPeriod = kRampRate;
 			kDriveConfig.OpenLoopRamps.VoltageOpenLoopRampPeriod = kRampRate;
 		}
+	}
+
+	public static final class RobotConstants {
+
+		/**
+		 * The {@code Transform3d} expressing the pose of the camera relative to the
+		 * pose of the robot.
+		 */
+		public static Transform3d kRobotToCamera = new Transform3d(new Translation3d(0.5, 0.0, 0.5),
+				new Rotation3d(0, 0, 0));
 	}
 
 }

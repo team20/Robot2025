@@ -115,11 +115,21 @@ public class DriveSubsystem extends SubsystemBase {
 	}
 
 	/**
+	 * Returns the {@code SwerveDriveKinematics} used by this
+	 * {@code DriveSubsystem}.
+	 * 
+	 * @return the {@code SwerveDriveKinematics} used by this {@code DriveSubsystem}
+	 */
+	public SwerveDriveKinematics kinematics() {
+		return m_kinematics;
+	}
+
+	/**
 	 * Gets the module positions for each swerve module.
 	 * 
 	 * @return The module positions, in order of FL, FR, BL, BR
 	 */
-	private SwerveModulePosition[] getModulePositions() {
+	public SwerveModulePosition[] getModulePositions() {
 		return new SwerveModulePosition[] { m_frontLeft.getModulePosition(), m_frontRight.getModulePosition(),
 				m_backLeft.getModulePosition(), m_backRight.getModulePosition() };
 	}
