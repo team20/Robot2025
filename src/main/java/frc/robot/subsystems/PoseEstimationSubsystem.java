@@ -73,7 +73,7 @@ public class PoseEstimationSubsystem extends SubsystemBase {
 	 *        {@code PoseEstimationSubsystem}
 	 */
 	public PoseEstimationSubsystem(String cameraName, DriveSubsystem driveSubsystem) {
-		m_camera = RobotBase.isSimulation() ? new PhotonCameraSimulator(cameraName, driveSubsystem)
+		m_camera = RobotBase.isSimulation() ? new PhotonCameraSimulator(cameraName, driveSubsystem, 3, 0.1)
 				: new PhotonCamera(cameraName);
 		this.m_driveSubsystem = driveSubsystem;
 		m_poseEstimator = new SwerveDrivePoseEstimator(
