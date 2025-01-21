@@ -6,8 +6,6 @@ import static frc.robot.Constants.RobotConstants.*;
 import java.util.Optional;
 
 import org.photonvision.PhotonCamera;
-import org.photonvision.simulation.PhotonCameraSim;
-import org.photonvision.simulation.VisionSystemSim;
 import org.photonvision.targeting.PhotonPipelineResult;
 
 import edu.wpi.first.math.VecBuilder;
@@ -61,16 +59,6 @@ public class PoseEstimationSubsystem extends SubsystemBase {
 	private double m_previousTimestamp = 0;
 
 	/**
-	 * The {@code PhotonCameraSim} used by this {@code PoseEstimationSubsystem}.
-	 */
-	private PhotonCameraSim m_cameraSim = null;
-
-	/**
-	 * The {@code VisionSystemSim} used by this {@code PoseEstimationSubsystem}.
-	 */
-	private VisionSystemSim m_sim = null;
-
-	/**
 	 * The {@code StructPublisher} for reporting the estimated {@code Pose2d} of the
 	 * robot.
 	 */
@@ -85,7 +73,8 @@ public class PoseEstimationSubsystem extends SubsystemBase {
 	 *        {@code PoseEstimationSubsystem}
 	 */
 	public PoseEstimationSubsystem(String cameraName, DriveSubsystem driveSubsystem) {
-		m_camera = new PhotonCamera(cameraName);
+		m_camera = RobotBase.isSimulation() ? new PhotonCameraSimulator(cameraName, driveSubsystem, 3, 0.1)
+				: new PhotonCamera(cameraName);
 		this.m_driveSubsystem = driveSubsystem;
 		m_poseEstimator = new SwerveDrivePoseEstimator(
 				driveSubsystem.kinematics(),
@@ -94,17 +83,6 @@ public class PoseEstimationSubsystem extends SubsystemBase {
 				new Pose2d(),
 				stateStdDevs,
 				visionMeasurementStdDevs);
-		if (RobotBase.isSimulation()) {
-			m_sim = new VisionSystemSim("sim");
-			m_sim.addAprilTags(kFieldLayout);
-			m_cameraSim = new PhotonCameraSim(m_camera);
-			m_sim.addCamera(m_cameraSim, kRobotToCamera);
-			m_cameraSim.enableProcessedStream(true);
-			m_cameraSim.enableDrawWireframe(true);
-		} else {
-			m_sim = null;
-			m_cameraSim = null;
-		}
 		m_posePublisher = NetworkTableInstance.getDefault()
 				.getStructTopic("/SmartDashboard/Pose@PoseEstimationSubsystem", Pose2d.struct)
 				.publish();
@@ -132,15 +110,6 @@ public class PoseEstimationSubsystem extends SubsystemBase {
 		}
 		m_poseEstimator.update(m_driveSubsystem.getHeading(), m_driveSubsystem.getModulePositions());
 		m_posePublisher.set(m_poseEstimator.getEstimatedPosition());
-	}
-
-	/**
-	 * Is invoked periodically by the {@link CommandScheduler}. Useful for updating
-	 * subsystem-specific state that needs to be maintained for simulations.
-	 */
-	@Override
-	public void simulationPeriodic() {
-		m_sim.update(m_driveSubsystem.getPose());
 	}
 
 	/**
