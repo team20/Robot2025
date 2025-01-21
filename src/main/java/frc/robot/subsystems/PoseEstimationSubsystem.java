@@ -13,6 +13,7 @@ import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
@@ -79,7 +80,10 @@ public class PoseEstimationSubsystem extends SubsystemBase {
 	 *        {@code PoseEstimationSubsystem}
 	 */
 	public PoseEstimationSubsystem(String cameraName, DriveSubsystem driveSubsystem) {
-		m_camera = RobotBase.isSimulation() ? new PhotonCameraSimulator(cameraName, driveSubsystem, 5, 0.1)
+		m_camera = RobotBase.isSimulation()
+				? new PhotonCameraSimulator(cameraName, driveSubsystem, new Pose2d(1, 1, Rotation2d.fromDegrees(0)),
+						0.01, 3,
+						0.1)
 				: new PhotonCamera(cameraName);
 		this.m_driveSubsystem = driveSubsystem;
 		m_poseEstimator = new SwerveDrivePoseEstimator(

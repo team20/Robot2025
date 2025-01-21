@@ -12,8 +12,13 @@ import org.photonvision.simulation.VisionSystemSim;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.RobotBase;
 
 /**
@@ -65,33 +70,65 @@ public class PhotonCameraSimulator extends PhotonCamera {
 	private PhotonPipelineResult m_latestResult = new PhotonPipelineResult();
 
 	/**
+	 * The {@code Pose2d} of the robot in simulation.
+	 */
+	private Pose2d m_pose;
+
+	/**
+	 * The previous {@code Pose2d} of the robot from the {@code DriveSubsystem}.
+	 */
+	private Pose2d m_previousOdometryPose = null;
+
+	/**
+	 * The error ratio in measurements for updating the odometry of the
+	 * robot.
+	 */
+	private double m_measurmentErrorRatio;
+
+	/**
+	 * The {@code StructPublisher} for reporting the {@code Pose2d} of the
+	 * robot in simulation.
+	 */
+	private final StructPublisher<Pose2d> m_posePublisher;
+
+	/**
 	 * Constructs a {@code PhotonCameraSimulator}.
 	 * 
 	 * @param cameraName the nickname of the camera to be used by the
 	 *        {@code PhotonCameraSimulator} (found in the PhotonVision UI)
-	 * @param driveSubsystem {@code DriveSubsystem} to be used by the
+	 * @param driveSubsystem the {@code DriveSubsystem} to be used by the
 	 *        {@code PhotonCameraSimulator}
+	 * @param initialPose the initial {@code Pose2d} of the robot in simulation
+	 * @param measurmentErrorRatio the error ratio in measurements for
+	 *        updating the odometry of the robot
 	 * @param maxAngularErrorInDegrees the maximum artificial angular error to
 	 *        inject in degrees
 	 * @param delayInSeconds the artificial delay to add in seconds
 	 */
-	public PhotonCameraSimulator(String cameraName, DriveSubsystem driveSubsystem, double maxAngularErrorInDegrees,
+	public PhotonCameraSimulator(String cameraName, DriveSubsystem driveSubsystem, Pose2d initialPose,
+			double measurmentErrorRatio,
+			double maxAngularErrorInDegrees,
 			double delayInSeconds) {
 		super(cameraName);
-		this.m_driveSubsystem = driveSubsystem;
-		this.m_maxAngularError = maxAngularErrorInDegrees * Math.PI / 180;
-		this.m_DelayInSeconds = delayInSeconds;
+		m_driveSubsystem = driveSubsystem;
+		m_pose = initialPose;
+		m_measurmentErrorRatio = measurmentErrorRatio;
+		m_maxAngularError = maxAngularErrorInDegrees * Math.PI / 180;
+		m_DelayInSeconds = delayInSeconds;
 		if (RobotBase.isSimulation()) {
-			m_sim = new VisionSystemSim("sim");
-			m_sim.addAprilTags(kFieldLayout);
 			m_cameraSim = new PhotonCameraSim(this);
-			m_sim.addCamera(m_cameraSim, kRobotToCamera);
 			m_cameraSim.enableProcessedStream(true);
 			m_cameraSim.enableDrawWireframe(true);
+			m_sim = new VisionSystemSim("sim");
+			m_sim.addAprilTags(kFieldLayout);
+			m_sim.addCamera(m_cameraSim, kRobotToCamera);
 		} else {
 			m_sim = null;
 			m_cameraSim = null;
 		}
+		m_posePublisher = NetworkTableInstance.getDefault()
+				.getStructTopic("/SmartDashboard/Pose@Simulation", Pose2d.struct)
+				.publish();
 	}
 
 	/**
@@ -105,10 +142,8 @@ public class PhotonCameraSimulator extends PhotonCamera {
 	 */
 	@Override
 	public PhotonPipelineResult getLatestResult() {
-		process(super.getAllUnreadResults().stream().map(t -> distort(t)).toList());
-		var r = m_latestResult;
-		m_sim.update(m_driveSubsystem.getPose());
-		return r;
+		update(super.getAllUnreadResults().stream().map(t -> distort(t)).toList());
+		return m_latestResult;
 	}
 
 	/**
@@ -124,19 +159,30 @@ public class PhotonCameraSimulator extends PhotonCamera {
 	 */
 	@Override
 	public List<PhotonPipelineResult> getAllUnreadResults() {
-		process(super.getAllUnreadResults().stream().map(t -> distort(t)).toList());
+		update(super.getAllUnreadResults().stream().map(t -> distort(t)).toList());
 		var r = m_unreadResults;
 		m_unreadResults = new LinkedList<PhotonPipelineResult>();
-		m_sim.update(m_driveSubsystem.getPose());
 		return r;
 	}
 
 	/**
-	 * Processes the specified {@code PhotonPipelineResult}s.
+	 * Randomly changes the specified value using the specified ratio.
+	 * 
+	 * @param x a value
+	 * @param r the ratio by which the value can be increased or decreased
+	 * @return the resulting value
+	 */
+	private double change(double x, double r) {
+		return x * (1 - r + 2 * r * Math.random());
+	}
+
+	/**
+	 * Updates this {@code PhotonCameraSimulator} using the specified
+	 * {@code PhotonPipelineResult}s.
 	 * 
 	 * @param l a list of {@code PhotonPipelineResult}s
 	 */
-	private void process(List<PhotonPipelineResult> l) {
+	private void update(List<PhotonPipelineResult> l) {
 		m_buffered.addAll(l);
 		if (m_buffered.size() > 0) {
 			var timestamp = m_buffered.getLast().getTimestampSeconds() - this.m_DelayInSeconds;
@@ -148,6 +194,16 @@ public class PhotonCameraSimulator extends PhotonCamera {
 					m_unreadResults.remove();
 			}
 		}
+		var p = m_driveSubsystem.getPose();
+		if (m_previousOdometryPose != null) {
+			var t = p.minus(m_previousOdometryPose);
+			t = new Transform2d(change(t.getX(), m_measurmentErrorRatio), change(t.getY(), m_measurmentErrorRatio),
+					Rotation2d.fromDegrees(change(t.getRotation().getDegrees(), m_measurmentErrorRatio)));
+			m_pose = m_pose.plus(t);
+		}
+		m_previousOdometryPose = p;
+		m_sim.update(m_pose);
+		m_posePublisher.set(m_pose);
 	}
 
 	/**

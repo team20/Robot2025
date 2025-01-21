@@ -1,5 +1,6 @@
 package frc.robot.commands;
 
+import static frc.robot.Constants.*;
 import static frc.robot.Constants.DriveConstants.*;
 
 import java.util.Map;
@@ -7,8 +8,6 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import edu.wpi.first.apriltag.AprilTagFieldLayout;
-import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -28,11 +27,6 @@ import frc.robot.subsystems.DriveSubsystem;
  * @author Andrew Hwang (u.andrew.h@gmail.com)
  */
 public class DriveCommand extends Command {
-
-	/**
-	 * The {@code AprilTagFieldLayout} used by this {@code DriveCommand}.
-	 */
-	public static AprilTagFieldLayout fieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
 
 	/**
 	 * The {@code DriveSubsystem} used by this {@code DriveCommand}.
@@ -76,14 +70,16 @@ public class DriveCommand extends Command {
 	 * robot to a certain target pose.
 	 * 
 	 * @param driveSubsystem the {@code DriveSubsystem} to use
+	 * @param poseSupplier the {@code Supplier} providing the current {@code Pose2d}
+	 *        of the robot
 	 * @param targetPose the target pose to which the robot needs to move
 	 * @param distanceTolerance the distance error in meters which is tolerable
 	 * @param angleTolerance the angle error in degrees which is tolerable
 	 */
-	public DriveCommand(DriveSubsystem driveSubsystem, Pose2d targetPose,
+	public DriveCommand(DriveSubsystem driveSubsystem, Supplier<Pose2d> poseSupplier, Pose2d targetPose,
 			double distanceTolerance,
 			double angleTolerance) {
-		this(driveSubsystem, () -> driveSubsystem.getPose(), () -> targetPose, distanceTolerance, angleTolerance);
+		this(driveSubsystem, poseSupplier, () -> targetPose, distanceTolerance, angleTolerance);
 	}
 
 	/**
@@ -256,14 +252,14 @@ public class DriveCommand extends Command {
 	 *         {@code Pose2d}
 	 */
 	public static Integer closestTagID(Pose2d pose) {
-		var s = fieldLayout.getTags().stream()
+		var s = kFieldLayout.getTags().stream()
 				// only the tags facing toward the robot
 				.filter(t -> Math.abs(t.pose.toPose2d().getRotation().minus(pose.getRotation()).getDegrees()) > 120)
 				// only the tags near the center of the view
 				.filter(t -> Math.abs(angularDisplacement(pose, t.pose.toPose2d()).getDegrees()) < 30)
 				.map(t -> Map.entry(t.ID, translationalDisplacement(pose, t.pose.toPose2d()))) // displacement
 				.filter(t -> t.getValue() > 0) // only the tags in front of the robot (not behind)
-				.filter(t -> t.getValue() < 3); // only the tags that are within 3 meters away
+				.filter(t -> t.getValue() < 4); // only the tags that are within 3 meters away
 		Optional<Entry<Integer, Double>> closest = s.reduce((e1, e2) -> e1.getValue() < e2.getValue() ? e1 : e2);
 		if (closest.isPresent()) {
 			return closest.get().getKey();

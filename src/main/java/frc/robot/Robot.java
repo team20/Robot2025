@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import static frc.robot.Constants.*;
+
 import java.util.Map;
 
 import org.littletonrobotics.urcl.URCL;
@@ -56,24 +58,26 @@ public class Robot extends TimedRobot {
 						m_driveSubsystem,
 						() -> DriverStation.getAlliance().get() == Alliance.Red ? PoseConstants.kRedReefPosition
 								: PoseConstants.kBlueReefPosition,
-						() -> m_driveSubsystem.getPose(), 2, 0.1, 5));
+						() -> m_poseEstimationSubystem.getPose(), 2, 0.1, 5));
 		var alignTransformation = new Transform2d(new Pose2d(0, 0, Rotation2d.fromDegrees(0)),
 				new Pose2d(.8, 0, Rotation2d.fromDegrees(180)));
 		m_driverController.button(2)
 				.whileTrue(
-						new DriveCommand(m_driveSubsystem, () -> m_driveSubsystem.getPose(),
-								() -> DriveCommand.fieldLayout
-										.getTagPose(DriveCommand.closestTagID(m_driveSubsystem.getPose())).get()
+						new DriveCommand(m_driveSubsystem, () -> m_poseEstimationSubystem.getPose(),
+								() -> kFieldLayout
+										.getTagPose(DriveCommand.closestTagID(m_poseEstimationSubystem.getPose())).get()
 										.toPose2d()
 										.transformBy(alignTransformation),
 								.1, 3));
-		for (int i = 3; i <= 4; i++)
+		for (int i = 3; i <= 4; i++) {
 			m_driverController.button(i)
 					.whileTrue(
-							new DriveCommand(m_driveSubsystem,
-									DriveCommand.fieldLayout.getTagPose(i).get().toPose2d()
+							new DriveCommand(m_driveSubsystem, () -> m_poseEstimationSubystem.getPose(),
+									kFieldLayout.getTagPose(i).get().toPose2d()
 											.transformBy(alignTransformation),
 									.1, 3));
+
+		}
 	}
 
 	@Override
@@ -131,9 +135,13 @@ public class Robot extends TimedRobot {
 		// we can test critical subsystems and commands here.
 		m_driveSubsystem.testCommand() // test DriveSubsystem#drive(...)
 				// move forward, backward, strafe left, strafe right, and turn left and right
-				.andThen(new DriveCommand(m_driveSubsystem, new Pose2d(.3, .3, Rotation2d.fromDegrees(90)), .1, 3))
+				.andThen(
+						new DriveCommand(m_driveSubsystem, () -> m_driveSubsystem.getPose(),
+								new Pose2d(.3, .3, Rotation2d.fromDegrees(90)), .1, 3))
 				// test DriveCommand: move to (.2, .2, 90)
-				.andThen(new DriveCommand(m_driveSubsystem, new Pose2d(0, 0, Rotation2d.fromDegrees(0)), .1, 3))
+				.andThen(
+						new DriveCommand(m_driveSubsystem, () -> m_driveSubsystem.getPose(),
+								new Pose2d(0, 0, Rotation2d.fromDegrees(0)), .1, 3))
 				// test DriveCommand: move to (0, 0, 0)
 				.schedule();
 	}
