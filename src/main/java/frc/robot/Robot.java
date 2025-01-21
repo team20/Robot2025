@@ -53,16 +53,14 @@ public class Robot extends TimedRobot {
 						() -> -m_driverController.getLeftX(),
 						() -> m_driverController.getR2Axis() - m_driverController.getL2Axis(),
 						m_driverController.getHID()::getSquareButton));
-		Transform2d robotToTarget = new Transform2d(new Pose2d(0, 0, Rotation2d.fromDegrees(0)),
-				new Pose2d(.8, 0, Rotation2d.fromDegrees(180)));
-		for (int i = 1; i <= 2; i++) {
+		Transform2d robotToTarget = new Transform2d(.8, 0, Rotation2d.fromDegrees(180));
+		for (int i = 1; i <= 2; i++)
 			m_driverController.button(i)
 					.whileTrue(
 							DriveCommand.moveTo(
 									m_driveSubsystem, m_poseEstimationSubystem,
 									kFieldLayout.getTagPose(i).get().toPose2d().plus(robotToTarget),
 									.1, 3));
-		}
 		m_driverController.button(3).whileTrue(
 				DriveCommand.moveToward(
 						m_driveSubsystem, m_poseEstimationSubystem,

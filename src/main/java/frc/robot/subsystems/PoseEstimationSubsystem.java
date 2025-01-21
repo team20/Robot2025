@@ -92,7 +92,7 @@ public class PoseEstimationSubsystem extends SubsystemBase {
 				stateStdDevs,
 				visionMeasurementStdDevs);
 		m_detectedPosePublisher = NetworkTableInstance.getDefault()
-				.getStructTopic("/SmartDashboard/Pose@PhotonCamera", Pose2d.struct)
+				.getStructTopic("/SmartDashboard/Pose@PhotonPoseEstimator", Pose2d.struct)
 				.publish();
 		m_estimatedPosePublisher = NetworkTableInstance.getDefault()
 				.getStructTopic("/SmartDashboard/Pose@PoseEstimationSubsystem", Pose2d.struct)
