@@ -59,10 +59,16 @@ public class PoseEstimationSubsystem extends SubsystemBase {
 	private double m_previousTimestamp = 0;
 
 	/**
+	 * The {@code StructPublisher} for reporting the detected {@code Pose2d} of the
+	 * robot.
+	 */
+	private final StructPublisher<Pose2d> m_detectedPosePublisher;
+
+	/**
 	 * The {@code StructPublisher} for reporting the estimated {@code Pose2d} of the
 	 * robot.
 	 */
-	private final StructPublisher<Pose2d> m_posePublisher;
+	private final StructPublisher<Pose2d> m_estimatedPosePublisher;
 
 	/**
 	 * Constructs a {@code PoseEstimationSubsystem}.
@@ -73,7 +79,7 @@ public class PoseEstimationSubsystem extends SubsystemBase {
 	 *        {@code PoseEstimationSubsystem}
 	 */
 	public PoseEstimationSubsystem(String cameraName, DriveSubsystem driveSubsystem) {
-		m_camera = RobotBase.isSimulation() ? new PhotonCameraSimulator(cameraName, driveSubsystem, 3, 0.1)
+		m_camera = RobotBase.isSimulation() ? new PhotonCameraSimulator(cameraName, driveSubsystem, 5, 0.1)
 				: new PhotonCamera(cameraName);
 		this.m_driveSubsystem = driveSubsystem;
 		m_poseEstimator = new SwerveDrivePoseEstimator(
@@ -83,7 +89,10 @@ public class PoseEstimationSubsystem extends SubsystemBase {
 				new Pose2d(),
 				stateStdDevs,
 				visionMeasurementStdDevs);
-		m_posePublisher = NetworkTableInstance.getDefault()
+		m_detectedPosePublisher = NetworkTableInstance.getDefault()
+				.getStructTopic("/SmartDashboard/Pose@PhotonCamera", Pose2d.struct)
+				.publish();
+		m_estimatedPosePublisher = NetworkTableInstance.getDefault()
 				.getStructTopic("/SmartDashboard/Pose@PoseEstimationSubsystem", Pose2d.struct)
 				.publish();
 	}
@@ -104,12 +113,13 @@ public class PoseEstimationSubsystem extends SubsystemBase {
 			if (target.getPoseAmbiguity() <= .2 && fiducialId >= 0 && tagPose.isPresent()) {
 				Transform3d camToTarget = target.getBestCameraToTarget();
 				Pose3d camPose = tagPose.get().transformBy(camToTarget.inverse());
-				var visionMeasurement = camPose.transformBy(kRobotToCamera.inverse());
-				m_poseEstimator.addVisionMeasurement(visionMeasurement.toPose2d(), timestamp);
+				var visionMeasurement = camPose.transformBy(kRobotToCamera.inverse()).toPose2d();
+				m_poseEstimator.addVisionMeasurement(visionMeasurement, timestamp);
+				m_detectedPosePublisher.set(visionMeasurement);
 			}
 		}
 		m_poseEstimator.update(m_driveSubsystem.getHeading(), m_driveSubsystem.getModulePositions());
-		m_posePublisher.set(m_poseEstimator.getEstimatedPosition());
+		m_estimatedPosePublisher.set(m_poseEstimator.getEstimatedPosition());
 	}
 
 	/**

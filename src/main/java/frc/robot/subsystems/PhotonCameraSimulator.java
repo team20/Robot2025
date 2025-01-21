@@ -158,7 +158,6 @@ public class PhotonCameraSimulator extends PhotonCamera {
 	 * @return the resulting {@code PhotonPipelineResult}
 	 */
 	private PhotonPipelineResult distort(PhotonPipelineResult r) {
-		r.metadata.captureTimestampMicros -= this.m_DelayInSeconds * 1e6;
 		return new PhotonPipelineResult(r.metadata, r.targets.stream().map(t -> distort(t)).toList(), r.multitagResult);
 	}
 
