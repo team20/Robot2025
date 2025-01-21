@@ -3,18 +3,15 @@ package frc.robot.subsystems;
 import static frc.robot.Constants.*;
 import static frc.robot.Constants.RobotConstants.*;
 
-import java.util.Optional;
-
 import org.photonvision.PhotonCamera;
-import org.photonvision.targeting.PhotonPipelineResult;
+import org.photonvision.PhotonPoseEstimator;
+import org.photonvision.PhotonPoseEstimator.PoseStrategy;
 
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -48,16 +45,15 @@ public class PoseEstimationSubsystem extends SubsystemBase {
 	private static final Vector<N3> visionMeasurementStdDevs = VecBuilder.fill(0.5, 0.5, Units.degreesToRadians(10));
 
 	/**
+	 * The {@code PhotonPoseEstimator} used by this {@code PoseEstimationSubsystem}.
+	 */
+	private final PhotonPoseEstimator m_photonPoseEstimator;
+
+	/**
 	 * The {@code SwerveDrivePoseEstimator} used by this
 	 * {@code PoseEstimationSubsystem}.
 	 */
 	private final SwerveDrivePoseEstimator m_poseEstimator;
-
-	/**
-	 * The timestamp of the latest {@code PhotonPipelineResult} received from the
-	 * {@code PhotonCamera}.
-	 */
-	private double m_previousTimestamp = 0;
 
 	/**
 	 * The {@code StructPublisher} for reporting the detected {@code Pose2d} of the
@@ -86,6 +82,8 @@ public class PoseEstimationSubsystem extends SubsystemBase {
 						0.1)
 				: new PhotonCamera(cameraName);
 		this.m_driveSubsystem = driveSubsystem;
+		m_photonPoseEstimator = new PhotonPoseEstimator(kFieldLayout,
+				PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, kRobotToCamera);
 		m_poseEstimator = new SwerveDrivePoseEstimator(
 				driveSubsystem.kinematics(),
 				driveSubsystem.getHeading(),
@@ -106,20 +104,12 @@ public class PoseEstimationSubsystem extends SubsystemBase {
 	 */
 	@Override
 	public void periodic() {
-		PhotonPipelineResult pipelineResult = m_camera.getLatestResult();
-		var timestamp = pipelineResult.getTimestampSeconds();
-		if (timestamp != m_previousTimestamp && pipelineResult.hasTargets()) {
-			m_previousTimestamp = timestamp;
-			var target = pipelineResult.getBestTarget();
-			var fiducialId = target.getFiducialId();
-			Optional<Pose3d> tagPose = kFieldLayout == null ? Optional.empty()
-					: kFieldLayout.getTagPose(fiducialId);
-			if (target.getPoseAmbiguity() <= .2 && fiducialId >= 0 && tagPose.isPresent()) {
-				Transform3d camToTarget = target.getBestCameraToTarget();
-				Pose3d camPose = tagPose.get().transformBy(camToTarget.inverse());
-				var visionMeasurement = camPose.transformBy(kRobotToCamera.inverse()).toPose2d();
-				m_poseEstimator.addVisionMeasurement(visionMeasurement, timestamp);
-				m_detectedPosePublisher.set(visionMeasurement);
+		for (var r : m_camera.getAllUnreadResults()) {
+			var e = m_photonPoseEstimator.update(r);
+			if (e.isPresent()) {
+				var v = e.get();
+				m_poseEstimator.addVisionMeasurement(v.estimatedPose.toPose2d(), v.timestampSeconds);
+				m_detectedPosePublisher.set(v.estimatedPose.toPose2d());
 			}
 		}
 		m_poseEstimator.update(m_driveSubsystem.getHeading(), m_driveSubsystem.getModulePositions());
