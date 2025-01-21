@@ -110,7 +110,7 @@ public class Constants {
 		 * The {@code Transform3d} expressing the pose of the camera relative to the
 		 * pose of the robot.
 		 */
-		public static Transform3d kRobotToCamera = new Transform3d(new Translation3d(0.5, 0.0, 0.5),
-				new Rotation3d(0, 0, 0));
+		public static Transform3d kRobotToCamera = new Transform3d(new Translation3d(0.3, 0.0, 0.2),
+				new Rotation3d(0, Units.degreesToRadians(-20), 0));
 	}
 }

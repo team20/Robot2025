@@ -13,6 +13,7 @@ import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
@@ -92,6 +93,12 @@ public class PhotonCameraSimulator extends PhotonCamera {
 	private final StructPublisher<Pose2d> m_posePublisher;
 
 	/**
+	 * The {@code StructPublisher} for reporting the {@code Pose2d} of the
+	 * robot in simulation.
+	 */
+	private final StructPublisher<Pose3d> m_cameraPosePublisher;
+
+	/**
 	 * Constructs a {@code PhotonCameraSimulator}.
 	 * 
 	 * @param cameraName the nickname of the camera to be used by the
@@ -128,6 +135,9 @@ public class PhotonCameraSimulator extends PhotonCamera {
 		}
 		m_posePublisher = NetworkTableInstance.getDefault()
 				.getStructTopic("/SmartDashboard/Pose@Simulation", Pose2d.struct)
+				.publish();
+		m_cameraPosePublisher = NetworkTableInstance.getDefault()
+				.getStructTopic("/SmartDashboard/CameraPose@Simulation", Pose3d.struct)
 				.publish();
 	}
 
@@ -204,6 +214,7 @@ public class PhotonCameraSimulator extends PhotonCamera {
 		m_previousOdometryPose = p;
 		m_sim.update(m_pose);
 		m_posePublisher.set(m_pose);
+		m_cameraPosePublisher.set(new Pose3d(m_pose).plus(kRobotToCamera));
 	}
 
 	/**
