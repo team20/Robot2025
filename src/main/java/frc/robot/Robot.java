@@ -53,31 +53,27 @@ public class Robot extends TimedRobot {
 						() -> -m_driverController.getLeftX(),
 						() -> m_driverController.getR2Axis() - m_driverController.getL2Axis(),
 						m_driverController.getHID()::getSquareButton));
-		m_driverController.button(1).whileTrue(
-				DriveCommand.moveToward(
-						m_driveSubsystem,
-						() -> DriverStation.getAlliance().get() == Alliance.Red ? PoseConstants.kRedReefPosition
-								: PoseConstants.kBlueReefPosition,
-						() -> m_poseEstimationSubystem.getPose(), 2, 0.1, 5));
-		var alignTransformation = new Transform2d(new Pose2d(0, 0, Rotation2d.fromDegrees(0)),
+		Transform2d robotToTarget = new Transform2d(new Pose2d(0, 0, Rotation2d.fromDegrees(0)),
 				new Pose2d(.8, 0, Rotation2d.fromDegrees(180)));
-		m_driverController.button(2)
-				.whileTrue(
-						new DriveCommand(m_driveSubsystem, () -> m_poseEstimationSubystem.getPose(),
-								() -> kFieldLayout
-										.getTagPose(DriveCommand.closestTagID(m_poseEstimationSubystem.getPose())).get()
-										.toPose2d()
-										.transformBy(alignTransformation),
-								.1, 3));
-		for (int i = 3; i <= 4; i++) {
+		for (int i = 1; i <= 2; i++) {
 			m_driverController.button(i)
 					.whileTrue(
-							new DriveCommand(m_driveSubsystem, () -> m_poseEstimationSubystem.getPose(),
-									kFieldLayout.getTagPose(i).get().toPose2d()
-											.transformBy(alignTransformation),
+							DriveCommand.moveTo(
+									m_driveSubsystem, m_poseEstimationSubystem,
+									kFieldLayout.getTagPose(i).get().toPose2d().plus(robotToTarget),
 									.1, 3));
-
 		}
+		m_driverController.button(3).whileTrue(
+				DriveCommand.moveToward(
+						m_driveSubsystem, m_poseEstimationSubystem,
+						() -> DriverStation.getAlliance().get() == Alliance.Red ? PoseConstants.kRedReefPosition
+								: PoseConstants.kBlueReefPosition,
+						2, 0.1, 5));
+		m_driverController.button(4)
+				.whileTrue(
+						DriveCommand.moveToClosestTag(
+								m_driveSubsystem, m_poseEstimationSubystem, robotToTarget,
+								.1, 3));
 	}
 
 	@Override
@@ -136,12 +132,11 @@ public class Robot extends TimedRobot {
 		m_driveSubsystem.testCommand() // test DriveSubsystem#drive(...)
 				// move forward, backward, strafe left, strafe right, and turn left and right
 				.andThen(
-						new DriveCommand(m_driveSubsystem, () -> m_driveSubsystem.getPose(),
+						new DriveCommand(m_driveSubsystem,
 								new Pose2d(.3, .3, Rotation2d.fromDegrees(90)), .1, 3))
 				// test DriveCommand: move to (.2, .2, 90)
 				.andThen(
-						new DriveCommand(m_driveSubsystem, () -> m_driveSubsystem.getPose(),
-								new Pose2d(0, 0, Rotation2d.fromDegrees(0)), .1, 3))
+						new DriveCommand(m_driveSubsystem, Pose2d.kZero, .1, 3))
 				// test DriveCommand: move to (0, 0, 0)
 				.schedule();
 	}

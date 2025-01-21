@@ -16,6 +16,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.DriveSubsystem;
+import frc.robot.subsystems.PoseEstimationSubsystem;
 
 /**
  * This {@code DriveCommand} aims to maneuver the robot from its current pose to
@@ -66,20 +67,94 @@ public class DriveCommand extends Command {
 	private ProfiledPIDController m_controllerYaw;
 
 	/**
+	 * Constructs a {@code DriveCommand} for moving the robot to the specified
+	 * target.
+	 * 
+	 * @param driveSubsystem the {@code DriveSubsystem} to use
+	 * @param poseEstimationSubsystem the {@code PoseEstimationSubsystem} to use
+	 * @param targetPose the {@code Pose2d} of the target
+	 * @param distanceTolerance the distance error in meters which is tolerable
+	 * @param angleTolerance the angle error in degrees which is tolerable
+	 * @return a {@code Commmand} for moving the robot to the specified
+	 *         target
+	 */
+	public static DriveCommand moveTo(DriveSubsystem driveSubsystem,
+			PoseEstimationSubsystem poseEstimationSubsystem,
+			Pose2d targetPose, double distanceTolerance, double angleTolerance) {
+		return new DriveCommand(driveSubsystem, () -> poseEstimationSubsystem.getPose(),
+				() -> targetPose,
+				distanceTolerance, angleTolerance);
+	}
+
+	/**
+	 * Constructs a {@code DriveCommand} for moving the robot toward the specified
+	 * target position while ensuring that the robot is away from the target by the
+	 * specified distance.
+	 * 
+	 * @param driveSubsystem the {@code DriveSubsystem} to use
+	 * @param poseEstimaitonSubsystem the {@code PoseEstimationSubsystem} to use
+	 * @param targetPositionSupplier a {@code Supplier<Pose2d>} that provides the
+	 *        target position.
+	 *        This is used at the commencement of the {@code DriveCommand} (i.e.,
+	 *        when the scheduler begins to periodically execute the
+	 *        {@code DriveCommand})
+	 * @param distanceToTarget the desired distance between the robot and the
+	 *        target position
+	 * @param distanceTolerance the distance error in meters which is tolerable
+	 * @param angleTolerance the angle error in degrees which is tolerable
+	 * @return a {@code Commmand} for turning the robot to the specified target
+	 *         position
+	 */
+	public static DriveCommand moveToward(DriveSubsystem driveSubsystem,
+			PoseEstimationSubsystem poseEstimaitonSubsystem,
+			Supplier<Translation2d> targetPositionSupplier,
+			double distanceToTarget,
+			double distanceTolerance,
+			double angleTolerance) {
+		Supplier<Pose2d> poseSupplier = () -> poseEstimaitonSubsystem.getPose();
+		return new DriveCommand(driveSubsystem, poseSupplier,
+				() -> poseSupplier.get()
+						.plus(transformationToward(targetPositionSupplier.get(), poseSupplier.get(), distanceToTarget)),
+				distanceTolerance, angleTolerance);
+	}
+
+	/**
+	 * Constructs a {@code DriveCommand} for moving the robot to the specified
+	 * target.
+	 * 
+	 * @param driveSubsystem the {@code DriveSubsystem} to use
+	 * @param poseEstimationSubsystem the {@code PoseEstimationSubsystem} to use
+	 * @param robotToTarget the {@code Pose2d} of the target relative to the
+	 *        {@code Pose2d} of the robot for the {@code DriveCommand} to finish
+	 * @param distanceTolerance the distance error in meters which is tolerable
+	 * @param angleTolerance the angle error in degrees which is tolerable
+	 * @return a {@code Commmand} for moving the robot to the specified
+	 *         target
+	 */
+	public static DriveCommand moveToClosestTag(DriveSubsystem driveSubsystem,
+			PoseEstimationSubsystem poseEstimationSubsystem,
+			Transform2d robotToTarget, double distanceTolerance, double angleTolerance) {
+		return new DriveCommand(driveSubsystem, () -> poseEstimationSubsystem.getPose(),
+				() -> kFieldLayout
+						.getTagPose(closestTagID(poseEstimationSubsystem.getPose())).get()
+						.toPose2d()
+						.transformBy(robotToTarget),
+				distanceTolerance, angleTolerance);
+	}
+
+	/**
 	 * Constructs a new {@code DriveCommand} whose purpose is to move the
 	 * robot to a certain target pose.
 	 * 
 	 * @param driveSubsystem the {@code DriveSubsystem} to use
-	 * @param poseSupplier the {@code Supplier} providing the current {@code Pose2d}
-	 *        of the robot
 	 * @param targetPose the target pose to which the robot needs to move
 	 * @param distanceTolerance the distance error in meters which is tolerable
 	 * @param angleTolerance the angle error in degrees which is tolerable
 	 */
-	public DriveCommand(DriveSubsystem driveSubsystem, Supplier<Pose2d> poseSupplier, Pose2d targetPose,
+	public DriveCommand(DriveSubsystem driveSubsystem, Pose2d targetPose,
 			double distanceTolerance,
 			double angleTolerance) {
-		this(driveSubsystem, poseSupplier, () -> targetPose, distanceTolerance, angleTolerance);
+		this(driveSubsystem, () -> driveSubsystem.getPose(), () -> targetPose, distanceTolerance, angleTolerance);
 	}
 
 	/**
@@ -115,38 +190,6 @@ public class DriveCommand extends Command {
 		m_controllerYaw.setTolerance(angleTolerance);
 		m_controllerYaw.enableContinuousInput(-180, 180);
 		addRequirements(m_driveSubsystem);
-	}
-
-	/**
-	 * Constructs a {@code Commmand} for moving the robot toward the specified
-	 * target position while ensuring that the robot is away from the target by the
-	 * specified distance.
-	 * 
-	 * @param driveSubsystem the {@code DriveSubsystem} to use
-	 * @param targetPositionSupplier a {@code Supplier<Pose2d>} that provides the
-	 *        target position.
-	 *        This is used at the commencement of the
-	 *        {@code DriveCommand} (i.e., when the scheduler
-	 *        begins to periodically execute the
-	 *        {@code DriveCommand})
-	 * @param poseSupplier the {@code Supplier} providing the current {@code Pose2d}
-	 *        of the robot
-	 * @param distanceToTarget the desired distance between the robot and the
-	 *        target position
-	 * @param distanceTolerance the distance error in meters which is tolerable
-	 * @param angleTolerance the angle error in degrees which is tolerable
-	 * @return a {@code Commmand} for turning the robot to the specified target
-	 *         position
-	 */
-	public static Command moveToward(DriveSubsystem driveSubsystem, Supplier<Translation2d> targetPositionSupplier,
-			Supplier<Pose2d> poseSupplier,
-			double distanceToTarget,
-			double distanceTolerance,
-			double angleTolerance) {
-		return new DriveCommand(driveSubsystem, poseSupplier,
-				() -> poseSupplier.get()
-						.plus(transformationToward(targetPositionSupplier.get(), poseSupplier.get(), distanceToTarget)),
-				distanceTolerance, angleTolerance);
 	}
 
 	/**
