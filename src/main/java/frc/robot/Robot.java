@@ -24,6 +24,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
 import frc.robot.Constants.ControllerConstants;
 import frc.robot.Constants.PoseConstants;
+import frc.robot.commands.AlignCommand;
 import frc.robot.commands.DriveCommand;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.PoseEstimationSubsystem;
@@ -57,19 +58,19 @@ public class Robot extends TimedRobot {
 		for (int i = 1; i <= 2; i++)
 			m_driverController.button(i)
 					.whileTrue(
-							DriveCommand.moveTo(
+							AlignCommand.moveTo(
 									m_driveSubsystem, m_poseEstimationSubystem,
 									kFieldLayout.getTagPose(i).get().toPose2d().plus(robotToTarget),
 									.1, 3));
 		m_driverController.button(3).whileTrue(
-				DriveCommand.moveToward(
+				AlignCommand.moveToward(
 						m_driveSubsystem, m_poseEstimationSubystem,
 						() -> DriverStation.getAlliance().get() == Alliance.Red ? PoseConstants.kRedReefPosition
 								: PoseConstants.kBlueReefPosition,
 						2, 0.1, 5));
 		m_driverController.button(4)
 				.whileTrue(
-						DriveCommand.moveToClosestTag(
+						AlignCommand.moveToClosestTag(
 								m_driveSubsystem, m_poseEstimationSubystem, robotToTarget,
 								.1, 3));
 	}
