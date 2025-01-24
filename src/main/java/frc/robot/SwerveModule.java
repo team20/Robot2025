@@ -174,4 +174,15 @@ public class SwerveModule {
 		m_driveMotor.close();
 		m_steerMotor.close();
 	}
+
+	/**
+	 * Sets the module angle.
+	 * 
+	 * @param angle the target angle
+	 */
+	public void setAngle(double angle) {
+		m_steerMotor.setVoltage(m_steerController.calculate(getModuleAngle(), angle));
+		updateSim();
+	}
+
 }

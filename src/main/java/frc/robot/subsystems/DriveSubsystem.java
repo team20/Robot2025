@@ -162,12 +162,12 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
 		SwerveModuleState[] states = m_kinematics.toSwerveModuleStates(speeds);
 		SwerveDriveKinematics.desaturateWheelSpeeds(states, kTeleopMaxVoltage);
 		// Get the current module angles
-		double[] moduleAngles = { m_frontLeft.getModuleAngle(), m_frontRight.getModuleAngle(),
+		double[] moduleAngles = { m_frontLeft.getModuleAngle(),
+				m_frontRight.getModuleAngle(),
 				m_backLeft.getModuleAngle(), m_backRight.getModuleAngle() };
-		for (int i = 0; i < states.length; i++) {
-			// Optimize target module states
+		// Optimize target module states
+		for (int i = 0; i < states.length; i++)
 			states[i].optimize(Rotation2d.fromDegrees(moduleAngles[i]));
-		}
 		return states;
 	}
 
@@ -275,6 +275,18 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
 	}
 
 	/**
+	 * Directly sets the module angle. Do not use for general driving.
+	 * 
+	 * @param angle The angle in degrees
+	 */
+	public void setModuleAngles(double angle) {
+		m_frontLeft.setAngle(angle);
+		m_frontRight.setAngle(angle);
+		m_backLeft.setAngle(angle);
+		m_backRight.setAngle(angle);
+	}
+
+	/**
 	 * Creates a {@code Command} for testing this {@code DriveSubsystem}. The robot
 	 * must move forward, backward, strafe left, strafe right, and turn left and
 	 * right.
@@ -282,11 +294,15 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
 	 * @return a {@code Command} for testing this {@code DriveSubsystem}
 	 */
 	public Command testCommand() {
-		return run(() -> drive(.1, 0, 0, false)).withTimeout(.5)
-				.andThen(run(() -> drive(-.1, 0, 0, false)).withTimeout(.5))
-				.andThen(run(() -> drive(0, .1, 0, false)).withTimeout(.5))
-				.andThen(run(() -> drive(0, -.1, 0, false)).withTimeout(.5))
-				.andThen(run(() -> drive(0, 0, .3, false)).withTimeout(.5))
-				.andThen(run(() -> drive(0, 0, -.3, false)).withTimeout(.5));
+		double speed = 0.3;
+		double rotionalSpeed = 0.6;
+		double duration = 3.0;
+		return run(() -> setModuleAngles(0)).withTimeout(1)
+				.andThen(run(() -> drive(speed, 0, 0, false)).withTimeout(duration))
+				.andThen(run(() -> drive(-speed, 0, 0, false)).withTimeout(duration))
+				.andThen(run(() -> drive(0, speed, 0, false)).withTimeout(duration))
+				.andThen(run(() -> drive(0, -speed, 0, false)).withTimeout(duration))
+				.andThen(run(() -> drive(0, 0, rotionalSpeed, false)).withTimeout(duration))
+				.andThen(run(() -> drive(0, 0, -rotionalSpeed, false)).withTimeout(duration));
 	}
 }

@@ -6,6 +6,7 @@ import java.util.function.Supplier;
 
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.DriveSubsystem;
@@ -176,5 +177,18 @@ public class DriveCommand extends Command {
 	 */
 	public static double applyThreshold(double value, double threshold) {
 		return Math.abs(value) < threshold ? Math.signum(value) * threshold : value;
+	}
+
+	/**
+	 * Returns a {@code Command} for testing the {@code DriveCommand}
+	 * implementation.
+	 * 
+	 * @param driveSubsystem the {@code DriveSubsystem} to use
+	 * @return a {@code Command} for testing the {@code DriveCommand}
+	 *         implementation
+	 */
+	public static Command testCommand(DriveSubsystem driveSubsystem) {
+		return new DriveCommand(driveSubsystem, new Pose2d(.3, .3, Rotation2d.fromDegrees(90)), .1, 3)
+				.andThen(new DriveCommand(driveSubsystem, Pose2d.kZero, .1, 3));
 	}
 }

@@ -10,7 +10,6 @@ import java.util.Map;
 
 import org.littletonrobotics.urcl.URCL;
 
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.wpilibj.DataLogManager;
@@ -21,6 +20,7 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
 import frc.robot.Constants.ControllerConstants;
 import frc.robot.Constants.PoseConstants;
@@ -128,15 +128,9 @@ public class Robot extends TimedRobot {
 	public void testInit() {
 		CommandScheduler.getInstance().cancelAll();
 		// we can test critical subsystems and commands here.
-		m_driveSubsystem.testCommand() // test DriveSubsystem#drive(...)
-				// move forward, backward, strafe left, strafe right, and turn left and right
-				.andThen(
-						new DriveCommand(m_driveSubsystem,
-								new Pose2d(.3, .3, Rotation2d.fromDegrees(90)), .1, 3))
-				// test DriveCommand: move to (.2, .2, 90)
-				.andThen(
-						new DriveCommand(m_driveSubsystem, Pose2d.kZero, .1, 3))
-				// test DriveCommand: move to (0, 0, 0)
+		new WaitCommand(0)
+				.andThen(m_driveSubsystem.testCommand()) // F, B, SL, SR, TL, TR
+				.andThen(DriveCommand.testCommand(m_driveSubsystem))
 				.schedule();
 	}
 
