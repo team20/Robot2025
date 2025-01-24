@@ -148,21 +148,35 @@ public class SwerveModule {
 		updateSim();
 	}
 
+	/**
+	 * Sets the module angle.
+	 * 
+	 * @param angle the target angle
+	 */
+	public void setAngle(double angle) {
+		m_steerMotor.setVoltage(m_steerController.calculate(getModuleAngle(), angle));
+		updateSim();
+	}
+
+	/**
+	 * Updates this {@code SwerveModule} for simulations.
+	 */
 	private void updateSim() {
 		if (RobotBase.isSimulation()) {
 			var driveMotorState = m_driveMotor.getSimState();
 			m_driveMotorModel.setInputVoltage(driveMotorState.getMotorVoltage());
 			m_driveMotorModel.update(0.02);
-			driveMotorState.setRotorVelocity(m_driveMotorModel.getAngularVelocityRPM() / 60);
 			driveMotorState.setRawRotorPosition(m_driveMotorModel.getAngularPositionRotations());
-			var encoderSimState = m_CANCoder.getSimState();
+			driveMotorState.setRotorVelocity(m_driveMotorModel.getAngularVelocityRPM() / 60);
 			// These used to be CAN IDs, but apparently any other value causes complete
 			// destabilization of the swerve sim. Do not touch.
 			m_steerMotorSim.iterate(30, 32, 0.02);
 			m_steerMotorModel.setInputVoltage(m_steerMotorSim.getAppliedOutput() * 12);
 			m_steerMotorModel.update(0.02);
+			var encoderSimState = m_CANCoder.getSimState();
 			encoderSimState.setRawPosition(m_steerMotorModel.getAngularPositionRotations());
 			encoderSimState.setVelocity(m_steerMotorModel.getAngularVelocityRPM());
+
 		}
 	}
 
@@ -173,16 +187,6 @@ public class SwerveModule {
 		m_CANCoder.close();
 		m_driveMotor.close();
 		m_steerMotor.close();
-	}
-
-	/**
-	 * Sets the module angle.
-	 * 
-	 * @param angle the target angle
-	 */
-	public void setAngle(double angle) {
-		m_steerMotor.setVoltage(m_steerController.calculate(getModuleAngle(), angle));
-		updateSim();
 	}
 
 }

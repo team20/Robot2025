@@ -28,6 +28,7 @@ import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.simulation.SimDeviceSim;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.ControllerConstants;
@@ -200,6 +201,10 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
 		setModuleStates(calculateModuleStates(new ChassisSpeeds(speedFwd, speedSide, speedRot), isFieldRelative));
 	}
 
+	/**
+	 * Is invoked periodically by the {@link CommandScheduler}. Useful
+	 * for updating subsystem-specific state.
+	 */
 	@Override
 	public void periodic() {
 		m_posePublisher.set(m_odometry.update(getHeading(), getModulePositions()));
@@ -296,7 +301,7 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
 	public Command testCommand() {
 		double speed = 0.3;
 		double rotionalSpeed = 0.6;
-		double duration = 3.0;
+		double duration = 2;
 		return run(() -> setModuleAngles(0)).withTimeout(1)
 				.andThen(run(() -> drive(speed, 0, 0, false)).withTimeout(duration))
 				.andThen(run(() -> drive(-speed, 0, 0, false)).withTimeout(duration))
