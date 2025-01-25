@@ -203,12 +203,12 @@ public class DriveSubsystem extends SubsystemBase {
 	 *        go to the left (+Y direction).
 	 * @param rotation Rotation speed supplier. Positive values make the
 	 *        robot rotate CCW.
-	 * @param isFieldRelative Supplier for determining if driving should be field
+	 * @param isRobotRelative Supplier for determining if driving should be robot
 	 *        relative.
 	 * @return A command to drive the robot.
 	 */
 	public Command driveCommand(DoubleSupplier forwardSpeed, DoubleSupplier strafeSpeed,
-			DoubleSupplier rotation, BooleanSupplier isFieldRelative) {
+			DoubleSupplier rotation, BooleanSupplier isRobotRelative) {
 		return run(() -> {
 			// Get the forward, strafe, and rotation speed, using a deadband on the joystick
 			// input so slight movements don't move the robot
@@ -221,7 +221,7 @@ public class DriveSubsystem extends SubsystemBase {
 			double strSpeed = MathUtil.applyDeadband(strafeSpeed.getAsDouble(), ControllerConstants.kDeadzone);
 			strSpeed = Math.signum(strSpeed) * Math.pow(strSpeed, 2) * kTeleopMaxVoltage;
 
-			drive(fwdSpeed, strSpeed, rotSpeed, isFieldRelative.getAsBoolean());
+			drive(fwdSpeed, strSpeed, rotSpeed, !isRobotRelative.getAsBoolean());
 		}).withName("DefaultDriveCommand");
 	}
 
