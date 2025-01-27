@@ -39,11 +39,12 @@ public class Constants {
 
 		public static final double kTeleopMaxVoltage = 12;
 		public static final double kTeleopMaxTurnVoltage = 7.2;
-		public static final double kGearRatio = 6.12;
+		public static final double kDriveGearRatio = 6.12;
+		public static final double kSteerGearRatio = 150.0 / 7;
 		public static final double kWheelDiameter = Units.inchesToMeters(4);
 		public static final double kWheelCircumference = Math.PI * kWheelDiameter;
 
-		public static final double kMetersPerMotorRotation = kWheelCircumference / kGearRatio;
+		public static final double kMetersPerMotorRotation = kWheelCircumference / kDriveGearRatio;
 
 		// https://docs.wpilib.org/en/latest/docs/software/basic-programming/coordinate-system.html
 		public static final Translation2d kFrontLeftLocation = new Translation2d(0.381, 0.381);
