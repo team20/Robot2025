@@ -4,6 +4,12 @@
 
 package frc.robot;
 
+import static frc.robot.Constants.AlgaeConstants.*;
+import static frc.robot.Constants.ClimberConstants.*;
+import static frc.robot.Constants.ControllerConstants.*;
+import static frc.robot.Constants.ElevatorConstants.*;
+import static frc.robot.Constants.WristConstants.*;
+
 import java.util.Map;
 
 import org.littletonrobotics.urcl.URCL;
@@ -15,15 +21,27 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
-import frc.robot.Constants.ControllerConstants;
+import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
+import frc.robot.subsystems.AlgaeGrabberSubsystem;
+import frc.robot.subsystems.AlgaeGrabberSubsystem.grabberState;
+import frc.robot.subsystems.CheeseStickSubsystem;
+import frc.robot.subsystems.ClimberSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
+import frc.robot.subsystems.ElevatorSubsystem;
+import frc.robot.subsystems.WristSubsystem;
 
 public class Robot extends TimedRobot {
 	private Command m_autonomousCommand;
+	private final AlgaeGrabberSubsystem m_algaeGrabberSubsystem = new AlgaeGrabberSubsystem();
+	private final CheeseStickSubsystem m_cheeseStickSubsystem = new CheeseStickSubsystem();
+	private final ClimberSubsystem m_climberSubsystem = new ClimberSubsystem();
 	private final DriveSubsystem m_driveSubsystem = new DriveSubsystem();
-	private final CommandPS4Controller m_driverController = new CommandPS4Controller(
-			ControllerConstants.kDriverControllerPort);
+	private final ElevatorSubsystem m_elevatorSubsystem = new ElevatorSubsystem();
+	private final WristSubsystem m_WristSubsystem = new WristSubsystem();
+	private final CommandPS5Controller m_driverController = new CommandPS5Controller(kDriverControllerPort); // Changed
+																												// to
+																												// PS5
+	private final CommandPS5Controller m_operatorController = new CommandPS5Controller(kOperatorControllerPort);
 	private final PowerDistribution m_pdh = new PowerDistribution();
 
 	public Robot() {
@@ -31,7 +49,11 @@ public class Robot extends TimedRobot {
 		SmartDashboard.putData(CommandScheduler.getInstance());
 		DataLogManager.start();
 		DataLogManager.logNetworkTables(true);
-		URCL.start(Map.of(11, "FR Turn", 21, "BR Turn", 31, "BL Turn", 41, "FL Turn"));
+		URCL.start(
+				Map.of(
+						11, "FR Turn", 21, "BR Turn", 31, "BL Turn", 41, "FL Turn", kElevatorMotorPort, "Elevator",
+						kClimberMotorPort, "Climber Motor", kWristMotorPort, "Wrist Motor", kFlywheelMotorPort,
+						"Algae Motor"));
 		DriverStation.startDataLog(DataLogManager.getLog());
 		bindDriveControls();
 	}
@@ -43,6 +65,40 @@ public class Robot extends TimedRobot {
 						() -> -m_driverController.getLeftX(),
 						() -> m_driverController.getL2Axis() - m_driverController.getR2Axis(),
 						m_driverController.getHID()::getSquareButton));
+		// TODO: Add in joystick rotation
+	}
+
+	public void bindElevatorControls() {
+		m_operatorController.circle().onTrue(m_elevatorSubsystem.setPositionLevelFourCommand());
+		m_operatorController.triangle().onTrue(m_elevatorSubsystem.setPositionLevelThreeCommand());
+		m_operatorController.square().onTrue(m_elevatorSubsystem.setPositionLevelTwoCommand());
+		m_operatorController.cross().onTrue(m_elevatorSubsystem.setPositionLevelOneCommand());
+		m_operatorController.povLeft().onTrue(m_elevatorSubsystem.setPositionCoralStationCommand());
+		// TODO: Add manual movement
+	}
+
+	public void bindAlgaeControls() {
+		m_operatorController.R1().onTrue(
+				m_algaeGrabberSubsystem.deployGrabberCommand(grabberState.DOWN)
+						.andThen(m_algaeGrabberSubsystem.runFlywheelCommand())); // TODO: Come up after?
+		m_operatorController.L1().onTrue(
+				m_algaeGrabberSubsystem.runFlywheelReverseCommand()
+						.until(m_algaeGrabberSubsystem::checkCurrentOnFlywheel)
+						.andThen(m_algaeGrabberSubsystem.stopFlywheelCommand()));
+	}
+
+	public void bindWristControls() {
+		// TODO: Manual movement
+	}
+
+	public void bindCheeseStickControls() {
+		m_operatorController.R2().whileFalse(m_cheeseStickSubsystem.rotateCommand(0.0));
+		m_operatorController.R2().whileTrue(m_cheeseStickSubsystem.rotateCommand(0.0));
+	}
+
+	public void bindClimberControls() {
+		m_operatorController.L2().whileTrue(m_climberSubsystem.moveForward())
+				.onFalse(m_climberSubsystem.moveBackward());
 	}
 
 	@Override
