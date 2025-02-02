@@ -46,7 +46,8 @@ public class SwerveModule {
 		m_steerMotorSim = new SparkFlexSim(m_steerMotor, DCMotor.getNEO(1));
 		m_driveMotor.getConfigurator().apply(DriveConstants.kDriveConfig);
 		var config = new SparkMaxConfig();
-		config.idleMode(IdleMode.kBrake).voltageCompensation(12);
+		// MK4i modules need their steer motors inverted
+		config.idleMode(IdleMode.kBrake).voltageCompensation(12).inverted(true);
 		config.openLoopRampRate(kRampRate).closedLoopRampRate(kRampRate);
 		// Helps with encoder precision (not set in stone)
 		config.encoder.uvwAverageDepth(kEncoderDepth).uvwMeasurementPeriod(kEncoderMeasurementPeriod);
