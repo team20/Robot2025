@@ -20,6 +20,7 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -27,22 +28,19 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 //TODO: Setpoint and hold?
 
 public class ElevatorSubsystem extends SubsystemBase {
-
 	private final SparkMax m_elevatorMotor = new SparkMax(kElevatorMotorPort, MotorType.kBrushless);
-	private final SparkMaxSim m_elevatorMotorSim = new SparkMaxSim(m_elevatorMotor, DCMotor.getNEO(1));
-	private final ElevatorSim m_elevatorModel = new ElevatorSim(DCMotor.getNEO(1), 10, Units.lbsToKilograms(20),
-			Units.inchesToMeters(2), 0, Units.inchesToMeters(90), true, 0);
 	private final RelativeEncoder m_elevatorEncoder = m_elevatorMotor.getEncoder();
-
 	private final SparkClosedLoopController m_closedLoopController = m_elevatorMotor.getClosedLoopController();
 
 	private double m_setPosition = 0;
+
+	private final SparkMaxSim m_elevatorMotorSim;
+	private final ElevatorSim m_elevatorModel;
 
 	/** Creates a new ElevatorSubsystem. */
 	public ElevatorSubsystem() {
 		var config = new SparkMaxConfig();
 		config
-				.inverted(false)
 				.idleMode(IdleMode.kBrake) // TODO: Soft limits?
 				.smartCurrentLimit(kSmartCurrentLimit)
 				.secondaryCurrentLimit(kSecondaryCurrentLimit)
@@ -52,6 +50,14 @@ public class ElevatorSubsystem extends SubsystemBase {
 				.pid(kP, kI, kD);
 		m_elevatorMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 		resetEncoder();
+		if (RobotBase.isSimulation()) {
+			m_elevatorMotorSim = new SparkMaxSim(m_elevatorMotor, DCMotor.getNEO(1));
+			m_elevatorModel = new ElevatorSim(DCMotor.getNEO(1), 10, Units.lbsToKilograms(20),
+					Units.inchesToMeters(2), 0, Units.inchesToMeters(90), true, 0);
+		} else {
+			m_elevatorMotorSim = null;
+			m_elevatorModel = null;
+		}
 	}
 
 	/**
@@ -113,10 +119,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 	public void simulationPeriodic() {
 		m_elevatorModel.setInputVoltage(m_elevatorMotorSim.getAppliedOutput() * 12);
 		m_elevatorModel.update(0.02);
-		System.out.println(m_elevatorMotor.getAppliedOutput());
-		m_elevatorMotorSim.iterate(
-				m_elevatorModel.getVelocityMetersPerSecond(), 12,
-				0.02);
+		m_elevatorMotorSim.iterate(m_elevatorModel.getVelocityMetersPerSecond(), 12, 0.02);
 		m_elevatorMotorSim.setPosition(m_elevatorModel.getPositionMeters());
 		m_elevatorMotorSim.setVelocity(m_elevatorModel.getVelocityMetersPerSecond());
 	}
@@ -153,23 +156,23 @@ public class ElevatorSubsystem extends SubsystemBase {
 		return runOnce(() -> setSpeed(1)).withName("Elevator motor forward");
 	}
 
-	public Command setPositionLevelOneCommand() {
+	public Command goToLevelOneCommand() {
 		return runOnce(() -> setPosition(kLevelOneHeight)).withName("Elevator to Level 1");
 	}
 
-	public Command setPositionLevelTwoCommand() {
+	public Command goToLevelTwoCommand() {
 		return runOnce(() -> setPosition(kLevelTwoHeight)).withName("Elevator to Level 2");
 	}
 
-	public Command setPositionLevelThreeCommand() {
+	public Command goToLevelThreeCommand() {
 		return runOnce(() -> setPosition(kLevelThreeHeight)).withName("Elevator to Level 3");
 	}
 
-	public Command setPositionLevelFourCommand() {
+	public Command goToLevelFourCommand() {
 		return runOnce(() -> setPosition(kLevelFourHeight)).withName("Elevator to Level 4");
 	}
 
-	public Command setPositionCoralStationCommand() {
+	public Command goToCoralStationCommand() {
 		return runOnce(() -> setPosition(kCoralStationHeight)).withName("Elevator to Coral Station");
 	}
 

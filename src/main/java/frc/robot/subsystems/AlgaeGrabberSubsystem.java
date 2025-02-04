@@ -26,18 +26,16 @@ public class AlgaeGrabberSubsystem extends SubsystemBase {
 	private final SparkClosedLoopController m_grabberClosedLoopController = m_grabberAngleMotor
 			.getClosedLoopController();
 
-	Debouncer m_debouncerCurrentLimitStop;
+	private final Debouncer m_debouncerCurrentLimitStop = new Debouncer(AlgaeConstants.kTimeOverCurrentToStop);
 
 	private double m_setVelocity;
 
-	public enum grabberState {
+	public enum GrabberState {
 		UP,
 		DOWN
 	}
 
 	public AlgaeGrabberSubsystem() {
-		SparkMaxConfig config;
-		m_debouncerCurrentLimitStop = new Debouncer(AlgaeConstants.kTimeOverCurrentToStop);
 		m_flywheel = new SparkMax(AlgaeConstants.kFlywheelMotorPort, MotorType.kBrushless);
 
 		// Initialize Motors
@@ -46,7 +44,7 @@ public class AlgaeGrabberSubsystem extends SubsystemBase {
 		// variable
 		// also applies voltage and current stuff to the motors
 
-		config = new SparkMaxConfig();
+		var config = new SparkMaxConfig();
 		config.inverted(AlgaeConstants.kFlywheelInvert).idleMode(IdleMode.kBrake);
 		config.voltageCompensation(12).smartCurrentLimit(AlgaeConstants.k550SmartCurrentLimit);
 		m_flywheel.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
@@ -138,11 +136,11 @@ public class AlgaeGrabberSubsystem extends SubsystemBase {
 	 * @return moves the whole grabber setup using a PID based on the grabberState
 	 *         enum given
 	 */
-	public Command deployGrabberCommand(grabberState state) {
+	public Command deployGrabberCommand(GrabberState state) {
 		return runOnce(() -> {
-			if (grabberState.DOWN == state) {
+			if (GrabberState.DOWN == state) {
 				m_grabberClosedLoopController.setReference(2, ControlType.kPosition);
-			} else if (grabberState.UP == state) {
+			} else if (GrabberState.UP == state) {
 				m_grabberClosedLoopController.setReference(0, ControlType.kPosition);
 			}
 		});

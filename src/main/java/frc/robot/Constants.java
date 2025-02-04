@@ -7,6 +7,38 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 
 public class Constants {
+	public static final class AlgaeConstants {
+		// FLYWHEEL IS 550
+		// OTHER IS NORMAL NEO
+
+		public static final int kFlywheelMotorPort = 90;
+		public static final int kGrabberAnglePort = 3;
+		public static final boolean kFlywheelInvert = false;
+		public static final boolean kGrabberAngleInvert = false;
+
+		public static final int kSmartCurrentLimit = 50;
+		public static final int kPeakCurrentDurationMillis = 100;
+
+		public static final int k550SmartCurrentLimit = 15;
+
+		public static final double kCurrentToStop = 20;
+		public static final double kTimeOverCurrentToStop = .01;
+
+		public static final double kP = 0.5;
+		public static final double kI = 0.0;
+		public static final double kD = 0;
+	}
+
+	public static final class CheeseStickConstants {
+		public static final int kServoPort = 0;
+		public static final int kMaxRotation = 270;
+	}
+
+	public static final class ClimberConstants {
+		public static final int kClimberMotorPort = -1; // TODO: Add actual motor ID
+		public static final double kSpeed = 0.5;
+	}
+
 	public static final class ControllerConstants {
 		public static final int kDriverControllerPort = 0;
 		public static final int kOperatorControllerPort = 1;
@@ -72,16 +104,14 @@ public class Constants {
 	}
 
 	public static final class ElevatorConstants {
-
 		public static final double kFF = 0.00008040000102482736; // Feedforward Constant
 		public static final int kElevatorMotorPort = 45;
-		public static final boolean kInvert = false;
 		public static final int kSmartCurrentLimit = 60;
 		public static final int kSecondaryCurrentLimit = 70;
 		public static final double kMinOutput = -1;
 		public static final double kMaxOutput = 1;
 		public static final double kP = 5;
-		public static final double kI = 100000;
+		public static final double kI = 0;
 		public static final double kD = 0;
 		public static final double kTolerance = 1;
 		public static final int kMaxExtension = 250;
@@ -92,44 +122,7 @@ public class Constants {
 		public static final int kCoralStationHeight = 0;
 	}
 
-	public static final class ClimberConstants {
-		public static final int kClimberMotorPort = -1; // TODO: Add actual motor ID
-		public static final double kSpeed = 0.5;
-	}
-
-	public static final class AlgaeConstants {
-
-		// FLYWHEEL IS 550
-		// OTHER IS NORMAL NEO
-
-		public static final int kFlywheelMotorPort = 90;
-		public static final int kGrabberAnglePort = 3;
-		public static final boolean kFlywheelInvert = false;
-		public static final boolean kGrabberAngleInvert = false;
-
-		public static final int kSmartCurrentLimit = 50;
-		public static final int kPeakCurrentDurationMillis = 100;
-
-		public static final int k550SmartCurrentLimit = 15;
-
-		// public static final double kMaxOutput = .1;
-		// public static final double kMinOutput = -.1;
-
-		public static final double kCurrentToStop = 20;
-		public static final double kTimeOverCurrentToStop = .01;
-
-		public static final double kP = 0.5;
-		public static final double kI = 0.0;
-		public static final double kD = 0;
-	}
-
-	public static final class CheeseStickConstants {
-		public static final int kServoPort = 45;
-		public static final int kMaxRotation = 270;
-	}
-
 	public static final class WristConstants {
-		// CAN IDs
 		public static final int kWristMotorPort = 1; /* 60 */
 		public static final int kSmartCurrentLimit = 20;
 		public static final int kSecondaryCurrentLimit = 20;
@@ -139,10 +132,10 @@ public class Constants {
 		public static final double kI = 0.0;
 		public static final double kD = 0;
 		public static final double kS = 0;
+		public static final double kG = 0;
 		public static final double kV = 0.11;
 		public static final double kA = 0.009;
 
 		public static final double kTolerance = 0;
 	}
-
 }
