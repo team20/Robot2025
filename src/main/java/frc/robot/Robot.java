@@ -55,6 +55,7 @@ public class Robot extends TimedRobot {
 						"Algae Motor"));
 		DriverStation.startDataLog(DataLogManager.getLog());
 		bindDriveControls();
+		bindWristControls();
 	}
 
 	public void bindDriveControls() {
@@ -87,7 +88,8 @@ public class Robot extends TimedRobot {
 	}
 
 	public void bindWristControls() {
-		// TODO: Manual movement
+		m_driverController.circle().onTrue(m_wristSubsystem.reverseMotor());
+		m_driverController.square().onTrue(m_wristSubsystem.forwardMotor());
 	}
 
 	public void bindCheeseStickControls() {

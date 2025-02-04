@@ -6,6 +6,8 @@ package frc.robot.subsystems;
 
 import static frc.robot.Constants.WristConstants.*;
 
+import com.revrobotics.sim.SparkAbsoluteEncoderSim;
+import com.revrobotics.sim.SparkMaxSim;
 import com.revrobotics.spark.SparkAbsoluteEncoder;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
@@ -17,6 +19,9 @@ import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
+import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -25,10 +30,13 @@ public class WristSubsystem extends SubsystemBase {
 	private final SparkMax m_wristMotor = new SparkMax(kWristMotorPort, MotorType.kBrushless);
 
 	private final SparkAbsoluteEncoder m_absoluteEncoder = m_wristMotor.getAbsoluteEncoder();
-
 	private final SparkClosedLoopController m_wristClosedLoopController = m_wristMotor.getClosedLoopController();
 
 	private double m_targetAngle = 0;
+
+	private final SparkMaxSim m_wristSim;
+	private final SparkAbsoluteEncoderSim m_absoluteEncoderSim;
+	private final SingleJointedArmSim m_wristModel;
 
 	/** Creates a new WristSubsystem. */
 	public WristSubsystem() {
@@ -43,6 +51,16 @@ public class WristSubsystem extends SubsystemBase {
 				.feedbackSensor(FeedbackSensor.kAbsoluteEncoder)
 				.pid(kP, kI, kD);
 		m_wristMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+		if (RobotBase.isSimulation()) {
+			m_wristSim = new SparkMaxSim(m_wristMotor, DCMotor.getNEO(1));
+			m_absoluteEncoderSim = new SparkAbsoluteEncoderSim(m_wristMotor);
+			m_wristModel = new SingleJointedArmSim(DCMotor.getNEO(1), 5, 2, 0.1, Math.PI / 4,
+					7 * Math.PI / 4, false, Math.PI / 4);
+		} else {
+			m_wristSim = null;
+			m_absoluteEncoderSim = null;
+			m_wristModel = null;
+		}
 	}
 
 	/**
@@ -77,6 +95,16 @@ public class WristSubsystem extends SubsystemBase {
 	 */
 	public double getOutputCurrent() {
 		return Math.abs(m_wristMotor.getOutputCurrent());
+	}
+
+	@Override
+	public void simulationPeriodic() {
+		m_wristModel.setInputVoltage(m_wristSim.getAppliedOutput() * 12);
+		m_wristModel.update(0.02);
+		var velocityRPM = m_wristModel.getVelocityRadPerSec() / (2 * Math.PI) / 60;
+		m_wristSim.iterate(velocityRPM, 12, 0.02);
+		m_absoluteEncoderSim.iterate(velocityRPM, 0.02);
+		m_absoluteEncoderSim.setPosition(m_absoluteEncoder.getPosition() % 1);
 	}
 
 	@Override
