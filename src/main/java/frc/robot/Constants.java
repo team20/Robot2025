@@ -115,11 +115,11 @@ public class Constants {
 		public static final double kD = 0;
 		public static final double kTolerance = 1;
 		public static final int kMaxExtension = 250;
-		public static final int kLevelOneHeight = 0; /* same as level 2 */
-		public static final int kLevelTwoHeight = 0;
-		public static final double kLevelThreeHeight = 70 / 2.54;
-		public static final int kLevelFourHeight = 0;
-		public static final int kCoralStationHeight = 0;
+		public static final double kLevelOneHeight = Units.inchesToMeters(41 - 24);
+		public static final double kLevelTwoHeight = kLevelOneHeight; // same as level 1
+		public static final double kLevelThreeHeight = Units.inchesToMeters(60 - 24);
+		public static final double kLevelFourHeight = Units.inchesToMeters(90 - 24);
+		public static final double kCoralStationHeight = 0;
 	}
 
 	public static final class WristConstants {
