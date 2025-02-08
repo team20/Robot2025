@@ -1,10 +1,13 @@
 package frc.robot;
 
+import static edu.wpi.first.units.Units.*;
+
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.Distance;
 
 public class Constants {
 	public static final class AlgaeConstants {
@@ -32,6 +35,10 @@ public class Constants {
 	public static final class CheeseStickConstants {
 		public static final int kServoPort = 0;
 		public static final int kMaxRotation = 270;
+		/**
+		 * Set this value to how far the cheese stick wheels extend beyond the lexan.
+		 */
+		public static final Distance kExtensionLength = Inch.of(.5);
 	}
 
 	public static final class ClimberConstants {

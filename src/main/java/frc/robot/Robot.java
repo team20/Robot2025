@@ -40,12 +40,14 @@ public class Robot extends TimedRobot {
 	private Command m_autonomousCommand;
 	private final Mechanism2d m_mechanism = new Mechanism2d(Units.inchesToMeters(35), Units.inchesToMeters(100));
 	private final AlgaeGrabberSubsystem m_algaeGrabberSubsystem = new AlgaeGrabberSubsystem();
-	private final CheeseStickSubsystem m_cheeseStickSubsystem = new CheeseStickSubsystem();
+
 	private final ClimberSubsystem m_climberSubsystem = new ClimberSubsystem();
 	private final DriveSubsystem m_driveSubsystem = new DriveSubsystem();
 	private final ElevatorSubsystem m_elevatorSubsystem = new ElevatorSubsystem(
 			m_mechanism.getRoot("anchor", Units.inchesToMeters(23), 0));
 	private final WristSubsystem m_wristSubsystem = new WristSubsystem(m_elevatorSubsystem.getWristMount());
+	private final CheeseStickSubsystem m_cheeseStickSubsystem = new CheeseStickSubsystem(
+			m_wristSubsystem.getCheeseStickMount());
 	private final CommandPS5Controller m_driverController = new CommandPS5Controller(kDriverControllerPort);
 	private final CommandPS5Controller m_operatorController = new CommandPS5Controller(kOperatorControllerPort);
 	private final PowerDistribution m_pdh = new PowerDistribution();
@@ -106,9 +108,8 @@ public class Robot extends TimedRobot {
 	}
 
 	public void bindCheeseStickControls() {
-		// Need to figure out what left and right actually mean
-		m_operatorController.R2().whileFalse(m_cheeseStickSubsystem.goLeft());
-		m_operatorController.R2().whileTrue(m_cheeseStickSubsystem.goRight());
+		m_operatorController.R2().whileFalse(m_cheeseStickSubsystem.extend());
+		m_operatorController.R2().whileTrue(m_cheeseStickSubsystem.retract());
 	}
 
 	public void bindClimberControls() {
