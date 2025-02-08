@@ -47,7 +47,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 					new MechanismLigament2d("wristMountPoint", Units.inchesToMeters(5), 180, 10,
 							new Color8Bit(Color.kYellow)))
 			.append(
-					new MechanismLigament2d("wristMount", Units.inchesToMeters(8), -90, 10,
+					new MechanismLigament2d("wristMount", Units.inchesToMeters(8), 90, 10,
 							new Color8Bit(Color.kBlack)));
 
 	/** Creates a new ElevatorSubsystem. */
