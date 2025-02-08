@@ -14,12 +14,16 @@ import java.util.Map;
 
 import org.littletonrobotics.urcl.URCL;
 
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
+import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.util.Color;
+import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
@@ -33,12 +37,13 @@ import frc.robot.subsystems.WristSubsystem;
 
 public class Robot extends TimedRobot {
 	private Command m_autonomousCommand;
-	private final Mechanism2d m_mechanism = new Mechanism2d(1.5, 2.5);
+	private final Mechanism2d m_mechanism = new Mechanism2d(Units.inchesToMeters(35), Units.inchesToMeters(100));
 	private final AlgaeGrabberSubsystem m_algaeGrabberSubsystem = new AlgaeGrabberSubsystem();
 	private final CheeseStickSubsystem m_cheeseStickSubsystem = new CheeseStickSubsystem();
 	private final ClimberSubsystem m_climberSubsystem = new ClimberSubsystem();
 	private final DriveSubsystem m_driveSubsystem = new DriveSubsystem();
-	private final ElevatorSubsystem m_elevatorSubsystem = new ElevatorSubsystem(m_mechanism.getRoot("anchor", 1, 0));
+	private final ElevatorSubsystem m_elevatorSubsystem = new ElevatorSubsystem(
+			m_mechanism.getRoot("anchor", Units.inchesToMeters(23), 0));
 	private final WristSubsystem m_wristSubsystem = new WristSubsystem(m_elevatorSubsystem.getWristMount());
 	// Changed to PS5
 	private final CommandPS5Controller m_driverController = new CommandPS5Controller(kDriverControllerPort);
@@ -46,6 +51,9 @@ public class Robot extends TimedRobot {
 	private final PowerDistribution m_pdh = new PowerDistribution();
 
 	public Robot() {
+		var dropChute = new MechanismLigament2d("bottom", Units.inchesToMeters(5), 0, 5, new Color8Bit(Color.kBeige));
+		dropChute.append(new MechanismLigament2d("side", Units.inchesToMeters(12), 90, 5, new Color8Bit(Color.kWhite)));
+		m_mechanism.getRoot("dropChute", Units.inchesToMeters(28), Units.inchesToMeters(9)).append(dropChute);
 		SmartDashboard.putData("Superstructure", m_mechanism);
 		SmartDashboard.putData(m_pdh);
 		SmartDashboard.putData(CommandScheduler.getInstance());
