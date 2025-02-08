@@ -73,6 +73,7 @@ public class Robot extends TimedRobot {
 		bindDriveControls();
 		bindElevatorControls();
 		bindWristControls();
+		bindAlgaeControls();
 	}
 
 	public void bindDriveControls() {
@@ -96,13 +97,18 @@ public class Robot extends TimedRobot {
 	}
 
 	public void bindAlgaeControls() {
+		// TODO: needs to be tested
 		m_operatorController.R1().onTrue(
 				m_algaeGrabberSubsystem.deployGrabber(GrabberState.DOWN)
-						.andThen(m_algaeGrabberSubsystem.runFlywheel())); // TODO: Come up after?
+						.andThen(m_algaeGrabberSubsystem.runFlywheel()).until(
+								() -> m_algaeGrabberSubsystem.checkCurrentOnFlywheel()));
 		m_operatorController.L1().onTrue(
-				m_algaeGrabberSubsystem.runFlywheelReverse()
-						.until(m_algaeGrabberSubsystem::checkCurrentOnFlywheel)
+				m_algaeGrabberSubsystem.deployGrabber(GrabberState.UP)
 						.andThen(m_algaeGrabberSubsystem.stopFlywheel()));
+		m_operatorController.options().onTrue(
+				m_algaeGrabberSubsystem.runFlywheelReverse());
+		m_operatorController.options().onFalse(
+				m_algaeGrabberSubsystem.stopFlywheel());
 	}
 
 	public void bindWristControls() {
