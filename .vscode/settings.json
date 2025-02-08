@@ -68,5 +68,6 @@
 	"editor.detectIndentation": false,
 	"editor.insertSpaces": false,
 	"java.format.settings.url": "eclipse-formatter.xml",
-	"java.sources.organizeImports.staticStarThreshold": 1
+	"java.sources.organizeImports.staticStarThreshold": 1,
+	"java.debug.settings.onBuildFailureProceed": true
 }
