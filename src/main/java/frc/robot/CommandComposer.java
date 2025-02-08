@@ -20,6 +20,20 @@ public class CommandComposer {
 	private static ElevatorSubsystem m_elevatorSubsystem;
 	private static WristSubsystem m_wristSubsystem;
 
+	public static void setSubsystems(DriveSubsystem driveSubsystem,
+			AlgaeGrabberSubsystem algaeGrabberSubsystem,
+			CheeseStickSubsystem cheeseStickSubsystem,
+			ClimberSubsystem climberSubsystem,
+			ElevatorSubsystem elevatorSubsystem,
+			WristSubsystem wristSubsystem) {
+		m_driveSubsystem = driveSubsystem;
+		m_algaeGrabberSubsystem = algaeGrabberSubsystem;
+		m_cheeseStickSubsystem = cheeseStickSubsystem;
+		m_climberSubsystem = climberSubsystem;
+		m_elevatorSubsystem = elevatorSubsystem;
+		m_wristSubsystem = wristSubsystem;
+	}
+
 	private static Command scoreLevel(Supplier<Command> levelCommand) {
 		return sequence(
 				levelCommand.get(),
