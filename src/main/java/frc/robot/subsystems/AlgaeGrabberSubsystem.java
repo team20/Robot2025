@@ -99,7 +99,7 @@ public class AlgaeGrabberSubsystem extends SubsystemBase {
 	 *
 	 * @return (setVelocity(0)) sets the flywheel velocity to 0
 	 */
-	public Command stopFlywheelCommand() {
+	public Command stopFlywheel() {
 		return runOnce(() -> {
 			setVelocity(0);
 		});
@@ -110,7 +110,7 @@ public class AlgaeGrabberSubsystem extends SubsystemBase {
 	 *
 	 * @return (setVelocity(.75)) sets the flywheel velocity to 75%
 	 */
-	public Command runFlywheelCommand() {
+	public Command runFlywheel() {
 		return runOnce(() -> {
 			setVelocity(.75);
 		});
@@ -121,7 +121,7 @@ public class AlgaeGrabberSubsystem extends SubsystemBase {
 	 *
 	 * @return (setVelocity(-.75)) sets the flywheel velocity to -75%
 	 */
-	public Command runFlywheelReverseCommand() {
+	public Command runFlywheelReverse() {
 		return runOnce(() -> {
 			setVelocity(-.75);
 		});
@@ -136,7 +136,7 @@ public class AlgaeGrabberSubsystem extends SubsystemBase {
 	 * @return moves the whole grabber setup using a PID based on the grabberState
 	 *         enum given
 	 */
-	public Command deployGrabberCommand(GrabberState state) {
+	public Command deployGrabber(GrabberState state) {
 		return runOnce(() -> {
 			if (GrabberState.DOWN == state) {
 				m_grabberClosedLoopController.setReference(2, ControlType.kPosition);

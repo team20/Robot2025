@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import static frc.robot.CommandComposer.*;
 import static frc.robot.Constants.AlgaeConstants.*;
 import static frc.robot.Constants.ClimberConstants.*;
 import static frc.robot.Constants.ControllerConstants.*;
@@ -45,7 +46,6 @@ public class Robot extends TimedRobot {
 	private final ElevatorSubsystem m_elevatorSubsystem = new ElevatorSubsystem(
 			m_mechanism.getRoot("anchor", Units.inchesToMeters(23), 0));
 	private final WristSubsystem m_wristSubsystem = new WristSubsystem(m_elevatorSubsystem.getWristMount());
-	// Changed to PS5
 	private final CommandPS5Controller m_driverController = new CommandPS5Controller(kDriverControllerPort);
 	private final CommandPS5Controller m_operatorController = new CommandPS5Controller(kOperatorControllerPort);
 	private final PowerDistribution m_pdh = new PowerDistribution();
@@ -81,27 +81,28 @@ public class Robot extends TimedRobot {
 	}
 
 	public void bindElevatorControls() {
-		m_operatorController.circle().onTrue(m_elevatorSubsystem.goToLevelFourCommand());
-		m_operatorController.triangle().onTrue(m_elevatorSubsystem.goToLevelThreeCommand());
-		m_operatorController.square().onTrue(m_elevatorSubsystem.goToLevelTwoCommand());
-		m_operatorController.cross().onTrue(m_elevatorSubsystem.goToLevelOneCommand());
-		m_operatorController.povLeft().onTrue(m_elevatorSubsystem.goToCoralStationCommand());
+		m_operatorController.circle().onTrue(scoreLevelFour());
+		m_operatorController.triangle().onTrue(scoreLevelThree());
+		m_operatorController.square().onTrue(scoreLevelTwo());
+		m_operatorController.cross().onTrue(scoreLevelOne());
+		m_operatorController.povLeft().onTrue(m_elevatorSubsystem.goToCoralStationHeight());
+		m_operatorController.povRight().onTrue(m_elevatorSubsystem.goToBaseHeight());
 		// TODO: Add manual movement
 	}
 
 	public void bindAlgaeControls() {
 		m_operatorController.R1().onTrue(
-				m_algaeGrabberSubsystem.deployGrabberCommand(GrabberState.DOWN)
-						.andThen(m_algaeGrabberSubsystem.runFlywheelCommand())); // TODO: Come up after?
+				m_algaeGrabberSubsystem.deployGrabber(GrabberState.DOWN)
+						.andThen(m_algaeGrabberSubsystem.runFlywheel())); // TODO: Come up after?
 		m_operatorController.L1().onTrue(
-				m_algaeGrabberSubsystem.runFlywheelReverseCommand()
+				m_algaeGrabberSubsystem.runFlywheelReverse()
 						.until(m_algaeGrabberSubsystem::checkCurrentOnFlywheel)
-						.andThen(m_algaeGrabberSubsystem.stopFlywheelCommand()));
+						.andThen(m_algaeGrabberSubsystem.stopFlywheel()));
 	}
 
 	public void bindWristControls() {
-		m_driverController.circle().onTrue(m_wristSubsystem.reverseMotor());
-		m_driverController.square().onTrue(m_wristSubsystem.forwardMotor());
+		// m_driverController.circle().onTrue(m_wristSubsystem.reverseMotor());
+		// m_driverController.square().onTrue(m_wristSubsystem.forwardMotor());
 	}
 
 	public void bindCheeseStickControls() {
@@ -112,7 +113,7 @@ public class Robot extends TimedRobot {
 
 	public void bindClimberControls() {
 		m_operatorController.L2().whileTrue(m_climberSubsystem.moveForward())
-				.onFalse(m_climberSubsystem.moveBackward());
+				.onFalse(m_climberSubsystem.moveBackward()); // TODO: will this run forever? (no)
 	}
 
 	@Override
