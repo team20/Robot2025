@@ -24,6 +24,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
+import edu.wpi.first.wpilibj.smartdashboard.MechanismObject2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -99,6 +100,15 @@ public class WristSubsystem extends SubsystemBase {
 	 */
 	public double getOutputCurrent() {
 		return Math.abs(m_wristMotor.getOutputCurrent());
+	}
+
+	/**
+	 * Gets the ligament to bind the cheese stick to.
+	 * 
+	 * @return The ligament.
+	 */
+	public MechanismObject2d getCheeseStickMount() {
+		return m_wrist;
 	}
 
 	@Override
