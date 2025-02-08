@@ -1,26 +1,18 @@
 package frc.robot.subsystems;
 
-import static frc.robot.Constants.*;
-import static frc.robot.Constants.RobotConstants.*;
-
 import java.util.LinkedList;
 import java.util.List;
 
 import org.photonvision.PhotonCamera;
 import org.photonvision.simulation.PhotonCameraSim;
-import org.photonvision.simulation.VisionSystemSim;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
-import edu.wpi.first.wpilibj.RobotBase;
 
 /**
  * A {@code PhotonCameraSimulator} aims to provide realistic simulations of a
@@ -29,19 +21,9 @@ import edu.wpi.first.wpilibj.RobotBase;
 public class PhotonCameraSimulator extends PhotonCamera {
 
 	/**
-	 * The {@code PhotonCamera} used by this {@code PhotonCameraSimulator}.
-	 */
-	private final DriveSubsystem m_driveSubsystem;
-
-	/**
 	 * The {@code PhotonCameraSim} used by this {@code PhotonCameraSimulator}.
 	 */
 	private PhotonCameraSim m_cameraSim = null;
-
-	/**
-	 * The {@code VisionSystemSim} used by this {@code PhotonCameraSimulator}.
-	 */
-	private VisionSystemSim m_sim = null;
 
 	/**
 	 * The maximum artificial angular error to inject in radians.
@@ -71,39 +53,24 @@ public class PhotonCameraSimulator extends PhotonCamera {
 	private PhotonPipelineResult m_latestResult = new PhotonPipelineResult();
 
 	/**
-	 * The {@code Pose2d} of the robot in simulation.
-	 */
-	private Pose2d m_pose;
-
-	/**
-	 * The previous {@code Pose2d} of the robot from the {@code DriveSubsystem}.
-	 */
-	private Pose2d m_previousOdometryPose = null;
-
-	/**
-	 * The error ratio in measurements for updating the odometry of the
-	 * robot.
-	 */
-	private double m_measurmentErrorRatio;
-
-	/**
-	 * The {@code StructPublisher} for reporting the {@code Pose2d} of the
-	 * robot in simulation.
-	 */
-	private final StructPublisher<Pose2d> m_posePublisher;
-
-	/**
 	 * The {@code StructPublisher} for reporting the {@code Pose2d} of the
 	 * robot in simulation.
 	 */
 	private final StructPublisher<Pose3d> m_cameraPosePublisher;
 
 	/**
+	 * The {@code VisionSimulator} used by this {@code PhotonCameraSimulator}.
+	 */
+	private VisionSimulator m_visionSimulator;
+
+	/**
 	 * Constructs a {@code PhotonCameraSimulator}.
 	 * 
 	 * @param cameraName the nickname of the camera to be used by the
 	 *        {@code PhotonCameraSimulator} (found in the PhotonVision UI)
-	 * @param driveSubsystem the {@code DriveSubsystem} to be used by the
+	 * @param robotToCamera the {@code Transform3d} expressing the pose of the
+	 *        camera relative to the pose of the robot.
+	 * @param visionSimulator the {@code VisionSimulator} to be used by the
 	 *        {@code PhotonCameraSimulator}
 	 * @param initialPose the initial {@code Pose2d} of the robot in simulation
 	 * @param measurmentErrorRatio the error ratio in measurements for
@@ -112,32 +79,20 @@ public class PhotonCameraSimulator extends PhotonCamera {
 	 *        inject in degrees
 	 * @param delayInSeconds the artificial delay to add in seconds
 	 */
-	public PhotonCameraSimulator(String cameraName, DriveSubsystem driveSubsystem, Pose2d initialPose,
-			double measurmentErrorRatio,
+	public PhotonCameraSimulator(String cameraName, Transform3d robotToCamera,
+			VisionSimulator visionSimulator,
 			double maxAngularErrorInDegrees,
 			double delayInSeconds) {
 		super(cameraName);
-		m_driveSubsystem = driveSubsystem;
-		m_pose = initialPose;
-		m_measurmentErrorRatio = measurmentErrorRatio;
+		m_visionSimulator = visionSimulator;
 		m_maxAngularError = maxAngularErrorInDegrees * Math.PI / 180;
 		m_DelayInSeconds = delayInSeconds;
-		if (RobotBase.isSimulation()) {
-			m_cameraSim = new PhotonCameraSim(this);
-			m_cameraSim.enableProcessedStream(true);
-			m_cameraSim.enableDrawWireframe(true);
-			m_sim = new VisionSystemSim("sim");
-			m_sim.addAprilTags(kFieldLayout);
-			m_sim.addCamera(m_cameraSim, kRobotToCamera);
-		} else {
-			m_sim = null;
-			m_cameraSim = null;
-		}
-		m_posePublisher = NetworkTableInstance.getDefault()
-				.getStructTopic("/SmartDashboard/Pose@Simulation", Pose2d.struct)
-				.publish();
+		m_cameraSim = new PhotonCameraSim(this);
+		m_cameraSim.enableProcessedStream(true);
+		m_cameraSim.enableDrawWireframe(true);
+		visionSimulator.addCamera(m_cameraSim, robotToCamera);
 		m_cameraPosePublisher = NetworkTableInstance.getDefault()
-				.getStructTopic("/SmartDashboard/CameraPose@Simulation", Pose3d.struct)
+				.getStructTopic("/SmartDashboard/" + cameraName + "@Simulation", Pose3d.struct)
 				.publish();
 	}
 
@@ -176,17 +131,6 @@ public class PhotonCameraSimulator extends PhotonCamera {
 	}
 
 	/**
-	 * Randomly changes the specified value using the specified ratio.
-	 * 
-	 * @param x a value
-	 * @param r the ratio by which the value can be increased or decreased
-	 * @return the resulting value
-	 */
-	private double change(double x, double r) {
-		return x * (1 - r + 2 * r * Math.random());
-	}
-
-	/**
 	 * Updates this {@code PhotonCameraSimulator} using the specified
 	 * {@code PhotonPipelineResult}s.
 	 * 
@@ -204,17 +148,7 @@ public class PhotonCameraSimulator extends PhotonCamera {
 					m_unreadResults.remove();
 			}
 		}
-		var p = m_driveSubsystem.getPose();
-		if (m_previousOdometryPose != null) {
-			var t = p.minus(m_previousOdometryPose);
-			t = new Transform2d(change(t.getX(), m_measurmentErrorRatio), change(t.getY(), m_measurmentErrorRatio),
-					Rotation2d.fromDegrees(change(t.getRotation().getDegrees(), m_measurmentErrorRatio)));
-			m_pose = m_pose.plus(t);
-		}
-		m_previousOdometryPose = p;
-		m_sim.update(m_pose);
-		m_posePublisher.set(m_pose);
-		m_cameraPosePublisher.set(new Pose3d(m_pose).plus(kRobotToCamera));
+		m_cameraPosePublisher.set(m_visionSimulator.getCameraPose(m_cameraSim).get());
 	}
 
 	/**

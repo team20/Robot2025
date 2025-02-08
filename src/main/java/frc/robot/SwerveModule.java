@@ -23,6 +23,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import frc.robot.Constants.DriveConstants;
 
@@ -45,6 +46,7 @@ public class SwerveModule {
 		m_steerMotor = new SparkFlex(steerPort, MotorType.kBrushless);
 		m_steerMotorSim = new SparkFlexSim(m_steerMotor, DCMotor.getNEO(1));
 		m_driveMotor.getConfigurator().apply(DriveConstants.kDriveConfig);
+
 		var config = new SparkMaxConfig();
 		config.idleMode(IdleMode.kBrake).voltageCompensation(12);
 		config.openLoopRampRate(kRampRate).closedLoopRampRate(kRampRate);
@@ -52,18 +54,20 @@ public class SwerveModule {
 		config.encoder.uvwAverageDepth(kEncoderDepth).uvwMeasurementPeriod(kEncoderMeasurementPeriod);
 		config.smartCurrentLimit(kSteerSmartCurrentLimit).secondaryCurrentLimit(kSteerPeakCurrentLimit);
 		m_steerMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
 		m_steerController.enableContinuousInput(0, 360);
 		if (RobotBase.isSimulation()) {
 			m_driveMotorModel = new DCMotorSim(
 					LinearSystemId.createDCMotorSystem(kV / (2 * Math.PI), kA / (2 * Math.PI)),
-					DCMotor.getKrakenX60(1).withReduction(kGearRatio));
+					DCMotor.getKrakenX60(1).withReduction(kDriveGearRatio));
 			m_steerMotorModel = new DCMotorSim(
-					LinearSystemId.createDCMotorSystem(kV / (2 * Math.PI), 0.0001 / (2 * Math.PI)),
+					LinearSystemId.createDCMotorSystem(kV / (2 * Math.PI), kA / (2 * Math.PI)),
 					DCMotor.getKrakenX60(1));
 		} else {
 			m_driveMotorModel = null;
 			m_steerMotorModel = null;
 		}
+
 	}
 
 	/**
@@ -165,18 +169,17 @@ public class SwerveModule {
 		if (RobotBase.isSimulation()) {
 			var driveMotorState = m_driveMotor.getSimState();
 			m_driveMotorModel.setInputVoltage(driveMotorState.getMotorVoltage());
-			m_driveMotorModel.update(0.02);
+			m_driveMotorModel.update(TimedRobot.kDefaultPeriod);
 			driveMotorState.setRawRotorPosition(m_driveMotorModel.getAngularPositionRotations());
 			driveMotorState.setRotorVelocity(m_driveMotorModel.getAngularVelocityRPM() / 60);
-			// These used to be CAN IDs, but apparently any other value causes complete
-			// destabilization of the swerve sim. Do not touch.
-			m_steerMotorSim.iterate(30, 32, 0.02);
-			m_steerMotorModel.setInputVoltage(m_steerMotorSim.getAppliedOutput() * 12);
-			m_steerMotorModel.update(0.02);
-			var encoderSimState = m_CANCoder.getSimState();
-			encoderSimState.setRawPosition(m_steerMotorModel.getAngularPositionRotations());
-			encoderSimState.setVelocity(m_steerMotorModel.getAngularVelocityRPM());
 
+			m_steerMotorModel.setInputVoltage(m_steerMotorSim.getAppliedOutput() * kDriveMaxVoltage);
+			m_steerMotorModel.update(TimedRobot.kDefaultPeriod);
+			m_steerMotorSim
+					.iterate(m_steerMotorModel.getAngularVelocityRPM(), kDriveMaxVoltage, TimedRobot.kDefaultPeriod);
+			var encoderSimState = m_CANCoder.getSimState();
+			encoderSimState.setRawPosition(m_steerMotorModel.getAngularPositionRotations() / kSteerGearRatio);
+			encoderSimState.setVelocity(m_steerMotorModel.getAngularVelocityRPM() / kSteerGearRatio);
 		}
 	}
 
