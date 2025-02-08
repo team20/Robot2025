@@ -52,7 +52,7 @@ public class Robot extends TimedRobot {
 				m_driveSubsystem.driveCommand(
 						() -> -m_driverController.getLeftY(),
 						() -> -m_driverController.getLeftX(),
-						() -> m_driverController.getR2Axis() - m_driverController.getL2Axis(),
+						() -> m_driverController.getL2Axis() - m_driverController.getR2Axis(),
 						m_driverController.getHID()::getSquareButton));
 		Transform2d robotToTarget = new Transform2d(.8, 0, Rotation2d.fromDegrees(180));
 		for (int i = 1; i <= 2; i++)

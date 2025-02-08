@@ -44,7 +44,7 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
 			kFrontLeftLocation, kFrontRightLocation, kBackLeftLocation, kBackRightLocation);
 	private final SwerveDriveOdometry m_odometry;
 	private final AHRS m_gyro = new AHRS(NavXComType.kMXP_SPI);
-	private final SimDouble m_gyroSim = new SimDeviceSim("navX-Sensor", m_gyro.getPort()).getDouble("Yaw");
+	private final SimDouble m_gyroSim;
 	// https://docs.wpilib.org/en/latest/docs/software/advanced-controls/system-identification/index.html
 	private final SysIdRoutine m_sysidRoutine;
 
@@ -90,6 +90,11 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
 			e.printStackTrace();
 		}
 		m_odometry = new SwerveDriveOdometry(m_kinematics, getHeading(), getModulePositions());
+		if (RobotBase.isSimulation()) {
+			m_gyroSim = new SimDeviceSim("navX-Sensor", m_gyro.getPort()).getDouble("Yaw");
+		} else {
+			m_gyroSim = null;
+		}
 	}
 
 	@Override
@@ -223,12 +228,12 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
 	 *        go to the left (+Y direction).
 	 * @param rotation Rotation speed supplier. Positive values make the
 	 *        robot rotate CCW.
-	 * @param isFieldRelative Supplier for determining if driving should be field
+	 * @param isRobotRelative Supplier for determining if driving should be robot
 	 *        relative.
 	 * @return A command to drive the robot.
 	 */
 	public Command driveCommand(DoubleSupplier forwardSpeed, DoubleSupplier strafeSpeed,
-			DoubleSupplier rotation, BooleanSupplier isFieldRelative) {
+			DoubleSupplier rotation, BooleanSupplier isRobotRelative) {
 		return run(() -> {
 			// Get the forward, strafe, and rotation speed, using a deadband on the joystick
 			// input so slight movements don't move the robot
@@ -241,7 +246,7 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
 			double strSpeed = MathUtil.applyDeadband(strafeSpeed.getAsDouble(), ControllerConstants.kDeadzone);
 			strSpeed = Math.signum(strSpeed) * Math.pow(strSpeed, 2) * kTeleopMaxVoltage;
 
-			drive(fwdSpeed, strSpeed, rotSpeed, isFieldRelative.getAsBoolean());
+			drive(fwdSpeed, strSpeed, rotSpeed, !isRobotRelative.getAsBoolean());
 		}).withName("DefaultDriveCommand");
 	}
 
