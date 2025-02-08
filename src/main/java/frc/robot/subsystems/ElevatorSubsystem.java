@@ -22,6 +22,10 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
+import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
+import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
+import edu.wpi.first.wpilibj.util.Color;
+import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
@@ -36,9 +40,19 @@ public class ElevatorSubsystem extends SubsystemBase {
 
 	private final SparkMaxSim m_elevatorMotorSim;
 	private final ElevatorSim m_elevatorModel;
+	private final MechanismLigament2d m_elevatorLigament = new MechanismLigament2d("elevator", Units.inchesToMeters(36),
+			90, 10, new Color8Bit(Color.kYellow));
+	private final MechanismLigament2d m_wristMount = m_elevatorLigament
+			.append(
+					new MechanismLigament2d("wristMountPoint", Units.inchesToMeters(5), 180, 10,
+							new Color8Bit(Color.kYellow)))
+			.append(
+					new MechanismLigament2d("wristMount", Units.inchesToMeters(8), -90, 10,
+							new Color8Bit(Color.kBlack)));
 
 	/** Creates a new ElevatorSubsystem. */
-	public ElevatorSubsystem() {
+	public ElevatorSubsystem(MechanismRoot2d root) {
+		root.append(m_elevatorLigament);
 		var config = new SparkMaxConfig();
 		config
 				.idleMode(IdleMode.kBrake) // TODO: Soft limits?
@@ -58,6 +72,10 @@ public class ElevatorSubsystem extends SubsystemBase {
 			m_elevatorMotorSim = null;
 			m_elevatorModel = null;
 		}
+	}
+
+	public MechanismLigament2d getWristMount() {
+		return m_wristMount;
 	}
 
 	/**
@@ -126,6 +144,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 
 	@Override
 	public void periodic() {
+		m_elevatorLigament.setLength(Units.inchesToMeters(24) + getPosition());
 		// This method will be called once per scheduler run
 	}
 
