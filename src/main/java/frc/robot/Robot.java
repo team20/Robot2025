@@ -6,9 +6,15 @@ package frc.robot;
 
 import static edu.wpi.first.wpilibj2.command.Commands.*;
 import static frc.robot.Constants.*;
+import static frc.robot.Constants.AlgaeConstants.*;
+import static frc.robot.Constants.ClimberConstants.*;
+import static frc.robot.Constants.ControllerConstants.*;
+import static frc.robot.Constants.ElevatorConstants.*;
 import static frc.robot.Constants.RobotConstants.*;
+import static frc.robot.Constants.WristConstants.*;
 import static frc.robot.subsystems.PoseEstimationSubsystem.*;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.DoubleSupplier;
 
@@ -18,32 +24,50 @@ import org.photonvision.PhotonCamera;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
+import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.util.Color;
+import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
-import frc.robot.Constants.ControllerConstants;
+import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import frc.robot.Constants.ControllerConstants.Button;
+import frc.robot.subsystems.AlgaeGrabberSubsystem;
+import frc.robot.subsystems.AlgaeGrabberSubsystem.GrabberState;
+import frc.robot.subsystems.CheeseStickSubsystem;
+import frc.robot.subsystems.ClimberSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
+import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.PhotonCameraSimulator;
 import frc.robot.subsystems.PoseEstimationSubsystem;
 import frc.robot.subsystems.VisionSimulator;
+import frc.robot.subsystems.WristSubsystem;
 
 public class Robot extends TimedRobot {
 	private final SendableChooser<Command> m_autoSelector = new SendableChooser<Command>();
 	private final SendableChooser<Command> m_testSelector = new SendableChooser<Command>();
 
 	private Command m_autonomousCommand;
+	private final Mechanism2d m_mechanism = new Mechanism2d(Units.inchesToMeters(35), Units.inchesToMeters(100));
+	private final AlgaeGrabberSubsystem m_algaeGrabberSubsystem = new AlgaeGrabberSubsystem();
+	private final CheeseStickSubsystem m_cheeseStickSubsystem = new CheeseStickSubsystem();
+	private final ClimberSubsystem m_climberSubsystem = new ClimberSubsystem();
 	private Command m_testCommand;
 	private final DriveSubsystem m_driveSubsystem = new DriveSubsystem();
-	private final CommandPS4Controller m_driverController = new CommandPS4Controller(
-			ControllerConstants.kDriverControllerPort);
+	private final ElevatorSubsystem m_elevatorSubsystem = new ElevatorSubsystem(
+			m_mechanism.getRoot("anchor", Units.inchesToMeters(23), 0));
+	private final WristSubsystem m_wristSubsystem = new WristSubsystem(m_elevatorSubsystem.getWristMount());
+	// Changed to PS5
+	private final CommandPS5Controller m_driverController = new CommandPS5Controller(kDriverControllerPort);
+	private final CommandPS5Controller m_operatorController = new CommandPS5Controller(kOperatorControllerPort);
 	private final PowerDistribution m_pdh = new PowerDistribution();
 	private final VisionSimulator m_visionSimulator = new VisionSimulator(m_driveSubsystem,
 			pose(kFieldLayout.getFieldLength() / 2, 1.91, 0), 0.01);
@@ -58,6 +82,10 @@ public class Robot extends TimedRobot {
 			.addCamera(m_camera2, kRobotToCamera2);
 
 	public Robot() {
+		var dropChute = new MechanismLigament2d("bottom", Units.inchesToMeters(5), 0, 5, new Color8Bit(Color.kBeige));
+		dropChute.append(new MechanismLigament2d("side", Units.inchesToMeters(12), 90, 5, new Color8Bit(Color.kWhite)));
+		m_mechanism.getRoot("dropChute", Units.inchesToMeters(28), Units.inchesToMeters(9)).append(dropChute);
+		SmartDashboard.putData("Superstructure", m_mechanism);
 		CommandComposer.setSubsystems(m_driveSubsystem, m_poseEstimationSubsystem);
 
 		m_autoSelector.addOption("Test DriveSubsystem", m_driveSubsystem.testCommand());
@@ -73,12 +101,19 @@ public class Robot extends TimedRobot {
 		SmartDashboard.putData(CommandScheduler.getInstance());
 		DataLogManager.start();
 		DataLogManager.logNetworkTables(true);
-		URCL.start(
+		var m = new LinkedHashMap<Integer, String>(Map.of(
+				10, "FR Drive", 11, "FR Turn", 20, "BR Drive", 21, "BR Turn", 30, "BL Drive", 31, "BL Turn",
+				40, "FL Drive", 41, "FL Turn"));
+		m.putAll(
 				Map.of(
-						10, "FR Drive", 11, "FR Turn", 20, "BR Drive", 21, "BR Turn", 30, "BL Drive", 31, "BL Turn",
-						40, "FL Drive", 41, "FL Turn"));
+						kElevatorMotorPort, "Elevator",
+						kClimberMotorPort, "Climber Motor", kWristMotorPort, "Wrist Motor", kFlywheelMotorPort,
+						"Algae Motor"));
+		URCL.start(m);
 		DriverStation.startDataLog(DataLogManager.getLog());
 		bindDriveControls();
+		bindElevatorControls();
+		bindWristControls();
 	}
 
 	public void bindDriveControls() {
@@ -88,7 +123,7 @@ public class Robot extends TimedRobot {
 						() -> -m_driverController.getLeftX(),
 						() -> m_driverController.getL2Axis() - m_driverController.getR2Axis(),
 						m_driverController.getHID()::getSquareButton));
-
+		// TODO: Add in joystick rotation
 		m_driverController.button(Button.kSquare)
 				.whileTrue(
 						driveWithAlignmentCommand(
@@ -96,6 +131,41 @@ public class Robot extends TimedRobot {
 								() -> -m_driverController.getLeftX(),
 								() -> m_driverController.getL2Axis() - m_driverController.getR2Axis(),
 								new Transform2d(0.5, 0, Rotation2d.fromDegrees(180)), 2));
+	}
+
+	public void bindElevatorControls() {
+		m_operatorController.circle().onTrue(m_elevatorSubsystem.goToLevelFourCommand());
+		m_operatorController.triangle().onTrue(m_elevatorSubsystem.goToLevelThreeCommand());
+		m_operatorController.square().onTrue(m_elevatorSubsystem.goToLevelTwoCommand());
+		m_operatorController.cross().onTrue(m_elevatorSubsystem.goToLevelOneCommand());
+		m_operatorController.povLeft().onTrue(m_elevatorSubsystem.goToCoralStationCommand());
+		// TODO: Add manual movement
+	}
+
+	public void bindAlgaeControls() {
+		m_operatorController.R1().onTrue(
+				m_algaeGrabberSubsystem.deployGrabberCommand(GrabberState.DOWN)
+						.andThen(m_algaeGrabberSubsystem.runFlywheelCommand())); // TODO: Come up after?
+		m_operatorController.L1().onTrue(
+				m_algaeGrabberSubsystem.runFlywheelReverseCommand()
+						.until(m_algaeGrabberSubsystem::checkCurrentOnFlywheel)
+						.andThen(m_algaeGrabberSubsystem.stopFlywheelCommand()));
+	}
+
+	public void bindWristControls() {
+		m_driverController.circle().onTrue(m_wristSubsystem.reverseMotor());
+		m_driverController.square().onTrue(m_wristSubsystem.forwardMotor());
+	}
+
+	public void bindCheeseStickControls() {
+		// Need to figure out what left and right actually mean
+		m_operatorController.R2().whileFalse(m_cheeseStickSubsystem.goLeft());
+		m_operatorController.R2().whileTrue(m_cheeseStickSubsystem.goRight());
+	}
+
+	public void bindClimberControls() {
+		m_operatorController.L2().whileTrue(m_climberSubsystem.moveForward())
+				.onFalse(m_climberSubsystem.moveBackward());
 	}
 
 	/**
