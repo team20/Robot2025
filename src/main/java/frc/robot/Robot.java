@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -32,18 +33,20 @@ import frc.robot.subsystems.WristSubsystem;
 
 public class Robot extends TimedRobot {
 	private Command m_autonomousCommand;
+	private final Mechanism2d m_mechanism = new Mechanism2d(1.5, 2.5);
 	private final AlgaeGrabberSubsystem m_algaeGrabberSubsystem = new AlgaeGrabberSubsystem();
 	private final CheeseStickSubsystem m_cheeseStickSubsystem = new CheeseStickSubsystem();
 	private final ClimberSubsystem m_climberSubsystem = new ClimberSubsystem();
 	private final DriveSubsystem m_driveSubsystem = new DriveSubsystem();
-	private final ElevatorSubsystem m_elevatorSubsystem = new ElevatorSubsystem();
-	private final WristSubsystem m_wristSubsystem = new WristSubsystem();
+	private final ElevatorSubsystem m_elevatorSubsystem = new ElevatorSubsystem(m_mechanism.getRoot("anchor", 1, 0));
+	private final WristSubsystem m_wristSubsystem = new WristSubsystem(m_elevatorSubsystem.getWristMount());
 	// Changed to PS5
 	private final CommandPS5Controller m_driverController = new CommandPS5Controller(kDriverControllerPort);
 	private final CommandPS5Controller m_operatorController = new CommandPS5Controller(kOperatorControllerPort);
 	private final PowerDistribution m_pdh = new PowerDistribution();
 
 	public Robot() {
+		SmartDashboard.putData("Superstructure", m_mechanism);
 		SmartDashboard.putData(m_pdh);
 		SmartDashboard.putData(CommandScheduler.getInstance());
 		DataLogManager.start();
@@ -55,6 +58,7 @@ public class Robot extends TimedRobot {
 						"Algae Motor"));
 		DriverStation.startDataLog(DataLogManager.getLog());
 		bindDriveControls();
+		bindElevatorControls();
 		bindWristControls();
 	}
 

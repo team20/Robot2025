@@ -20,8 +20,10 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
+import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -37,9 +39,11 @@ public class WristSubsystem extends SubsystemBase {
 	private final SparkMaxSim m_wristSim;
 	private final SparkAbsoluteEncoderSim m_absoluteEncoderSim;
 	private final SingleJointedArmSim m_wristModel;
+	private final MechanismLigament2d m_wrist = new MechanismLigament2d("wrist", Units.inchesToMeters(9), 90);
 
 	/** Creates a new WristSubsystem. */
-	public WristSubsystem() {
+	public WristSubsystem(MechanismLigament2d wristMount) {
+		wristMount.append(m_wrist);
 		var config = new SparkMaxConfig();
 		config
 				.inverted(false)
@@ -54,8 +58,8 @@ public class WristSubsystem extends SubsystemBase {
 		if (RobotBase.isSimulation()) {
 			m_wristSim = new SparkMaxSim(m_wristMotor, DCMotor.getNEO(1));
 			m_absoluteEncoderSim = new SparkAbsoluteEncoderSim(m_wristMotor);
-			m_wristModel = new SingleJointedArmSim(DCMotor.getNEO(1), 5, 2, 0.1, Math.PI / 4,
-					7 * Math.PI / 4, false, Math.PI / 4);
+			m_wristModel = new SingleJointedArmSim(DCMotor.getNEO(1), 5, 2, 0.1, 0,
+					Math.PI, false, 0);
 		} else {
 			m_wristSim = null;
 			m_absoluteEncoderSim = null;
@@ -103,12 +107,14 @@ public class WristSubsystem extends SubsystemBase {
 		m_wristModel.update(0.02);
 		var velocityRPM = m_wristModel.getVelocityRadPerSec() / (2 * Math.PI) / 60;
 		m_wristSim.iterate(velocityRPM, 12, 0.02);
+		m_wristSim.setPosition(m_wristModel.getAngleRads() / (2 * Math.PI));
 		m_absoluteEncoderSim.iterate(velocityRPM, 0.02);
-		m_absoluteEncoderSim.setPosition(m_absoluteEncoder.getPosition() % 1);
+		m_absoluteEncoderSim.setPosition(m_wristModel.getAngleRads() / (2 * Math.PI));
 	}
 
 	@Override
 	public void periodic() {
+		m_wrist.setAngle(-90 + getAngle());
 		SmartDashboard.putNumber("Output current", getOutputCurrent());
 		SmartDashboard.putNumber("Angle", getAngle());
 		SmartDashboard.putNumber("Applied output", m_wristMotor.getAppliedOutput());
