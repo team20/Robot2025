@@ -11,21 +11,21 @@ import edu.wpi.first.units.measure.Distance;
 
 public class Constants {
 	public static final class AlgaeConstants {
-		// FLYWHEEL IS 550
-		// OTHER IS NORMAL NEO
-
-		public static final int kFlywheelMotorPort = 90;
-		public static final int kGrabberAnglePort = 3;
-		public static final boolean kFlywheelInvert = false;
+		public static final int kFlywheelMotorPort = 55;
+		public static final int kGrabberAnglePort = 56;
+		public static final boolean kFlywheelInvert = true;
 		public static final boolean kGrabberAngleInvert = false;
+
+		public static final int k550SmartCurrentLimit = 15;
 
 		public static final int kSmartCurrentLimit = 50;
 		public static final int kPeakCurrentDurationMillis = 100;
 
-		public static final int k550SmartCurrentLimit = 15;
-
 		public static final double kCurrentToStop = 20;
 		public static final double kTimeOverCurrentToStop = .01;
+
+		public static final float kDeployGrabberRotations = 2;
+		public static final double kFlywheelSpeed = .8;
 
 		public static final double kP = 0.5;
 		public static final double kI = 0.0;

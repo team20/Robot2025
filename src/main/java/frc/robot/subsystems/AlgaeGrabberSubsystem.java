@@ -26,7 +26,7 @@ public class AlgaeGrabberSubsystem extends SubsystemBase {
 	private final SparkClosedLoopController m_grabberClosedLoopController = m_grabberAngleMotor
 			.getClosedLoopController();
 
-	private final Debouncer m_debouncerCurrentLimitStop = new Debouncer(AlgaeConstants.kTimeOverCurrentToStop);
+	Debouncer m_debouncerCurrentLimitStop;
 
 	private double m_setVelocity;
 
@@ -36,6 +36,8 @@ public class AlgaeGrabberSubsystem extends SubsystemBase {
 	}
 
 	public AlgaeGrabberSubsystem() {
+		SparkMaxConfig config;
+		m_debouncerCurrentLimitStop = new Debouncer(AlgaeConstants.kTimeOverCurrentToStop);
 		m_flywheel = new SparkMax(AlgaeConstants.kFlywheelMotorPort, MotorType.kBrushless);
 
 		// Initialize Motors
@@ -44,7 +46,7 @@ public class AlgaeGrabberSubsystem extends SubsystemBase {
 		// variable
 		// also applies voltage and current stuff to the motors
 
-		var config = new SparkMaxConfig();
+		config = new SparkMaxConfig();
 		config.inverted(AlgaeConstants.kFlywheelInvert).idleMode(IdleMode.kBrake);
 		config.voltageCompensation(12).smartCurrentLimit(AlgaeConstants.k550SmartCurrentLimit);
 		m_flywheel.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
@@ -64,8 +66,14 @@ public class AlgaeGrabberSubsystem extends SubsystemBase {
 		// System.out.println(m_flywheel.getOutputCurrent());
 	}
 
+	/**
+	 * gets the % velocity on the flywheel motor
+	 *
+	 * @return (double) (-1 to 1) returns the % velocity using .getAppliedOutput()
+	 *         from {@link SparkMax}
+	 */
 	public double getVelocity() {
-		return m_flywheel.getAbsoluteEncoder().getVelocity();
+		return m_flywheel.getAppliedOutput();
 	}
 
 	/**
@@ -97,7 +105,7 @@ public class AlgaeGrabberSubsystem extends SubsystemBase {
 	/**
 	 * command to stop the algae flywheel using the setVelocity method
 	 *
-	 * @return (setVelocity(0)) sets the flywheel velocity to 0
+	 * @return (setVelocity(0)) sets the flywheel velocity to 0%
 	 */
 	public Command stopFlywheel() {
 		return runOnce(() -> {
@@ -108,22 +116,24 @@ public class AlgaeGrabberSubsystem extends SubsystemBase {
 	/**
 	 * command to start the algae flywheel using the setVelocity method
 	 *
-	 * @return (setVelocity(.75)) sets the flywheel velocity to 75%
+	 * @return (setVelocity(kFlywheelSpeed)) sets the flywheel velocity to the
+	 *         constant kFlywheelSpeed in AlgaeConstants
 	 */
 	public Command runFlywheel() {
 		return runOnce(() -> {
-			setVelocity(.75);
+			setVelocity(AlgaeConstants.kFlywheelSpeed);
 		});
 	}
 
 	/**
 	 * command to reverse the algae flywheel using the setVelocity method
 	 *
-	 * @return (setVelocity(-.75)) sets the flywheel velocity to -75%
+	 * @return (setVelocity(-kFlywheelSpeed)) sets the flywheel velocity to the
+	 *         negative constant kFlywheelSpeed in AlgaeConstants
 	 */
 	public Command runFlywheelReverse() {
 		return runOnce(() -> {
-			setVelocity(-.75);
+			setVelocity(-AlgaeConstants.kFlywheelSpeed);
 		});
 	}
 
@@ -139,7 +149,8 @@ public class AlgaeGrabberSubsystem extends SubsystemBase {
 	public Command deployGrabber(GrabberState state) {
 		return runOnce(() -> {
 			if (GrabberState.DOWN == state) {
-				m_grabberClosedLoopController.setReference(2, ControlType.kPosition);
+				m_grabberClosedLoopController
+						.setReference(AlgaeConstants.kDeployGrabberRotations, ControlType.kPosition);
 			} else if (GrabberState.UP == state) {
 				m_grabberClosedLoopController.setReference(0, ControlType.kPosition);
 			}
