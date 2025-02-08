@@ -119,6 +119,8 @@ public class Constants {
 		public static final double kLevelTwoHeight = kLevelOneHeight; // same as level 1
 		public static final double kLevelThreeHeight = Units.inchesToMeters(60 - 24);
 		public static final double kLevelFourHeight = Units.inchesToMeters(90 - 24);
+		public static final double kToScoreHeightDecrease = 0; // The amount that the elevator decreases in order to
+																// score
 		public static final double kCoralStationHeight = 0;
 	}
 

@@ -108,8 +108,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 	/**
 	 * Sets the position of the motor (using PID)
 	 * 
-	 * @param position Position to set the master motor to (the follower
-	 *        will...follow)
+	 * @param position Position to set the master motor
 	 */
 	public void setPosition(double position) {
 		m_setPosition = position;
@@ -153,7 +152,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 	 * 
 	 * @return Sets the speed to 0
 	 */
-	public Command stopMotorCommand() {
+	public Command stopMotor() {
 		return runOnce(() -> setSpeed(0)).withName("Elevator motor stop");
 	}
 
@@ -162,7 +161,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 	 * 
 	 * @return the command to set the speed
 	 */
-	public Command reverseMotorCommand() {
+	public Command reverseMotor() {
 		return runOnce(() -> setSpeed(-1)).withName("Elevator motor backwards");
 	}
 
@@ -171,28 +170,36 @@ public class ElevatorSubsystem extends SubsystemBase {
 	 * 
 	 * @return the command to set the speed
 	 */
-	public Command forwardMotorCommand() {
+	public Command forwardMotor() {
 		return runOnce(() -> setSpeed(1)).withName("Elevator motor forward");
 	}
 
-	public Command goToLevelOneCommand() {
+	public Command goToLevelOneHeight() {
 		return runOnce(() -> setPosition(kLevelOneHeight)).withName("Elevator to Level 1");
 	}
 
-	public Command goToLevelTwoCommand() {
+	public Command goToLevelTwoHeight() {
 		return runOnce(() -> setPosition(kLevelTwoHeight)).withName("Elevator to Level 2");
 	}
 
-	public Command goToLevelThreeCommand() {
+	public Command goToLevelThreeHeight() {
 		return runOnce(() -> setPosition(kLevelThreeHeight)).withName("Elevator to Level 3");
 	}
 
-	public Command goToLevelFourCommand() {
+	public Command goToLevelFourHeight() {
 		return runOnce(() -> setPosition(kLevelFourHeight)).withName("Elevator to Level 4");
 	}
 
-	public Command goToCoralStationCommand() {
+	public Command goToCoralStationHeight() {
 		return runOnce(() -> setPosition(kCoralStationHeight)).withName("Elevator to Coral Station");
+	}
+
+	public Command goToBaseHeight() {
+		return runOnce(() -> setPosition(0)).withName("Go to Base Height");
+	}
+
+	public Command lowerToScore() {
+		return runOnce(() -> setPosition(getPosition() - kToScoreHeightDecrease)).withName("Lower Elevator to Score");
 	}
 
 }
