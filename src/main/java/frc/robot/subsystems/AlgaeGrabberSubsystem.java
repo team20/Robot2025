@@ -120,7 +120,7 @@ public class AlgaeGrabberSubsystem extends SubsystemBase {
 	 *         constant kFlywheelSpeed in AlgaeConstants
 	 */
 	public Command runFlywheel() {
-		return runOnce(() -> {
+		return run(() -> {
 			setVelocity(AlgaeConstants.kFlywheelSpeed);
 		});
 	}
@@ -156,4 +156,11 @@ public class AlgaeGrabberSubsystem extends SubsystemBase {
 			}
 		});
 	}
+	// public Command stopMotorOnCurrent(){
+	// return runOnce(() -> {
+	// if(checkCurrentOnFlywheel()){
+	// stopFlywheel();
+	// }
+	// }
+	// }
 }
