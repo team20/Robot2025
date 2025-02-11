@@ -70,9 +70,9 @@ public class Robot extends TimedRobot {
 						kClimberMotorPort, "Climber Motor", kWristMotorPort, "Wrist Motor", kFlywheelMotorPort,
 						"Algae Motor"));
 		DriverStation.startDataLog(DataLogManager.getLog());
-		// bindDriveControls();
-		// bindElevatorControls();
-		// bindWristControls();
+		bindDriveControls();
+		bindElevatorControls();
+		bindWristControls();
 		bindAlgaeControls();
 	}
 
@@ -97,7 +97,6 @@ public class Robot extends TimedRobot {
 	}
 
 	public void bindAlgaeControls() {
-		// TODO: needs to be tested
 		m_operatorController.R1().onTrue(
 				m_algaeGrabberSubsystem.deployGrabber(GrabberState.DOWN)
 						.andThen(m_algaeGrabberSubsystem.runFlywheel()).until(

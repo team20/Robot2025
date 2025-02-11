@@ -156,11 +156,4 @@ public class AlgaeGrabberSubsystem extends SubsystemBase {
 			}
 		});
 	}
-	// public Command stopMotorOnCurrent(){
-	// return runOnce(() -> {
-	// if(checkCurrentOnFlywheel()){
-	// stopFlywheel();
-	// }
-	// }
-	// }
 }
