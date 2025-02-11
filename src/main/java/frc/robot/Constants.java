@@ -111,15 +111,28 @@ public class Constants {
 	}
 
 	public static final class ElevatorConstants {
-		public static final double kFF = 0.00008040000102482736; // Feedforward Constant
 		public static final int kElevatorMotorPort = 45;
 		public static final int kSmartCurrentLimit = 60;
 		public static final int kSecondaryCurrentLimit = 70;
-		public static final double kMinOutput = -1;
-		public static final double kMaxOutput = 1;
-		public static final double kP = 5;
+		public static final double kP = 0;
 		public static final double kI = 0;
 		public static final double kD = 0;
+		public static final double kS = 0;
+		public static final double kG = 2;
+		public static final double kV = 2;
+		public static final double kA = 0;
+		public static final double kGearRatio = 10;
+		public static final double kPulleyRadius = Units.inchesToMeters(0.75);
+		/**
+		 * <pre>
+		 * 				   1 pulley rotation	 pulley circumference
+		 * 1 motor rot * --------------------- * --------------------
+		 *               kGearRatio motor rots    1 pulley rotation
+		 * </pre>
+		 */
+		public static final double kMetersPerMotorRotation = 1 / kGearRatio * (2 * Math.PI * kPulleyRadius);
+		public static final double kMaxVelocity = 2;
+		public static final double kMaxAccel = 2;
 		public static final double kTolerance = 1;
 		public static final int kMaxExtension = 250;
 		public static final double kLevelOneHeight = Units.inchesToMeters(41 - 24);
