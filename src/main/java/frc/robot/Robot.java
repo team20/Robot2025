@@ -97,11 +97,11 @@ public class Robot extends TimedRobot {
 	}
 
 	public void bindAlgaeControls() {
-		// TODO: needs to be tested
 		m_operatorController.R1().onTrue(
 				m_algaeGrabberSubsystem.deployGrabber(GrabberState.DOWN)
 						.andThen(m_algaeGrabberSubsystem.runFlywheel()).until(
-								() -> m_algaeGrabberSubsystem.checkCurrentOnFlywheel()));
+								() -> m_algaeGrabberSubsystem.checkCurrentOnFlywheel())
+						.andThen(m_algaeGrabberSubsystem.stopFlywheel()));
 		m_operatorController.L1().onTrue(
 				m_algaeGrabberSubsystem.deployGrabber(GrabberState.UP)
 						.andThen(m_algaeGrabberSubsystem.stopFlywheel()));
