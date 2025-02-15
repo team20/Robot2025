@@ -6,6 +6,7 @@ package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.*;
 import static frc.robot.Constants.DriveConstants.*;
+import static java.lang.Double.*;
 
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
@@ -15,6 +16,7 @@ import com.studica.frc.AHRS.NavXComType;
 
 import edu.wpi.first.hal.SimDouble;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -51,9 +53,11 @@ public class DriveSubsystem extends SubsystemBase {
 	private final StructPublisher<ChassisSpeeds> m_currentChassisSpeedsPublisher;
 	private final StructArrayPublisher<SwerveModuleState> m_targetModuleStatePublisher;
 	private final StructArrayPublisher<SwerveModuleState> m_currentModuleStatePublisher;
+	private final PIDController m_rotationPID = new PIDController(500, 0, 0);
 
 	/** Creates a new DriveSubsystem. */
 	public DriveSubsystem() {
+		m_rotationPID.enableContinuousInput(-Math.PI, Math.PI);
 		m_posePublisher = NetworkTableInstance.getDefault().getStructTopic("/SmartDashboard/Pose", Pose2d.struct)
 				.publish();
 		m_currentChassisSpeedsPublisher = NetworkTableInstance.getDefault()
@@ -208,12 +212,28 @@ public class DriveSubsystem extends SubsystemBase {
 	 * @return A command to drive the robot.
 	 */
 	public Command driveCommand(DoubleSupplier forwardSpeed, DoubleSupplier strafeSpeed,
-			DoubleSupplier rotation, BooleanSupplier isRobotRelative) {
+			DoubleSupplier rotationY, DoubleSupplier rotationX, BooleanSupplier isRobotRelative) {
+		var rotState = new Object() {
+			double offset;
+		};
 		return run(() -> {
 			// Get the forward, strafe, and rotation speed, using a deadband on the joystick
 			// input so slight movements don't move the robot
-			double rotSpeed = MathUtil.applyDeadband(rotation.getAsDouble(), ControllerConstants.kDeadzone);
-			rotSpeed = Math.signum(rotSpeed) * Math.pow(rotSpeed, 2) * kTeleopMaxTurnVoltage;
+
+			double rotY = rotationY.getAsDouble();
+			double rotX = rotationX.getAsDouble();
+			double angle = Math.atan2(rotX, rotY);
+			double distance = Math.hypot(rotX, rotY);
+			double rotSpeed = 0;
+			if (distance > 0.05) {
+				if (isNaN(rotState.offset))
+					rotState.offset = getHeading().getRadians() - angle;
+				double rotGoal = angle + rotState.offset;
+				rotSpeed = m_rotationPID.calculate(getHeading().getRadians(), rotGoal);
+				rotSpeed = Math.signum(rotSpeed) * Math.min(Math.abs(rotSpeed), 1) * kTeleopMaxTurnVoltage;
+			} else {
+				rotState.offset = NaN;
+			}
 
 			double fwdSpeed = MathUtil.applyDeadband(forwardSpeed.getAsDouble(), ControllerConstants.kDeadzone);
 			fwdSpeed = Math.signum(fwdSpeed) * Math.pow(fwdSpeed, 2) * kTeleopMaxVoltage;
