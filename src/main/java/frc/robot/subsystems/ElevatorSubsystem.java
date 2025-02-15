@@ -184,6 +184,14 @@ public class ElevatorSubsystem extends SubsystemBase {
 		return runOnce(() -> setSpeed(1)).withName("Elevator motor forward");
 	}
 
+	// TODO: Comment
+
+	/**
+	 * Using Trapezoid Profile to set the position of the elevator
+	 * 
+	 * @param level the level we want to go to
+	 * @return the command
+	 */
 	private Command goToLevel(double level) {
 		var initial = new TrapezoidProfile.State();
 		var finalState = new TrapezoidProfile.State(level, 0);
@@ -191,37 +199,73 @@ public class ElevatorSubsystem extends SubsystemBase {
 			m_timer.restart();
 			initial.position = getPosition();
 		}, () -> {
-			var time = m_timer.get();
-			var curr = m_profile.calculate(time, initial, finalState);
-			var next = m_profile.calculate(time + 0.02, initial, finalState);
-			setPosition(level, m_ff.calculateWithVelocities(curr.velocity, next.velocity));
+			double time = m_timer.get();
+			double currentVelocity = m_profile.calculate(time, initial, finalState).velocity;
+			double nextVelocity = m_profile.calculate(time + 0.02, initial, finalState).velocity;
+			setPosition(level, m_ff.calculateWithVelocities(currentVelocity, nextVelocity));
 		});
 	}
 
+	/**
+	 * Moves the elevator to the level one position
+	 * 
+	 * @return the command
+	 */
 	public Command goToLevelOneHeight() {
 		return goToLevel(kLevelOneHeight).withName("Elevator to Level 1");
 	}
 
+	/**
+	 * Moves the elevator to the level two positon
+	 * 
+	 * @return the command
+	 */
 	public Command goToLevelTwoHeight() {
 		return goToLevel(kLevelTwoHeight).withName("Elevator to Level 2");
 	}
 
+	/**
+	 * Moves the elevator to the level three position
+	 * 
+	 * @return the command
+	 */
 	public Command goToLevelThreeHeight() {
 		return goToLevel(kLevelThreeHeight).withName("Elevator to Level 2");
 	}
 
+	/**
+	 * Moves the elevator to the level four position
+	 * 
+	 * @return the command
+	 */
 	public Command goToLevelFourHeight() {
 		return goToLevel(kLevelFourHeight).withName("Elevator to Level 2");
 	}
 
+	/**
+	 * Moves the elevator to the coral station position
+	 * 
+	 * @return the command
+	 */
 	public Command goToCoralStationHeight() {
 		return goToLevel(kCoralStationHeight).withName("Elevator to Coral Station");
 	}
 
+	/**
+	 * Moves the elevator to the base height positon
+	 * 
+	 * @return
+	 */
 	public Command goToBaseHeight() {
 		return goToLevel(0).withName("Go to Base Height");
 	}
 
+	/**
+	 * The other heights when scoring go to a higher height than what is needed to
+	 * score so this lowers it to the proper height
+	 * 
+	 * @return the command
+	 */
 	public Command lowerToScore() {
 		var initial = new TrapezoidProfile.State();
 		var finalState = new TrapezoidProfile.State();
@@ -230,10 +274,10 @@ public class ElevatorSubsystem extends SubsystemBase {
 			initial.position = getPosition();
 			finalState.position = getPosition() - kToScoreHeightDecrease;
 		}, () -> {
-			var time = m_timer.get();
-			var curr = m_profile.calculate(time, initial, finalState);
-			var next = m_profile.calculate(time + 0.02, initial, finalState);
-			setPosition(finalState.position, m_ff.calculateWithVelocities(curr.velocity, next.velocity));
+			double time = m_timer.get();
+			double currentVelocity = m_profile.calculate(time, initial, finalState).velocity;
+			double nextVelocity = m_profile.calculate(time + 0.02, initial, finalState).velocity;
+			setPosition(finalState.position, m_ff.calculateWithVelocities(currentVelocity, nextVelocity));
 		}).withName("Lower Elevator to Score");
 	}
 }

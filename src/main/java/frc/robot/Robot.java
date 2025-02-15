@@ -82,7 +82,7 @@ public class Robot extends TimedRobot {
 						() -> -m_driverController.getLeftY(),
 						() -> -m_driverController.getLeftX(),
 						() -> m_driverController.getL2Axis() - m_driverController.getR2Axis(),
-						m_driverController.getHID()::getSquareButton));
+						m_driverController.getHID()::getSquareButton)); // makes the robot robot-oriented
 		// TODO: Add in joystick rotation
 	}
 
@@ -105,6 +105,7 @@ public class Robot extends TimedRobot {
 		m_operatorController.L1().onTrue(
 				m_algaeGrabberSubsystem.deployGrabber(GrabberState.UP)
 						.andThen(m_algaeGrabberSubsystem.stopFlywheel()));
+
 		m_operatorController.options().onTrue(
 				m_algaeGrabberSubsystem.runFlywheelReverse());
 		m_operatorController.options().onFalse(
@@ -117,13 +118,13 @@ public class Robot extends TimedRobot {
 	}
 
 	public void bindCheeseStickControls() {
-		m_operatorController.R2().whileFalse(m_cheeseStickSubsystem.extend());
-		m_operatorController.R2().whileTrue(m_cheeseStickSubsystem.retract());
+		m_operatorController.R2().whileFalse(m_cheeseStickSubsystem.grab());
+		m_operatorController.R2().whileTrue(m_cheeseStickSubsystem.release());
 	}
 
 	public void bindClimberControls() {
 		m_operatorController.L2().whileTrue(m_climberSubsystem.moveForward())
-				.onFalse(m_climberSubsystem.moveBackward()); // TODO: will this run forever? (no)
+				.onFalse(m_climberSubsystem.moveBackward());
 	}
 
 	@Override

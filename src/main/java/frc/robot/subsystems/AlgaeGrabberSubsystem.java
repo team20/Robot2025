@@ -25,8 +25,7 @@ public class AlgaeGrabberSubsystem extends SubsystemBase {
 			MotorType.kBrushless);
 	private final SparkClosedLoopController m_grabberClosedLoopController = m_grabberAngleMotor
 			.getClosedLoopController();
-
-	Debouncer m_debouncerCurrentLimitStop;
+	private final Debouncer m_debouncerCurrentLimitStop;
 
 	private double m_setVelocity;
 
@@ -36,7 +35,6 @@ public class AlgaeGrabberSubsystem extends SubsystemBase {
 	}
 
 	public AlgaeGrabberSubsystem() {
-		SparkMaxConfig config;
 		m_debouncerCurrentLimitStop = new Debouncer(AlgaeConstants.kTimeOverCurrentToStop);
 		m_flywheel = new SparkMax(AlgaeConstants.kFlywheelMotorPort, MotorType.kBrushless);
 
@@ -46,12 +44,12 @@ public class AlgaeGrabberSubsystem extends SubsystemBase {
 		// variable
 		// also applies voltage and current stuff to the motors
 
-		config = new SparkMaxConfig();
+		SparkMaxConfig config = new SparkMaxConfig();
 		config.inverted(AlgaeConstants.kFlywheelInvert).idleMode(IdleMode.kBrake);
 		config.voltageCompensation(12).smartCurrentLimit(AlgaeConstants.k550SmartCurrentLimit);
 		m_flywheel.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
-		config = new SparkMaxConfig();
+		config = new SparkMaxConfig(); // To use the same variable in order to reset the parameters for the other motor
 		config.inverted(AlgaeConstants.kGrabberAngleInvert).idleMode(IdleMode.kBrake);
 		config.voltageCompensation(12).smartCurrentLimit(AlgaeConstants.kSmartCurrentLimit);
 		config.closedLoop
@@ -62,8 +60,6 @@ public class AlgaeGrabberSubsystem extends SubsystemBase {
 
 	@Override
 	public void periodic() {
-		// use this to check what the kCurrentToStop should be
-		// System.out.println(m_flywheel.getOutputCurrent());
 	}
 
 	/**
