@@ -204,8 +204,8 @@ public class DriveSubsystem extends SubsystemBase {
 	 *        go forward (+X direction).
 	 * @param strafeSpeed Strafe speed supplier. Positive values make the robot
 	 *        go to the left (+Y direction).
-	 * @param rotation Rotation speed supplier. Positive values make the
-	 *        robot rotate CCW.
+	 * @param rotationY Rotation Y supplier. Positive is up on the joystick.
+	 * @param rotationX Rotation X supplier. Positive is right on the joystick.
 	 * @param isRobotRelative Supplier for determining if driving should be robot
 	 *        relative.
 	 * @return A command to drive the robot.
