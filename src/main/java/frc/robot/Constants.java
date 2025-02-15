@@ -110,6 +110,9 @@ public class Constants {
 
 		public static final double kTeleopMaxVoltage = 12;
 		public static final double kTeleopMaxTurnVoltage = 7.2;
+		public static final double kTeleopDriveMaxSpeed = 5.0;
+		public static final double kTeleopTurnMaxAngularSpeed = Math.PI;
+
 		public static final double kDriveGearRatio = 6.75;
 		public static final double kSteerGearRatio = 150.0 / 7;
 		public static final double kWheelDiameter = Units.inchesToMeters(4);

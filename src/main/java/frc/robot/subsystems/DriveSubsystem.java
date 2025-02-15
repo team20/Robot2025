@@ -35,6 +35,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.ControllerConstants;
 import frc.robot.SwerveModule;
+import frc.robot.SwerveModuleSimulator;
 
 public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
 	private final SwerveModule m_frontLeft;
@@ -57,8 +58,7 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
 
 	/** Creates a new DriveSubsystem. */
 	public DriveSubsystem() {
-		m_posePublisher = NetworkTableInstance.getDefault()
-				.getStructTopic("/SmartDashboard/Pose@DriveSubsystem", Pose2d.struct)
+		m_posePublisher = NetworkTableInstance.getDefault().getStructTopic("/SmartDashboard/Pose", Pose2d.struct)
 				.publish();
 		m_currentChassisSpeedsPublisher = NetworkTableInstance.getDefault()
 				.getStructTopic("/SmartDashboard/Chassis Speeds", ChassisSpeeds.struct)
@@ -69,10 +69,20 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
 		m_currentModuleStatePublisher = NetworkTableInstance.getDefault()
 				.getStructArrayTopic("/SmartDashboard/Current Swerve Modules States", SwerveModuleState.struct)
 				.publish();
-		m_frontLeft = new SwerveModule(kFrontLeftCANCoderPort, kFrontLeftDrivePort, kFrontLeftSteerPort);
-		m_frontRight = new SwerveModule(kFrontRightCANCoderPort, kFrontRightDrivePort, kFrontRightSteerPort);
-		m_backLeft = new SwerveModule(kBackLeftCANCoderPort, kBackLeftDrivePort, kBackLeftSteerPort);
-		m_backRight = new SwerveModule(kBackRightCANCoderPort, kBackRightDrivePort, kBackRightSteerPort);
+		if (RobotBase.isSimulation()) {
+			m_frontLeft = new SwerveModuleSimulator(kFrontLeftCANCoderPort, kFrontLeftDrivePort, kFrontLeftSteerPort);
+			m_frontRight = new SwerveModuleSimulator(kFrontRightCANCoderPort, kFrontRightDrivePort,
+					kFrontRightSteerPort);
+			m_backLeft = new SwerveModuleSimulator(kBackLeftCANCoderPort, kBackLeftDrivePort, kBackLeftSteerPort);
+			m_backRight = new SwerveModuleSimulator(kBackRightCANCoderPort, kBackRightDrivePort, kBackRightSteerPort);
+			m_gyroSim = new SimDeviceSim("navX-Sensor", m_gyro.getPort()).getDouble("Yaw");
+		} else {
+			m_frontLeft = new SwerveModule(kFrontLeftCANCoderPort, kFrontLeftDrivePort, kFrontLeftSteerPort);
+			m_frontRight = new SwerveModule(kFrontRightCANCoderPort, kFrontRightDrivePort, kFrontRightSteerPort);
+			m_backLeft = new SwerveModule(kBackLeftCANCoderPort, kBackLeftDrivePort, kBackLeftSteerPort);
+			m_backRight = new SwerveModule(kBackRightCANCoderPort, kBackRightDrivePort, kBackRightSteerPort);
+			m_gyroSim = null;
+		}
 		// Adjust ramp rate, step voltage, and timeout to make sure robot doesn't
 		// collide with anything
 		var config = new SysIdRoutine.Config(Volts.of(2.5).div(Seconds.of(1)), null, Seconds.of(3));
@@ -92,11 +102,6 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
 			e.printStackTrace();
 		}
 		m_odometry = new SwerveDriveOdometry(m_kinematics, getHeading(), getModulePositions());
-		if (RobotBase.isSimulation()) {
-			m_gyroSim = new SimDeviceSim("navX-Sensor", m_gyro.getPort()).getDouble("Yaw");
-		} else {
-			m_gyroSim = null;
-		}
 	}
 
 	@Override
@@ -231,7 +236,7 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
 			boolean isFieldRelative) {
 		setModuleStates(
 				calculateModuleStates(
-						new ChassisSpeeds(vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond),
+						chassisSpeeds(vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond),
 						isFieldRelative));
 	}
 
@@ -243,6 +248,22 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
 	 */
 	public void drive(ChassisSpeeds chassisSpeeds, boolean isFieldRelative) {
 		setModuleStates(calculateModuleStates(chassisSpeeds, isFieldRelative));
+	}
+
+	/**
+	 * Constructs a {@code ChassisSpeeds} object.
+	 *
+	 * @param vxMetersPerSecond forward velocity in meters per second
+	 * @param vyMetersPerSecond sideways velocity in meters per second
+	 * @param omegaRadiansPerSecond angular velocity in radians per second
+	 */
+	public static ChassisSpeeds chassisSpeeds(double vxMetersPerSecond, double vyMetersPerSecond,
+			double omegaRadiansPerSecond) {
+		vxMetersPerSecond = MathUtil.clamp(vxMetersPerSecond, -kTeleopDriveMaxSpeed, kTeleopDriveMaxSpeed);
+		vyMetersPerSecond = MathUtil.clamp(vyMetersPerSecond, -kTeleopDriveMaxSpeed, kTeleopDriveMaxSpeed);
+		omegaRadiansPerSecond = MathUtil
+				.clamp(omegaRadiansPerSecond, -kTeleopTurnMaxAngularSpeed, kTeleopTurnMaxAngularSpeed);
+		return new ChassisSpeeds(vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond);
 	}
 
 	/**
@@ -270,14 +291,27 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
 	 *        go to the left (+Y direction).
 	 * @param rotation Rotation speed supplier. Positive values make the
 	 *        robot rotate CCW.
-	 * @param isFieldRelative Supplier for determining if driving should be field
+	 * @param isRobotRelative Supplier for determining if driving should be robot
 	 *        relative.
 	 * @return A command to drive the robot.
 	 */
 	public Command driveCommand(DoubleSupplier forwardSpeed, DoubleSupplier strafeSpeed,
-			DoubleSupplier rotation, BooleanSupplier isFieldRelative) {
+			DoubleSupplier rotation, BooleanSupplier isRobotRelative) {
 		return run(() -> {
-			drive(chassisSpeeds(forwardSpeed, strafeSpeed, rotation), isFieldRelative.getAsBoolean());
+			// Get the forward, strafe, and rotation speed, using a deadband on the joystick
+			// input so slight movements don't move the robot
+			double vxMetersPerSecond = MathUtil
+					.applyDeadband(forwardSpeed.getAsDouble(), ControllerConstants.kDeadzone);
+			vxMetersPerSecond = Math.signum(vxMetersPerSecond) * Math.pow(vxMetersPerSecond, 2) * kTeleopDriveMaxSpeed;
+
+			double vyMetersPerSecond = MathUtil.applyDeadband(strafeSpeed.getAsDouble(), ControllerConstants.kDeadzone);
+			vyMetersPerSecond = Math.signum(vyMetersPerSecond) * Math.pow(vyMetersPerSecond, 2) * kTeleopDriveMaxSpeed;
+
+			double omegaRadiansPerSecond = MathUtil
+					.applyDeadband(rotation.getAsDouble(), ControllerConstants.kDeadzone);
+			omegaRadiansPerSecond = Math.signum(omegaRadiansPerSecond) * Math.pow(omegaRadiansPerSecond, 2)
+					* kTeleopTurnMaxAngularSpeed;
+			drive(vxMetersPerSecond, vxMetersPerSecond, vxMetersPerSecond, !isRobotRelative.getAsBoolean());
 		}).withName("DefaultDriveCommand");
 	}
 
@@ -316,21 +350,9 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
 	}
 
 	/**
-	 * Directly sets the module angle. Do not use for general driving.
-	 * 
-	 * @param angle The angle in degrees
-	 */
-	public void setModuleAngles(double angle) {
-		m_frontLeft.setAngle(angle);
-		m_frontRight.setAngle(angle);
-		m_backLeft.setAngle(angle);
-		m_backRight.setAngle(angle);
-	}
-
-	/**
 	 * Creates a {@code Command} for testing this {@code DriveSubsystem}. The robot
-	 * must move forward, backward, strafe left, strafe right, and turn left and
-	 * right.
+	 * must move forward, backward, strafe left, strafe right, turn left, turn
+	 * right, and moving forward and backward while turning.
 	 * 
 	 * @return a {@code Command} for testing this {@code DriveSubsystem}
 	 */
@@ -339,7 +361,6 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
 		double rotionalSpeed = Math.toRadians(45);
 		double duration = 2.0;
 		return sequence(
-				run(() -> setModuleAngles(0)).withTimeout(1),
 				run(() -> drive(speed, 0, 0, false)).withTimeout(duration),
 				run(() -> drive(-speed, 0, 0, false)).withTimeout(duration),
 				run(() -> drive(0, speed, 0, false)).withTimeout(duration),
