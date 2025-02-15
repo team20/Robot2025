@@ -6,6 +6,8 @@ package frc.robot.subsystems;
 
 import static frc.robot.Constants.WristConstants.*;
 
+import java.util.function.DoubleSupplier;
+
 import com.revrobotics.sim.SparkAbsoluteEncoderSim;
 import com.revrobotics.sim.SparkMaxSim;
 import com.revrobotics.spark.SparkAbsoluteEncoder;
@@ -155,6 +157,26 @@ public class WristSubsystem extends SubsystemBase {
 	 */
 	public Command forwardMotor() {
 		return runOnce(() -> setSpeed(1)).withName("Wrist motor forward");
+	}
+
+	/**
+	 * Allows the operator to manually move the Wrist for adjustment
+	 * 
+	 * @param joystick Input from operator's right joystick Y-values
+	 * @return Command for moving
+	 */
+	public Command manualMove(DoubleSupplier joystick) {
+		return run(() -> {
+			double input = joystick.getAsDouble();
+			double speed = Math.signum(input) * Math.pow(input, 2);
+			if (Math.abs(speed) > 0.1) {
+				m_wristMotor.set(speed * 0.5);
+			} else {
+				m_wristMotor.stopMotor();
+			}
+
+			System.out.println("Stop");
+		}).withName("Manual Wrist");
 	}
 
 	/**
