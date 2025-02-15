@@ -6,7 +6,6 @@ package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.*;
 import static frc.robot.Constants.DriveConstants.*;
-import static java.lang.Double.*;
 
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
@@ -213,26 +212,18 @@ public class DriveSubsystem extends SubsystemBase {
 	 */
 	public Command driveCommand(DoubleSupplier forwardSpeed, DoubleSupplier strafeSpeed,
 			DoubleSupplier rotationY, DoubleSupplier rotationX, BooleanSupplier isRobotRelative) {
-		var rotState = new Object() {
-			double offset;
-		};
 		return run(() -> {
 			// Get the forward, strafe, and rotation speed, using a deadband on the joystick
 			// input so slight movements don't move the robot
 
 			double rotY = rotationY.getAsDouble();
 			double rotX = rotationX.getAsDouble();
-			double angle = Math.atan2(rotX, rotY);
 			double distance = Math.hypot(rotX, rotY);
 			double rotSpeed = 0;
 			if (distance > 0.05) {
-				if (isNaN(rotState.offset))
-					rotState.offset = getHeading().getRadians() - angle;
-				double rotGoal = angle + rotState.offset;
-				rotSpeed = m_rotationPID.calculate(getHeading().getRadians(), rotGoal);
+				double angle = -Math.atan2(rotX, rotY);
+				rotSpeed = m_rotationPID.calculate(getHeading().getRadians(), angle);
 				rotSpeed = Math.signum(rotSpeed) * Math.min(Math.abs(rotSpeed), 1) * kTeleopMaxTurnVoltage;
-			} else {
-				rotState.offset = NaN;
 			}
 
 			double fwdSpeed = MathUtil.applyDeadband(forwardSpeed.getAsDouble(), ControllerConstants.kDeadzone);
