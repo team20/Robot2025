@@ -122,7 +122,11 @@ public class Constants {
 		public static final double kV = 2;
 		public static final double kA = 0;
 		public static final double kGearRatio = 10; // TODO: Right gear ratio?
-		public static final double kPulleyRadius = Units.inchesToMeters(0.75); // TODO: Right pulley radius?
+		/**
+		 * 24 teeth, 5 mm pitch, one rotation moves 120 mm, 2 stage cascading elevator
+		 * means total height change is 240 mm.
+		 */
+		public static final double kMetersPerPulleyRotation = (24.0 * 5 * 2 / 1000);
 		/**
 		 * <pre>
 		 * 				   1 pulley rotation	 pulley circumference
@@ -130,7 +134,8 @@ public class Constants {
 		 *               kGearRatio motor rots    1 pulley rotation
 		 * </pre>
 		 */
-		public static final double kMetersPerMotorRotation = (1 / kGearRatio) * (2 * Math.PI * kPulleyRadius);
+		public static final double kMetersPerMotorRotation = (1 / kGearRatio)
+				* (2 * Math.PI * kMetersPerPulleyRotation);
 		public static final double kMaxVelocity = 2;
 		public static final double kMaxAccel = 2;
 		public static final double kTolerance = 1;

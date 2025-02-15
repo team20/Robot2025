@@ -75,7 +75,8 @@ public class ElevatorSubsystem extends SubsystemBase {
 		resetEncoder();
 		if (RobotBase.isSimulation()) {
 			m_elevatorMotorSim = new SparkMaxSim(m_elevatorMotor, DCMotor.getNEO(1));
-			m_elevatorModel = new ElevatorSim(DCMotor.getNEO(1), kGearRatio, Units.lbsToKilograms(20), kPulleyRadius, 0,
+			m_elevatorModel = new ElevatorSim(DCMotor.getNEO(1), kGearRatio, Units.lbsToKilograms(20),
+					kMetersPerPulleyRotation / (2 * Math.PI), 0,
 					Units.inchesToMeters(90), true, 0);
 		} else {
 			m_elevatorMotorSim = null;
