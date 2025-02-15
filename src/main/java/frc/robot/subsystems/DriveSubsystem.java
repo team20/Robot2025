@@ -286,11 +286,11 @@ public class DriveSubsystem extends SubsystemBase implements AutoCloseable {
 	 * 
 	 * @return A command to reset the gyro heading.
 	 */
-	public Command resetHeadingCommand() {
+	public Command resetHeading() {
 		return runOnce(m_gyro::zeroYaw).withName("ResetHeadingCommand");
 	}
 
-	public Command resetOdometryCommand(Pose2d pose) {
+	public Command resetOdometry(Pose2d pose) {
 		return runOnce(() -> m_odometry.resetPosition(getHeading(), getModulePositions(), pose))
 				.withName("ResetOdometryCommand");
 	}

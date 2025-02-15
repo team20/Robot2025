@@ -5,6 +5,7 @@
 package frc.robot;
 
 import static edu.wpi.first.wpilibj2.command.Commands.*;
+import static frc.robot.CommandComposer.*;
 import static frc.robot.Constants.*;
 import static frc.robot.Constants.AlgaeConstants.*;
 import static frc.robot.Constants.ClimberConstants.*;
@@ -58,14 +59,15 @@ public class Robot extends TimedRobot {
 	private Command m_autonomousCommand;
 	private final Mechanism2d m_mechanism = new Mechanism2d(Units.inchesToMeters(35), Units.inchesToMeters(100));
 	private final AlgaeGrabberSubsystem m_algaeGrabberSubsystem = new AlgaeGrabberSubsystem();
-	private final CheeseStickSubsystem m_cheeseStickSubsystem = new CheeseStickSubsystem();
+
 	private final ClimberSubsystem m_climberSubsystem = new ClimberSubsystem();
 	private Command m_testCommand;
 	private final DriveSubsystem m_driveSubsystem = new DriveSubsystem();
 	private final ElevatorSubsystem m_elevatorSubsystem = new ElevatorSubsystem(
 			m_mechanism.getRoot("anchor", Units.inchesToMeters(23), 0));
 	private final WristSubsystem m_wristSubsystem = new WristSubsystem(m_elevatorSubsystem.getWristMount());
-	// Changed to PS5
+	private final CheeseStickSubsystem m_cheeseStickSubsystem = new CheeseStickSubsystem(
+			m_wristSubsystem.getCheeseStickMount());
 	private final CommandPS5Controller m_driverController = new CommandPS5Controller(kDriverControllerPort);
 	private final CommandPS5Controller m_operatorController = new CommandPS5Controller(kOperatorControllerPort);
 	private final PowerDistribution m_pdh = new PowerDistribution();
@@ -82,16 +84,17 @@ public class Robot extends TimedRobot {
 			.addCamera(m_camera2, kRobotToCamera2);
 
 	public Robot() {
+		CommandComposer.setSubsystems(
+				m_driveSubsystem, m_algaeGrabberSubsystem, m_cheeseStickSubsystem, m_climberSubsystem,
+				m_elevatorSubsystem, m_wristSubsystem, m_poseEstimationSubsystem);
 		var dropChute = new MechanismLigament2d("bottom", Units.inchesToMeters(5), 0, 5, new Color8Bit(Color.kBeige));
 		dropChute.append(new MechanismLigament2d("side", Units.inchesToMeters(12), 90, 5, new Color8Bit(Color.kWhite)));
 		m_mechanism.getRoot("dropChute", Units.inchesToMeters(28), Units.inchesToMeters(9)).append(dropChute);
 		SmartDashboard.putData("Superstructure", m_mechanism);
-		CommandComposer.setSubsystems(m_driveSubsystem, m_poseEstimationSubsystem);
 
 		m_autoSelector.addOption("Test DriveSubsystem", m_driveSubsystem.testCommand());
 
 		m_testSelector.addOption("Test DriveSubsystem", m_driveSubsystem.testCommand());
-		m_testSelector.addOption("Test Rotation", CommandComposer.testRotation());
 		m_testSelector.addOption("Turn toward Tag 1", CommandComposer.turnTowardTag(1));
 
 		SmartDashboard.putData("Auto Selector", m_autoSelector);
@@ -114,6 +117,7 @@ public class Robot extends TimedRobot {
 		bindDriveControls();
 		bindElevatorControls();
 		bindWristControls();
+		bindAlgaeControls();
 	}
 
 	public void bindDriveControls() {
@@ -122,7 +126,7 @@ public class Robot extends TimedRobot {
 						() -> -m_driverController.getLeftY(),
 						() -> -m_driverController.getLeftX(),
 						() -> m_driverController.getL2Axis() - m_driverController.getR2Axis(),
-						m_driverController.getHID()::getSquareButton));
+						m_driverController.getHID()::getSquareButton)); // makes the robot robot-oriented
 		// TODO: Add in joystick rotation
 		m_driverController.button(Button.kSquare)
 				.whileTrue(
@@ -134,33 +138,39 @@ public class Robot extends TimedRobot {
 	}
 
 	public void bindElevatorControls() {
-		m_operatorController.circle().onTrue(m_elevatorSubsystem.goToLevelFourCommand());
-		m_operatorController.triangle().onTrue(m_elevatorSubsystem.goToLevelThreeCommand());
-		m_operatorController.square().onTrue(m_elevatorSubsystem.goToLevelTwoCommand());
-		m_operatorController.cross().onTrue(m_elevatorSubsystem.goToLevelOneCommand());
-		m_operatorController.povLeft().onTrue(m_elevatorSubsystem.goToCoralStationCommand());
+		m_operatorController.circle().onTrue(scoreLevelFour());
+		m_operatorController.triangle().onTrue(scoreLevelThree());
+		m_operatorController.square().onTrue(scoreLevelTwo());
+		m_operatorController.cross().onTrue(scoreLevelOne());
+		m_operatorController.povLeft().onTrue(m_elevatorSubsystem.goToCoralStationHeight());
+		m_operatorController.povRight().onTrue(m_elevatorSubsystem.goToBaseHeight());
 		// TODO: Add manual movement
 	}
 
 	public void bindAlgaeControls() {
 		m_operatorController.R1().onTrue(
-				m_algaeGrabberSubsystem.deployGrabberCommand(GrabberState.DOWN)
-						.andThen(m_algaeGrabberSubsystem.runFlywheelCommand())); // TODO: Come up after?
+				m_algaeGrabberSubsystem.deployGrabber(GrabberState.DOWN)
+						.andThen(m_algaeGrabberSubsystem.runFlywheel()).until(
+								() -> m_algaeGrabberSubsystem.checkCurrentOnFlywheel())
+						.andThen(m_algaeGrabberSubsystem.stopFlywheel()));
 		m_operatorController.L1().onTrue(
-				m_algaeGrabberSubsystem.runFlywheelReverseCommand()
-						.until(m_algaeGrabberSubsystem::checkCurrentOnFlywheel)
-						.andThen(m_algaeGrabberSubsystem.stopFlywheelCommand()));
+				m_algaeGrabberSubsystem.deployGrabber(GrabberState.UP)
+						.andThen(m_algaeGrabberSubsystem.stopFlywheel()));
+
+		m_operatorController.options().onTrue(
+				m_algaeGrabberSubsystem.runFlywheelReverse());
+		m_operatorController.options().onFalse(
+				m_algaeGrabberSubsystem.stopFlywheel());
 	}
 
 	public void bindWristControls() {
-		m_driverController.circle().onTrue(m_wristSubsystem.reverseMotor());
-		m_driverController.square().onTrue(m_wristSubsystem.forwardMotor());
+		// m_driverController.circle().onTrue(m_wristSubsystem.reverseMotor());
+		// m_driverController.square().onTrue(m_wristSubsystem.forwardMotor());
 	}
 
 	public void bindCheeseStickControls() {
-		// Need to figure out what left and right actually mean
-		m_operatorController.R2().whileFalse(m_cheeseStickSubsystem.goLeft());
-		m_operatorController.R2().whileTrue(m_cheeseStickSubsystem.goRight());
+		m_operatorController.R2().whileFalse(m_cheeseStickSubsystem.grab());
+		m_operatorController.R2().whileTrue(m_cheeseStickSubsystem.release());
 	}
 
 	public void bindClimberControls() {

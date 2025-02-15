@@ -8,19 +8,24 @@ import static frc.robot.Constants.ElevatorConstants.*;
 
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.sim.SparkMaxSim;
+import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkClosedLoopController;
+import com.revrobotics.spark.SparkClosedLoopController.ArbFFUnits;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
+import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
@@ -29,13 +34,15 @@ import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-//TODO: Setpoint and hold?
-
 public class ElevatorSubsystem extends SubsystemBase {
 	private final SparkMax m_elevatorMotor = new SparkMax(kElevatorMotorPort, MotorType.kBrushless);
 	private final RelativeEncoder m_elevatorEncoder = m_elevatorMotor.getEncoder();
 	private final SparkClosedLoopController m_closedLoopController = m_elevatorMotor.getClosedLoopController();
 
+	private final Timer m_timer = new Timer();
+	private final ElevatorFeedforward m_ff = new ElevatorFeedforward(kS, kG, kV, kA);
+	private final TrapezoidProfile m_profile = new TrapezoidProfile(
+			new TrapezoidProfile.Constraints(kMaxVelocity, kMaxAccel));
 	private double m_setPosition = 0;
 
 	private final SparkMaxSim m_elevatorMotorSim;
@@ -62,12 +69,15 @@ public class ElevatorSubsystem extends SubsystemBase {
 		config.closedLoop
 				.feedbackSensor(FeedbackSensor.kPrimaryEncoder)
 				.pid(kP, kI, kD);
+		config.encoder.positionConversionFactor(kMetersPerMotorRotation)
+				.velocityConversionFactor(kMetersPerMotorRotation / 60);
 		m_elevatorMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 		resetEncoder();
 		if (RobotBase.isSimulation()) {
 			m_elevatorMotorSim = new SparkMaxSim(m_elevatorMotor, DCMotor.getNEO(1));
-			m_elevatorModel = new ElevatorSim(DCMotor.getNEO(1), 10, Units.lbsToKilograms(20),
-					Units.inchesToMeters(2), 0, Units.inchesToMeters(90), true, 0);
+			m_elevatorModel = new ElevatorSim(DCMotor.getNEO(1), kGearRatio, Units.lbsToKilograms(20),
+					kMetersPerPulleyRotation / (2 * Math.PI), 0,
+					Units.inchesToMeters(90), true, 0);
 		} else {
 			m_elevatorMotorSim = null;
 			m_elevatorModel = null;
@@ -108,12 +118,13 @@ public class ElevatorSubsystem extends SubsystemBase {
 	/**
 	 * Sets the position of the motor (using PID)
 	 * 
-	 * @param position Position to set the master motor to (the follower
-	 *        will...follow)
+	 * @param position Position to set the master motor
+	 * @param arbFF Feedforward voltage
 	 */
-	public void setPosition(double position) {
+	public void setPosition(double position, double arbFF) {
 		m_setPosition = position;
-		m_closedLoopController.setReference(position, ControlType.kPosition);
+		m_closedLoopController
+				.setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot0, arbFF, ArbFFUnits.kVoltage);
 	}
 
 	/**
@@ -121,7 +132,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 	 */
 	public void resetEncoder() {
 		m_elevatorEncoder.setPosition(0);
-		setPosition(0);
+		setPosition(0, 0);
 	}
 
 	/**
@@ -145,7 +156,6 @@ public class ElevatorSubsystem extends SubsystemBase {
 	@Override
 	public void periodic() {
 		m_elevatorLigament.setLength(Units.inchesToMeters(24) + getPosition());
-		// This method will be called once per scheduler run
 	}
 
 	/**
@@ -153,7 +163,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 	 * 
 	 * @return Sets the speed to 0
 	 */
-	public Command stopMotorCommand() {
+	public Command stopMotor() {
 		return runOnce(() -> setSpeed(0)).withName("Elevator motor stop");
 	}
 
@@ -162,7 +172,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 	 * 
 	 * @return the command to set the speed
 	 */
-	public Command reverseMotorCommand() {
+	public Command reverseMotor() {
 		return runOnce(() -> setSpeed(-1)).withName("Elevator motor backwards");
 	}
 
@@ -171,28 +181,104 @@ public class ElevatorSubsystem extends SubsystemBase {
 	 * 
 	 * @return the command to set the speed
 	 */
-	public Command forwardMotorCommand() {
+	public Command forwardMotor() {
 		return runOnce(() -> setSpeed(1)).withName("Elevator motor forward");
 	}
 
-	public Command goToLevelOneCommand() {
-		return runOnce(() -> setPosition(kLevelOneHeight)).withName("Elevator to Level 1");
+	// TODO: Comment
+
+	/**
+	 * Using Trapezoid Profile to set the position of the elevator
+	 * 
+	 * @param level the level we want to go to
+	 * @return the command
+	 */
+	private Command goToLevel(double level) {
+		var initial = new TrapezoidProfile.State();
+		var finalState = new TrapezoidProfile.State(level, 0);
+		return startRun(() -> {
+			m_timer.restart();
+			initial.position = getPosition();
+		}, () -> {
+			double time = m_timer.get();
+			double currentVelocity = m_profile.calculate(time, initial, finalState).velocity;
+			double nextVelocity = m_profile.calculate(time + 0.02, initial, finalState).velocity;
+			setPosition(level, m_ff.calculateWithVelocities(currentVelocity, nextVelocity));
+		});
 	}
 
-	public Command goToLevelTwoCommand() {
-		return runOnce(() -> setPosition(kLevelTwoHeight)).withName("Elevator to Level 2");
+	/**
+	 * Moves the elevator to the level one position
+	 * 
+	 * @return the command
+	 */
+	public Command goToLevelOneHeight() {
+		return goToLevel(kLevelOneHeight).withName("Elevator to Level 1");
 	}
 
-	public Command goToLevelThreeCommand() {
-		return runOnce(() -> setPosition(kLevelThreeHeight)).withName("Elevator to Level 3");
+	/**
+	 * Moves the elevator to the level two positon
+	 * 
+	 * @return the command
+	 */
+	public Command goToLevelTwoHeight() {
+		return goToLevel(kLevelTwoHeight).withName("Elevator to Level 2");
 	}
 
-	public Command goToLevelFourCommand() {
-		return runOnce(() -> setPosition(kLevelFourHeight)).withName("Elevator to Level 4");
+	/**
+	 * Moves the elevator to the level three position
+	 * 
+	 * @return the command
+	 */
+	public Command goToLevelThreeHeight() {
+		return goToLevel(kLevelThreeHeight).withName("Elevator to Level 2");
 	}
 
-	public Command goToCoralStationCommand() {
-		return runOnce(() -> setPosition(kCoralStationHeight)).withName("Elevator to Coral Station");
+	/**
+	 * Moves the elevator to the level four position
+	 * 
+	 * @return the command
+	 */
+	public Command goToLevelFourHeight() {
+		return goToLevel(kLevelFourHeight).withName("Elevator to Level 2");
 	}
 
+	/**
+	 * Moves the elevator to the coral station position
+	 * 
+	 * @return the command
+	 */
+	public Command goToCoralStationHeight() {
+		return goToLevel(kCoralStationHeight).withName("Elevator to Coral Station");
+	}
+
+	/**
+	 * Moves the elevator to the base height positon
+	 * 
+	 * @return
+	 */
+	public Command goToBaseHeight() {
+		return goToLevel(0).withName("Go to Base Height");
+	}
+
+	/**
+	 * The other heights when scoring go to a higher height than what is needed to
+	 * score so this lowers it to the proper height
+	 * 
+	 * @return the command
+	 */
+	public Command lowerToScore() {
+		var initial = new TrapezoidProfile.State();
+		var finalState = new TrapezoidProfile.State();
+		return startRun(() -> {
+			m_timer.restart();
+			initial.position = getPosition();
+			finalState.position = getPosition() - kToScoreHeightDecrease;
+		}, () -> {
+			double time = m_timer.get();
+			double currentVelocity = m_profile.calculate(time, initial, finalState).velocity;
+			double nextVelocity = m_profile.calculate(time + 0.02, initial, finalState).velocity;
+			setPosition(finalState.position, m_ff.calculateWithVelocities(currentVelocity, nextVelocity));
+		}).withName("Lower Elevator to Score");
+	}
 }
