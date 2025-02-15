@@ -88,6 +88,7 @@ public class Robot extends TimedRobot {
 	}
 
 	public void bindElevatorControls() {
+		m_elevatorSubsystem.setDefaultCommand(m_elevatorSubsystem.manualMove(() -> -m_operatorController.getLeftY()));
 		m_operatorController.circle().onTrue(scoreLevelFour());
 		m_operatorController.triangle().onTrue(scoreLevelThree());
 		m_operatorController.square().onTrue(scoreLevelTwo());
@@ -114,6 +115,7 @@ public class Robot extends TimedRobot {
 	}
 
 	public void bindWristControls() {
+		m_wristSubsystem.setDefaultCommand(m_wristSubsystem.manualMove(() -> m_operatorController.getLeftX()));
 		// m_driverController.circle().onTrue(m_wristSubsystem.reverseMotor());
 		// m_driverController.square().onTrue(m_wristSubsystem.forwardMotor());
 	}

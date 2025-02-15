@@ -6,6 +6,8 @@ package frc.robot.subsystems;
 
 import static frc.robot.Constants.ElevatorConstants.*;
 
+import java.util.function.DoubleSupplier;
+
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.sim.SparkMaxSim;
 import com.revrobotics.spark.ClosedLoopSlot;
@@ -205,6 +207,20 @@ public class ElevatorSubsystem extends SubsystemBase {
 			double nextVelocity = m_profile.calculate(time + 0.02, initial, finalState).velocity;
 			setPosition(level, m_ff.calculateWithVelocities(currentVelocity, nextVelocity));
 		});
+	}
+
+	/**
+	 * Allows the operator to manually move the Elevator for adjustment
+	 * 
+	 * @param joystick Input from operator's left joystick Y-values
+	 * @return Command for moving
+	 */
+	public Command manualMove(DoubleSupplier joystick) {
+		return run(() -> {
+			double input = joystick.getAsDouble();
+			double speed = Math.signum(input) * Math.pow(input, 2);
+			setSpeed(speed * 0.5);
+		}).withName("Manual Elevator");
 	}
 
 	/**
