@@ -39,8 +39,10 @@ public class CommandComposer {
 				levelCommand.get(),
 				m_wristSubsystem.goToAngle(35),
 				m_elevatorSubsystem.lowerToScore(),
-				m_cheeseStickSubsystem.retract(),
-				m_cheeseStickSubsystem.extend(),
+				m_cheeseStickSubsystem.release(),
+				waitSeconds(0), // TODO: find the amount of time needed to retract
+				levelCommand.get(),
+				m_cheeseStickSubsystem.grab(),
 				levelCommand.get(),
 				m_wristSubsystem.goToAngle(-90));
 	}
@@ -69,9 +71,9 @@ public class CommandComposer {
 
 	public static Command pickupAtCoralStation() {
 		return sequence(
-				m_cheeseStickSubsystem.retract(),
+				m_cheeseStickSubsystem.release(),
 				m_elevatorSubsystem.goToCoralStationHeight(),
-				m_cheeseStickSubsystem.extend());
+				m_cheeseStickSubsystem.grab());
 	}
 
 }

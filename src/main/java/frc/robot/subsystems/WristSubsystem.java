@@ -78,7 +78,7 @@ public class WristSubsystem extends SubsystemBase {
 	}
 
 	/**
-	 * @return the angle of the wrist
+	 * @return the angle of the wrist (degrees)
 	 */
 	public double getAngle() {
 		return m_absoluteEncoder.getPosition() * 360;
@@ -158,9 +158,9 @@ public class WristSubsystem extends SubsystemBase {
 	}
 
 	/**
-	 * Sets the angle of the motors (using PID)
+	 * Sets the angle of the motors
 	 * 
-	 * @param position angle to set the wrist to
+	 * @param position angle (in degrees) to set the wrist to
 	 */
 	public Command goToAngle(double angle) {
 		return runOnce(() -> {
