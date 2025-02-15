@@ -27,14 +27,13 @@ public class Constants {
 		public static final float kDeployGrabberRotations = 2;
 		public static final double kFlywheelSpeed = .8;
 
-		public static final double kP = 0.5;
+		public static final double kP = 0.5; // TODO: Tune
 		public static final double kI = 0.0;
 		public static final double kD = 0;
 	}
 
 	public static final class CheeseStickConstants {
-		public static final int kServoPort = 0;
-		public static final int kMaxRotation = 270;
+		public static final int kServoPort = 0; // TODO: CHANGE
 		/**
 		 * Set this value to how far the cheese stick wheels extend beyond the lexan.
 		 */
@@ -68,7 +67,7 @@ public class Constants {
 		public static final int kBackRightCANCoderPort = 22;
 		public static final int kBackLeftCANCoderPort = 32;
 
-		// Make sure these are tuned (can do with SysId)
+		// TODO: Make sure these are tuned (can do with SysId)
 		public static final double kP = 0.09;
 		public static final double kI = 0.0;
 		public static final double kD = 0;
@@ -78,7 +77,7 @@ public class Constants {
 
 		public static final double kTeleopMaxVoltage = 12;
 		public static final double kTeleopMaxTurnVoltage = 7.2;
-		public static final double kDriveGearRatio = 6.12;
+		public static final double kDriveGearRatio = 6.75;
 		public static final double kSteerGearRatio = 150.0 / 7;
 		public static final double kWheelDiameter = Units.inchesToMeters(4);
 		public static final double kWheelCircumference = Math.PI * kWheelDiameter;
@@ -86,6 +85,7 @@ public class Constants {
 		public static final double kMetersPerMotorRotation = kWheelCircumference / kDriveGearRatio;
 
 		// https://docs.wpilib.org/en/latest/docs/software/basic-programming/coordinate-system.html
+		// TODO: CHECK
 		public static final Translation2d kFrontLeftLocation = new Translation2d(0.381, 0.381);
 		public static final Translation2d kFrontRightLocation = new Translation2d(0.381, -0.381);
 		public static final Translation2d kBackLeftLocation = new Translation2d(-0.381, 0.381);
@@ -111,18 +111,22 @@ public class Constants {
 	}
 
 	public static final class ElevatorConstants {
-		public static final int kElevatorMotorPort = 45;
+		public static final int kElevatorMotorPort = 57; // TODO: Change with real one
 		public static final int kSmartCurrentLimit = 60;
 		public static final int kSecondaryCurrentLimit = 70;
-		public static final double kP = 0;
+		public static final double kP = 0; // TODO: tune
 		public static final double kI = 0;
 		public static final double kD = 0;
 		public static final double kS = 0;
 		public static final double kG = 2;
 		public static final double kV = 2;
 		public static final double kA = 0;
-		public static final double kGearRatio = 10;
-		public static final double kPulleyRadius = Units.inchesToMeters(0.75);
+		public static final double kGearRatio = 10; // TODO: Right gear ratio?
+		/**
+		 * 24 teeth, 5 mm pitch, one rotation moves 120 mm, 2 stage cascading elevator
+		 * means total height change is 240 mm.
+		 */
+		public static final double kMetersPerPulleyRotation = (24.0 * 5 * 2 / 1000);
 		/**
 		 * <pre>
 		 * 				   1 pulley rotation	 pulley circumference
@@ -130,26 +134,29 @@ public class Constants {
 		 *               kGearRatio motor rots    1 pulley rotation
 		 * </pre>
 		 */
-		public static final double kMetersPerMotorRotation = 1 / kGearRatio * (2 * Math.PI * kPulleyRadius);
+		public static final double kMetersPerMotorRotation = (1 / kGearRatio)
+				* (2 * Math.PI * kMetersPerPulleyRotation);
 		public static final double kMaxVelocity = 2;
 		public static final double kMaxAccel = 2;
 		public static final double kTolerance = 1;
-		public static final int kMaxExtension = 250;
-		public static final double kLevelOneHeight = Units.inchesToMeters(41 - 24);
+		// public static final int kMaxExtension = 250; // TODO: Check this? Ask Design
+		public static final double kLevelOneHeight = Units.inchesToMeters(41 - 24); // TODO: During testing make sure
+																					// these are right
 		public static final double kLevelTwoHeight = kLevelOneHeight; // same as level 1
 		public static final double kLevelThreeHeight = Units.inchesToMeters(60 - 24);
 		public static final double kLevelFourHeight = Units.inchesToMeters(90 - 24);
-		public static final double kToScoreHeightDecrease = 0; // The amount that the elevator decreases in order to
+		public static final double kToScoreHeightDecrease = 0; // TODO: The amount that the elevator decreases in order
+																// to
 																// score
-		public static final double kCoralStationHeight = 0;
+		public static final double kCoralStationHeight = 0; // TODO: Change
 	}
 
 	public static final class WristConstants {
-		public static final int kWristMotorPort = 1; /* 60 */
+		public static final int kWristMotorPort = 58; // TODO: Change
 		public static final int kSmartCurrentLimit = 20;
 		public static final int kSecondaryCurrentLimit = 20;
 
-		// Make sure these are tuned (can do with SysId)
+		// TODO: Make sure these are tuned (can do with SysId)
 		public static final double kP = 0.09;
 		public static final double kI = 0.0;
 		public static final double kD = 0;
@@ -158,6 +165,6 @@ public class Constants {
 		public static final double kV = 0.11;
 		public static final double kA = 0.009;
 
-		public static final double kTolerance = 0;
+		public static final double kTolerance = 0; // TODO: Change this
 	}
 }

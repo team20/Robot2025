@@ -76,10 +76,20 @@ public class SwerveModule {
 		return m_driveMotor.getPosition().getValueAsDouble() * kMetersPerMotorRotation;
 	}
 
+	/**
+	 * Returns the current of the steer motor
+	 * 
+	 * @return The current in amps
+	 */
 	public double getSteerCurrent() {
 		return m_steerMotor.getOutputCurrent();
 	}
 
+	/**
+	 * Returns the current of the drive motor
+	 * 
+	 * @return The current in amps
+	 */
 	public double getDriveCurrent() {
 		return m_driveMotor.getStatorCurrent().getValueAsDouble();
 	}

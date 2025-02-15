@@ -26,7 +26,8 @@ public class CheeseStickSubsystem extends SubsystemBase {
 	/**
 	 * Logs data to the smart dashboard. Displays the simulated mechanism.
 	 */
-	public void periodic() {
+	@Override
+	public void simulationPeriodic() {
 		double position = m_sim.getPosition();
 		SmartDashboard.putNumber("Cheese Stick Position", position);
 		m_ligament.setLength(kExtensionLength.in(Meters) * position);
@@ -39,7 +40,7 @@ public class CheeseStickSubsystem extends SubsystemBase {
 	 * 
 	 * @return The command.
 	 */
-	public Command retract() {
+	public Command release() {
 		return runOnce(() -> m_servo.set(0)).withName("Servo Retract");
 	}
 
@@ -50,7 +51,7 @@ public class CheeseStickSubsystem extends SubsystemBase {
 	 * 
 	 * @return The command.
 	 */
-	public Command extend() {
+	public Command grab() {
 		return runOnce(() -> m_servo.set(1)).withName("Servo Extend");
 	}
 }
