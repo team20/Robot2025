@@ -34,6 +34,8 @@ public class Constants {
 
 	public static final class CheeseStickConstants {
 		public static final int kServoPort = 0; // TODO: CHANGE
+		// TODO: test realease angle(0=-135 0.5=0 1=135)
+		public static final double kReleaseDistance = 0.5;
 		/**
 		 * Set this value to how far the cheese stick wheels extend beyond the lexan.
 		 */
