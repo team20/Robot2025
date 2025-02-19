@@ -6,6 +6,7 @@ package frc.robot;
 
 import static frc.robot.Constants.DriveConstants.*;
 
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.revrobotics.sim.SparkFlexSim;
@@ -156,6 +157,14 @@ public class SwerveModule {
 		m_driveMotor.setVoltage(state.speedMetersPerSecond);
 		double turnPower = m_steerController.calculate(getModuleAngle(), state.angle.getDegrees());
 		m_steerMotor.setVoltage(turnPower);
+		updateSim();
+	}
+
+	public void setModuleStateClosedLoop(SwerveModuleState state, double accel) {
+		var request = new VelocityVoltage(
+				state.speedMetersPerSecond / (2 * Math.PI * kWheelDiameter / 2) * kDriveGearRatio)
+						.withAcceleration(accel / (2 * Math.PI * kWheelDiameter / 2) * kDriveGearRatio);
+		m_driveMotor.setControl(request);
 		updateSim();
 	}
 

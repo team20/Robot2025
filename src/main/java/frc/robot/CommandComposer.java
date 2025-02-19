@@ -4,6 +4,7 @@ import static edu.wpi.first.wpilibj2.command.Commands.*;
 
 import java.util.function.Supplier;
 
+import choreo.auto.AutoFactory;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.AlgaeGrabberSubsystem;
 import frc.robot.subsystems.CheeseStickSubsystem;
@@ -19,6 +20,7 @@ public class CommandComposer {
 	private static ClimberSubsystem m_climberSubsystem;
 	private static ElevatorSubsystem m_elevatorSubsystem;
 	private static WristSubsystem m_wristSubsystem;
+	private static AutoFactory m_factory;
 
 	public static void setSubsystems(DriveSubsystem driveSubsystem,
 			AlgaeGrabberSubsystem algaeGrabberSubsystem,
@@ -32,6 +34,20 @@ public class CommandComposer {
 		m_climberSubsystem = climberSubsystem;
 		m_elevatorSubsystem = elevatorSubsystem;
 		m_wristSubsystem = wristSubsystem;
+		m_factory = new AutoFactory(
+				m_driveSubsystem::getPose,
+				m_driveSubsystem::resetOdometry,
+				m_driveSubsystem::trajectoryFollower,
+				true,
+				m_driveSubsystem,
+				(traj, isFinished) -> {
+				});
+	}
+
+	public Command leave() {
+		return sequence(
+				m_factory.resetOdometry("Leave"),
+				m_factory.trajectoryCmd("Leave"));
 	}
 
 	private static Command scoreLevel(Supplier<Command> levelCommand) {
@@ -74,5 +90,4 @@ public class CommandComposer {
 				m_elevatorSubsystem.goToCoralStationHeight(),
 				m_cheeseStickSubsystem.grab());
 	}
-
 }
