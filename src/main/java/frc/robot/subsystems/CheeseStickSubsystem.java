@@ -52,6 +52,6 @@ public class CheeseStickSubsystem extends SubsystemBase {
 	 * @return The command.
 	 */
 	public Command grab() {
-		return runOnce(() -> m_servo.set(1)).withName("gripping?");
+		return runOnce(() -> m_servo.set(1)).withName("Servo Grab");
 	}
 }
