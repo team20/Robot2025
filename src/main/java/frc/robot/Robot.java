@@ -84,7 +84,7 @@ public class Robot extends TimedRobot {
 						() -> -m_driverController.getRightY(),
 						() -> m_driverController.getRightX(),
 						m_driverController.getHID()::getSquareButton)); // makes the robot robot-oriented
-		// TODO: Add in joystick rotation
+		m_driverController.options().onTrue(m_driveSubsystem.resetHeading());
 	}
 
 	public void bindElevatorControls() {
@@ -95,7 +95,6 @@ public class Robot extends TimedRobot {
 		m_operatorController.cross().onTrue(scoreLevelOne());
 		m_operatorController.povLeft().onTrue(m_elevatorSubsystem.goToCoralStationHeight());
 		m_operatorController.povRight().onTrue(m_elevatorSubsystem.goToBaseHeight());
-		// TODO: Add manual movement
 	}
 
 	public void bindAlgaeControls() {
@@ -108,10 +107,8 @@ public class Robot extends TimedRobot {
 				m_algaeGrabberSubsystem.deployGrabber(GrabberState.UP)
 						.andThen(m_algaeGrabberSubsystem.stopFlywheel()));
 
-		m_operatorController.options().onTrue(
-				m_algaeGrabberSubsystem.runFlywheelReverse());
-		m_operatorController.options().onFalse(
-				m_algaeGrabberSubsystem.stopFlywheel());
+		m_operatorController.options().onTrue(m_algaeGrabberSubsystem.runFlywheelReverse());
+		m_operatorController.options().onFalse(m_algaeGrabberSubsystem.stopFlywheel());
 	}
 
 	public void bindWristControls() {
