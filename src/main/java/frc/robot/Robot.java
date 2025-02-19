@@ -103,7 +103,7 @@ public class Robot extends TimedRobot {
 				m_algaeGrabberSubsystem.deployGrabber(GrabberState.DOWN)
 						.andThen(m_algaeGrabberSubsystem.runFlywheel()).until(
 								() -> m_algaeGrabberSubsystem.checkCurrentOnFlywheel())
-						.andThen(m_algaeGrabberSubsystem.stopFlywheel()));
+						.andThen(m_algaeGrabberSubsystem.slowRunFlywheel()));
 		m_operatorController.L1().onTrue(
 				m_algaeGrabberSubsystem.deployGrabber(GrabberState.UP)
 						.andThen(m_algaeGrabberSubsystem.stopFlywheel()));
