@@ -77,6 +77,13 @@ public class Constants {
 		public static final double kV = 0.11;
 		public static final double kA = 0.009;
 
+		public static final double kRotationP = 0.4;
+		public static final double kRotationI = 0.0;
+		public static final double kRotationD = 0;
+		public static final double kRotationS = 0;
+		public static final double kRotationV = 1.9;
+		public static final double kRotationA = 0.009;
+
 		public static final double kTeleopMaxVoltage = 12;
 		public static final double kTeleopMaxTurnVoltage = 7.2;
 		public static final double kDriveGearRatio = 6.75;
