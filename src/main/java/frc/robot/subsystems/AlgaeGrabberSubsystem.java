@@ -53,7 +53,7 @@ public class AlgaeGrabberSubsystem extends SubsystemBase {
 		config.inverted(AlgaeConstants.kGrabberAngleInvert).idleMode(IdleMode.kBrake);
 		config.voltageCompensation(12).smartCurrentLimit(AlgaeConstants.kSmartCurrentLimit);
 		config.closedLoop
-				.feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+				.feedbackSensor(FeedbackSensor.kAbsoluteEncoder)
 				.pid(AlgaeConstants.kP, AlgaeConstants.kI, AlgaeConstants.kD);
 		m_grabberAngleMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 	}
@@ -106,6 +106,17 @@ public class AlgaeGrabberSubsystem extends SubsystemBase {
 	public Command stopFlywheel() {
 		return runOnce(() -> {
 			setVelocity(0);
+		});
+	}
+
+	/**
+	 * command to slow run the algae flywheel using the setVelocity method
+	 *
+	 * @return (setVelocity(0.01)) sets the flywheel velocity to 1%
+	 */
+	public Command slowRunFlywheel() {
+		return runOnce(() -> {
+			setVelocity(0.01);
 		});
 	}
 
