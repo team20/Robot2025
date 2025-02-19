@@ -15,7 +15,8 @@ import com.studica.frc.AHRS.NavXComType;
 
 import edu.wpi.first.hal.SimDouble;
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -23,6 +24,7 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
@@ -52,11 +54,16 @@ public class DriveSubsystem extends SubsystemBase {
 	private final StructPublisher<ChassisSpeeds> m_currentChassisSpeedsPublisher;
 	private final StructArrayPublisher<SwerveModuleState> m_targetModuleStatePublisher;
 	private final StructArrayPublisher<SwerveModuleState> m_currentModuleStatePublisher;
-	private final PIDController m_rotationPID = new PIDController(500, 0, 0);
+	private final StructPublisher<Rotation2d> m_targetHeadingPublisher;
+
+	private final SimpleMotorFeedforward m_rotationFeedforward = new SimpleMotorFeedforward(kRotationS, kRotationV,
+			kRotationA);
+	private final ProfiledPIDController m_rotationController = new ProfiledPIDController(kRotationP, kRotationI,
+			kRotationD, new Constraints(9, 25));
 
 	/** Creates a new DriveSubsystem. */
 	public DriveSubsystem() {
-		m_rotationPID.enableContinuousInput(-Math.PI, Math.PI);
+		m_rotationController.enableContinuousInput(-Math.PI, Math.PI);
 		m_posePublisher = NetworkTableInstance.getDefault().getStructTopic("/SmartDashboard/Pose", Pose2d.struct)
 				.publish();
 		m_currentChassisSpeedsPublisher = NetworkTableInstance.getDefault()
@@ -67,6 +74,9 @@ public class DriveSubsystem extends SubsystemBase {
 				.publish();
 		m_currentModuleStatePublisher = NetworkTableInstance.getDefault()
 				.getStructArrayTopic("/SmartDashboard/Current Swerve Modules States", SwerveModuleState.struct)
+				.publish();
+		m_targetHeadingPublisher = NetworkTableInstance.getDefault()
+				.getStructTopic("/SmartDashboard/Target Heading", Rotation2d.struct)
 				.publish();
 		m_frontLeft = new SwerveModule(kFrontLeftCANCoderPort, kFrontLeftDrivePort, kFrontLeftSteerPort);
 		m_frontRight = new SwerveModule(kFrontRightCANCoderPort, kFrontRightDrivePort, kFrontRightSteerPort);
@@ -221,8 +231,12 @@ public class DriveSubsystem extends SubsystemBase {
 			double distance = Math.hypot(rotX, rotY);
 			double rotSpeed = 0;
 			if (distance > 0.05) {
-				double angle = -Math.atan2(rotX, rotY);
-				rotSpeed = m_rotationPID.calculate(getHeading().getRadians(), angle);
+				// 0 is facing towards the other alliance, but joystick forward is
+				var angle = new Rotation2d(rotX, rotY).minus(Rotation2d.kCCW_90deg);
+				m_targetHeadingPublisher.set(angle);
+				rotSpeed = m_rotationController.calculate(getHeading().getRadians(), angle.getRadians());
+				var setpoint = m_rotationController.getSetpoint();
+				rotSpeed += m_rotationFeedforward.calculate(setpoint.velocity);
 				rotSpeed = Math.signum(rotSpeed) * Math.min(Math.abs(rotSpeed), 1) * kTeleopMaxTurnVoltage;
 			}
 
