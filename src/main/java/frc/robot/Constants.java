@@ -80,6 +80,13 @@ public class Constants {
 		public static final double kV = 0.11;
 		public static final double kA = 0.009;
 
+		public static final double kDriveP = 0.14;
+		public static final double kDriveI = 0.0;
+		public static final double kDriveD = 0;
+		public static final double kDriveS = 0;
+		public static final double kDriveV = 1.8;
+		public static final double kDriveA = 0.009;
+
 		public static final double kRotationP = 5; // TODO: tune it
 		public static final double kRotationI = 0.0;
 		public static final double kRotationD = 0.1; // TODO: tune it
@@ -119,6 +126,10 @@ public class Constants {
 			kDriveConfig.CurrentLimits.StatorCurrentLimitEnable = true;
 			kDriveConfig.ClosedLoopRamps.VoltageClosedLoopRampPeriod = kRampRate;
 			kDriveConfig.OpenLoopRamps.VoltageOpenLoopRampPeriod = kRampRate;
+			kDriveConfig.Slot0.kS = 0;
+			kDriveConfig.Slot0.kV = kV;
+			kDriveConfig.Slot0.kA = kA;
+			kDriveConfig.Slot0.kP = 0;
 		}
 	}
 

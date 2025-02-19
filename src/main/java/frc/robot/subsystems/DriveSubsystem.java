@@ -13,6 +13,7 @@ import java.util.function.DoubleSupplier;
 import com.studica.frc.AHRS;
 import com.studica.frc.AHRS.NavXComType;
 
+import choreo.trajectory.SwerveSample;
 import edu.wpi.first.hal.SimDouble;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
@@ -56,6 +57,9 @@ public class DriveSubsystem extends SubsystemBase {
 	private final StructPublisher<Rotation2d> m_targetHeadingPublisher;
 
 	private final PIDController m_orientationController = new PIDController(kRotationP, kRotationI, kRotationD);
+	private final PIDController m_xController = new PIDController(kDriveP, kDriveI, kDriveD);
+	private final PIDController m_yController = new PIDController(kDriveP, kDriveI, kDriveD);
+	private final PIDController m_headingController = new PIDController(kDriveP, kDriveI, kDriveD);
 
 	/** Creates a new DriveSubsystem. */
 	public DriveSubsystem() {
@@ -96,7 +100,7 @@ public class DriveSubsystem extends SubsystemBase {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		m_odometry = new SwerveDriveOdometry(m_kinematics, getHeading(), getModulePositions());
+		m_odometry = new SwerveDriveOdometry(m_kinematics, m_gyro.getRotation2d(), getModulePositions());
 		if (RobotBase.isSimulation()) {
 			m_gyroSim = new SimDeviceSim("navX-Sensor", m_gyro.getPort()).getDouble("Yaw");
 		} else {
@@ -110,7 +114,7 @@ public class DriveSubsystem extends SubsystemBase {
 	 * @return The heading
 	 */
 	public Rotation2d getHeading() {
-		return m_gyro.getRotation2d();
+		return getPose().getRotation();
 	}
 
 	/**
@@ -194,9 +198,27 @@ public class DriveSubsystem extends SubsystemBase {
 		setModuleStates(calculateModuleStates(new ChassisSpeeds(speedFwd, speedSide, speedRot), isFieldRelative));
 	}
 
+	public void resetOdometry(Pose2d pose) {
+		m_odometry.resetPosition(m_gyro.getRotation2d(), getModulePositions(), pose);
+	}
+
+	public void trajectoryFollower(SwerveSample sample) {
+		var vx = m_xController.calculate(getPose().getX(), sample.x) + sample.vx;
+		var vy = m_yController.calculate(getPose().getY(), sample.y) + sample.vy;
+		var omega = m_headingController.calculate(getPose().getRotation().getRadians(), sample.heading) + sample.omega;
+		var speeds = new ChassisSpeeds(vx, vy, omega);
+		var moduleSpeeds = calculateModuleStates(speeds, true);
+		var moduleAccels = calculateModuleStates(new ChassisSpeeds(sample.ax, sample.ay, sample.alpha), true);
+		m_frontLeft.setModuleStateClosedLoop(moduleSpeeds[0], moduleAccels[0].speedMetersPerSecond);
+		m_frontRight.setModuleStateClosedLoop(moduleSpeeds[1], moduleAccels[1].speedMetersPerSecond);
+		m_backLeft.setModuleStateClosedLoop(moduleSpeeds[2], moduleAccels[2].speedMetersPerSecond);
+		m_backRight.setModuleStateClosedLoop(moduleSpeeds[3], moduleAccels[3].speedMetersPerSecond);
+		m_targetModuleStatePublisher.set(moduleSpeeds);
+	}
+
 	@Override
 	public void periodic() {
-		m_posePublisher.set(m_odometry.update(getHeading(), getModulePositions()));
+		m_posePublisher.set(m_odometry.update(m_gyro.getRotation2d(), getModulePositions()));
 		SwerveModuleState[] states = { m_frontLeft.getModuleState(), m_frontRight.getModuleState(),
 				m_backLeft.getModuleState(), m_backRight.getModuleState() };
 		m_currentChassisSpeedsPublisher.set(m_kinematics.toChassisSpeeds(states));
@@ -267,9 +289,8 @@ public class DriveSubsystem extends SubsystemBase {
 		return runOnce(m_gyro::zeroYaw).withName("ResetHeadingCommand");
 	}
 
-	public Command resetOdometry(Pose2d pose) {
-		return runOnce(() -> m_odometry.resetPosition(getHeading(), getModulePositions(), pose))
-				.withName("ResetOdometryCommand");
+	public Command resetOdometryCommand(Pose2d pose) {
+		return runOnce(() -> resetOdometry(pose)).withName("ResetOdometryCommand");
 	}
 
 	/**
