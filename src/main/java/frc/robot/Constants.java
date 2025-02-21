@@ -11,17 +11,13 @@ import edu.wpi.first.units.measure.Distance;
 
 public class Constants {
 	public static final class AlgaeConstants {
-		public static final int kFlywheelMotorPort = 55;
-		public static final int kGrabberAnglePort = 56;
+		public static final int kFlywheelMotorPort = 24;
+		public static final int kGrabberAnglePort = 23;
 		public static final boolean kFlywheelInvert = true;
 		public static final boolean kGrabberAngleInvert = false;
 
-		public static final int k550SmartCurrentLimit = 15;
-
-		public static final int kSmartCurrentLimit = 50;
-		public static final int kPeakCurrentDurationMillis = 100;
-
-		public static final double kCurrentToStop = 20;
+		public static final int kSmartCurrentLimit = 15;
+		public static final double kSecondaryCurrentLimit = 20;
 		public static final double kTimeOverCurrentToStop = .01;
 
 		public static final float kDeployGrabberRotations = 2;
@@ -33,8 +29,8 @@ public class Constants {
 	}
 
 	public static final class CheeseStickConstants {
-		public static final int kServoPort = 0; // TODO: CHANGE
-		// TODO: test realease angle(0=-135 0.5=0 1=135)
+		public static final int kServoPort = 0;
+		// TODO: test release angle(0=-135 0.5=0 1=135)
 		public static final double kReleaseDistance = 0.5;
 		/**
 		 * Set this value to how far the cheese stick wheels extend beyond the lexan.
@@ -43,8 +39,12 @@ public class Constants {
 	}
 
 	public static final class ClimberConstants {
-		public static final int kClimberMotorPort = -1; // TODO: Add actual motor ID
+		public static final int kClimberMotorPort = 25;
 		public static final double kSpeed = 0.5;
+
+		// TODO: Check
+		public static final int kSmartCurrentLimit = 50;
+		public static final int kSecondaryCurrentLimit = kSmartCurrentLimit + 15;
 	}
 
 	public static final class ControllerConstants {
@@ -103,7 +103,7 @@ public class Constants {
 		public static final int kEncoderDepth = 4;
 		public static final int kEncoderMeasurementPeriod = 16;
 		public static final int kSteerSmartCurrentLimit = 60;
-		public static final int kSteerPeakCurrentLimit = kSteerSmartCurrentLimit + 15;
+		public static final int kSteerSecondaryCurrentLimit = kSteerSmartCurrentLimit + 15;
 		// The amount of time to go from 0 to full power in seconds
 		public static final double kRampRate = .1;
 		public static final TalonFXConfiguration kDriveConfig = new TalonFXConfiguration();
@@ -120,7 +120,7 @@ public class Constants {
 	}
 
 	public static final class ElevatorConstants {
-		public static final int kElevatorMotorPort = 57; // TODO: Change with real one
+		public static final int kElevatorMotorPort = 26;
 		public static final int kSmartCurrentLimit = 60;
 		public static final int kSecondaryCurrentLimit = 70;
 		public static final double kP = 0; // TODO: tune
@@ -130,7 +130,7 @@ public class Constants {
 		public static final double kG = 2;
 		public static final double kV = 2;
 		public static final double kA = 0;
-		public static final double kGearRatio = 10; // TODO: Right gear ratio?
+		public static final double kGearRatio = 10;
 		/**
 		 * 24 teeth, 5 mm pitch, one rotation moves 120 mm, 2 stage cascading elevator
 		 * means total height change is 240 mm.
@@ -144,24 +144,23 @@ public class Constants {
 		 * </pre>
 		 */
 		public static final double kMetersPerMotorRotation = (1 / kGearRatio)
-				* (2 * Math.PI * kMetersPerPulleyRotation);
+				* kMetersPerPulleyRotation;
 		public static final double kMaxVelocity = 2;
 		public static final double kMaxAccel = 2;
 		public static final double kTolerance = 1;
-		// public static final int kMaxExtension = 250; // TODO: Check this? Ask Design
-		public static final double kLevelOneHeight = Units.inchesToMeters(41 - 24); // TODO: During testing make sure
-																					// these are right
+		public static final int kMaxExtension = 250; // TODO: Check this?
+		// TODO: During testing make sure these are right
+		public static final double kLevelOneHeight = Units.inchesToMeters(41 - 24);
 		public static final double kLevelTwoHeight = kLevelOneHeight; // same as level 1
 		public static final double kLevelThreeHeight = Units.inchesToMeters(60 - 24);
 		public static final double kLevelFourHeight = Units.inchesToMeters(90 - 24);
-		public static final double kToScoreHeightDecrease = 0; // TODO: The amount that the elevator decreases in order
-																// to
-																// score
+		// TODO: The amount that the elevator decreases in order to score
+		public static final double kToScoreHeightDecrease = 0;
 		public static final double kCoralStationHeight = 0; // TODO: Change
 	}
 
 	public static final class WristConstants {
-		public static final int kWristMotorPort = 58; // TODO: Change
+		public static final int kWristMotorPort = 27;
 		public static final int kSmartCurrentLimit = 20;
 		public static final int kSecondaryCurrentLimit = 20;
 
