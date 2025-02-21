@@ -43,7 +43,6 @@ public class CommandComposer {
 				waitSeconds(0), // TODO: find the amount of time needed to retract
 				levelCommand.get(),
 				m_cheeseStickSubsystem.grab(),
-				levelCommand.get(),
 				m_wristSubsystem.goToAngle(-90));
 	}
 

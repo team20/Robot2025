@@ -19,6 +19,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
+import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
@@ -40,7 +41,6 @@ public class Robot extends TimedRobot {
 	private Command m_autonomousCommand;
 	private final Mechanism2d m_mechanism = new Mechanism2d(Units.inchesToMeters(35), Units.inchesToMeters(100));
 	private final AlgaeGrabberSubsystem m_algaeGrabberSubsystem = new AlgaeGrabberSubsystem();
-
 	private final ClimberSubsystem m_climberSubsystem = new ClimberSubsystem();
 	private final DriveSubsystem m_driveSubsystem = new DriveSubsystem();
 	private final ElevatorSubsystem m_elevatorSubsystem = new ElevatorSubsystem(
@@ -49,8 +49,8 @@ public class Robot extends TimedRobot {
 	private final CheeseStickSubsystem m_cheeseStickSubsystem = new CheeseStickSubsystem(
 			m_wristSubsystem.getCheeseStickMount());
 	private final CommandPS5Controller m_driverController = new CommandPS5Controller(kDriverControllerPort);
-	private final CommandPS5Controller m_operatorController = new CommandPS5Controller(kOperatorControllerPort);
-	private final PowerDistribution m_pdh = new PowerDistribution();
+	private final CommandPS5Controller m_operatorController = newCommandPS5Controller(kOperatorControllerPort);
+	private final PowerDistribution m_pdh = new PowerDistribution(1, ModuleType.kRev);
 
 	public Robot() {
 		CommandComposer.setSubsystems(

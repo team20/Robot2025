@@ -187,8 +187,6 @@ public class ElevatorSubsystem extends SubsystemBase {
 		return runOnce(() -> setSpeed(1)).withName("Elevator motor forward");
 	}
 
-	// TODO: Comment
-
 	/**
 	 * Using Trapezoid Profile to set the position of the elevator
 	 * 
