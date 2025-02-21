@@ -17,12 +17,11 @@ public class Constants {
 		public static final boolean kGrabberAngleInvert = false;
 
 		public static final int k550SmartCurrentLimit = 15;
+		public static final double k550SecondaryCurrentLimit = 20;
+		public static final double kTimeOverCurrentToStop = .01;
 
 		public static final int kSmartCurrentLimit = 50;
-		public static final int kPeakCurrentDurationMillis = 100;
-
-		public static final double kCurrentToStop = 20;
-		public static final double kTimeOverCurrentToStop = .01;
+		public static final int kSecondaryCurrentLimit = kSmartCurrentLimit + 15; // TODO: Check
 
 		public static final float kDeployGrabberRotations = 2;
 		public static final double kFlywheelSpeed = .8;
@@ -34,7 +33,7 @@ public class Constants {
 
 	public static final class CheeseStickConstants {
 		public static final int kServoPort = 53;
-		// TODO: test realease angle(0=-135 0.5=0 1=135)
+		// TODO: test release angle(0=-135 0.5=0 1=135)
 		public static final double kReleaseDistance = 0.5;
 		/**
 		 * Set this value to how far the cheese stick wheels extend beyond the lexan.
@@ -43,8 +42,12 @@ public class Constants {
 	}
 
 	public static final class ClimberConstants {
-		public static final int kClimberMotorPort = 54; // TODO: Add actual motor ID
+		public static final int kClimberMotorPort = 54;
 		public static final double kSpeed = 0.5;
+
+		// TODO: Check
+		public static final int kSmartCurrentLimit = 50;
+		public static final int kSecondaryCurrentLimit = kSmartCurrentLimit + 15;
 	}
 
 	public static final class ControllerConstants {
@@ -103,7 +106,7 @@ public class Constants {
 		public static final int kEncoderDepth = 4;
 		public static final int kEncoderMeasurementPeriod = 16;
 		public static final int kSteerSmartCurrentLimit = 60;
-		public static final int kSteerPeakCurrentLimit = kSteerSmartCurrentLimit + 15;
+		public static final int kSteerSecondaryCurrentLimit = kSteerSmartCurrentLimit + 15;
 		// The amount of time to go from 0 to full power in seconds
 		public static final double kRampRate = .1;
 		public static final TalonFXConfiguration kDriveConfig = new TalonFXConfiguration();
@@ -148,15 +151,14 @@ public class Constants {
 		public static final double kMaxVelocity = 2;
 		public static final double kMaxAccel = 2;
 		public static final double kTolerance = 1;
-		// public static final int kMaxExtension = 250; // TODO: Check this? Ask Design
-		public static final double kLevelOneHeight = Units.inchesToMeters(41 - 24); // TODO: During testing make sure
-																					// these are right
+		public static final int kMaxExtension = 250; // TODO: Check this?
+		// TODO: During testing make sure these are right
+		public static final double kLevelOneHeight = Units.inchesToMeters(41 - 24);
 		public static final double kLevelTwoHeight = kLevelOneHeight; // same as level 1
 		public static final double kLevelThreeHeight = Units.inchesToMeters(60 - 24);
 		public static final double kLevelFourHeight = Units.inchesToMeters(90 - 24);
-		public static final double kToScoreHeightDecrease = 0; // TODO: The amount that the elevator decreases in order
-																// to
-																// score
+		// TODO: The amount that the elevator decreases in order to score
+		public static final double kToScoreHeightDecrease = 0;
 		public static final double kCoralStationHeight = 0; // TODO: Change
 	}
 

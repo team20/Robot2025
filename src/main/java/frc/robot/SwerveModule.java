@@ -50,7 +50,7 @@ public class SwerveModule {
 		config.openLoopRampRate(kRampRate).closedLoopRampRate(kRampRate);
 		// Helps with encoder precision (not set in stone)
 		config.encoder.uvwAverageDepth(kEncoderDepth).uvwMeasurementPeriod(kEncoderMeasurementPeriod);
-		config.smartCurrentLimit(kSteerSmartCurrentLimit).secondaryCurrentLimit(kSteerPeakCurrentLimit);
+		config.smartCurrentLimit(kSteerSmartCurrentLimit).secondaryCurrentLimit(kSteerSecondaryCurrentLimit);
 		m_steerMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 		m_steerController.enableContinuousInput(0, 360);
 		if (RobotBase.isSimulation()) {
