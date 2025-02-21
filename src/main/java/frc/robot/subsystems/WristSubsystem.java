@@ -175,7 +175,6 @@ public class WristSubsystem extends SubsystemBase {
 				m_wristMotor.stopMotor();
 			}
 
-			System.out.println("Stop");
 		}).withName("Manual Wrist");
 	}
 
