@@ -33,7 +33,7 @@ public class Constants {
 	}
 
 	public static final class CheeseStickConstants {
-		public static final int kServoPort = 0; // TODO: CHANGE
+		public static final int kServoPort = 53;
 		// TODO: test realease angle(0=-135 0.5=0 1=135)
 		public static final double kReleaseDistance = 0.5;
 		/**
@@ -43,7 +43,7 @@ public class Constants {
 	}
 
 	public static final class ClimberConstants {
-		public static final int kClimberMotorPort = -1; // TODO: Add actual motor ID
+		public static final int kClimberMotorPort = 54; // TODO: Add actual motor ID
 		public static final double kSpeed = 0.5;
 	}
 
@@ -120,7 +120,7 @@ public class Constants {
 	}
 
 	public static final class ElevatorConstants {
-		public static final int kElevatorMotorPort = 57; // TODO: Change with real one
+		public static final int kElevatorMotorPort = 51;
 		public static final int kSmartCurrentLimit = 60;
 		public static final int kSecondaryCurrentLimit = 70;
 		public static final double kP = 0; // TODO: tune
@@ -130,7 +130,7 @@ public class Constants {
 		public static final double kG = 2;
 		public static final double kV = 2;
 		public static final double kA = 0;
-		public static final double kGearRatio = 10; // TODO: Right gear ratio?
+		public static final double kGearRatio = 10;
 		/**
 		 * 24 teeth, 5 mm pitch, one rotation moves 120 mm, 2 stage cascading elevator
 		 * means total height change is 240 mm.
@@ -161,7 +161,7 @@ public class Constants {
 	}
 
 	public static final class WristConstants {
-		public static final int kWristMotorPort = 58; // TODO: Change
+		public static final int kWristMotorPort = 52;
 		public static final int kSmartCurrentLimit = 20;
 		public static final int kSecondaryCurrentLimit = 20;
 
