@@ -47,7 +47,7 @@ public class AlgaeGrabberSubsystem extends SubsystemBase {
 
 		SparkMaxConfig config = new SparkMaxConfig();
 		config.inverted(kFlywheelInvert).idleMode(IdleMode.kBrake);
-		config.voltageCompensation(12).smartCurrentLimit(k550SmartCurrentLimit);
+		config.voltageCompensation(12).smartCurrentLimit(kSmartCurrentLimit);
 		m_flywheel.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
 		config = new SparkMaxConfig(); // To use the same variable in order to reset the parameters for the other motor
@@ -97,7 +97,7 @@ public class AlgaeGrabberSubsystem extends SubsystemBase {
 	 */
 	public boolean checkCurrentOnFlywheel() {
 		return m_debouncerCurrentLimitStop
-				.calculate(m_flywheel.getOutputCurrent() >= k550SecondaryCurrentLimit);
+				.calculate(m_flywheel.getOutputCurrent() >= kSmartCurrentLimit);
 	}
 
 	/**
