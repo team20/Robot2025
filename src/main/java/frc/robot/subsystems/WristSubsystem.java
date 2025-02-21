@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.*;
 import static frc.robot.Constants.WristConstants.*;
 
 import java.util.function.DoubleSupplier;
@@ -30,14 +31,18 @@ import edu.wpi.first.wpilibj.smartdashboard.MechanismObject2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
 public class WristSubsystem extends SubsystemBase {
 	private final SparkMax m_wristMotor = new SparkMax(kWristMotorPort, MotorType.kBrushless);
-
 	private final SparkAbsoluteEncoder m_absoluteEncoder = m_wristMotor.getAbsoluteEncoder();
 	private final SparkClosedLoopController m_wristClosedLoopController = m_wristMotor.getClosedLoopController();
 
 	private double m_targetAngle = 0;
+	// Adjust ramp rate, step voltage, and timeout to make sure wrist doesn't break
+	private final SysIdRoutine m_sysidRoutine = new SysIdRoutine(
+			new SysIdRoutine.Config(Volts.of(2.5).div(Seconds.of(1)), Volts.of(3), Seconds.of(3)),
+			new SysIdRoutine.Mechanism(m_wristMotor::setVoltage, null, this));
 
 	private final SparkMaxSim m_wristSim;
 	private final SparkAbsoluteEncoderSim m_absoluteEncoderSim;
@@ -188,5 +193,25 @@ public class WristSubsystem extends SubsystemBase {
 			m_targetAngle = angle / 360;
 			m_wristClosedLoopController.setReference(m_targetAngle, ControlType.kPosition);
 		}).withName("Wrist go to angle");
+	}
+
+	/**
+	 * Creates a command to run a SysId quasistatic test.
+	 * 
+	 * @param direction The direction to run the test in.
+	 * @return The command.
+	 */
+	public Command sysidQuasistatic(SysIdRoutine.Direction direction) {
+		return m_sysidRoutine.quasistatic(direction);
+	}
+
+	/**
+	 * Creates a command to run a SysId dynamic test.
+	 * 
+	 * @param direction The direction to run the test in.
+	 * @return The command.
+	 */
+	public Command sysidDynamic(SysIdRoutine.Direction direction) {
+		return m_sysidRoutine.dynamic(direction);
 	}
 }

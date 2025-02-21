@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.*;
 import static frc.robot.Constants.ElevatorConstants.*;
 
 import java.util.function.DoubleSupplier;
@@ -35,6 +36,7 @@ import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
 public class ElevatorSubsystem extends SubsystemBase {
 	private final SparkMax m_elevatorMotor = new SparkMax(kElevatorMotorPort, MotorType.kBrushless);
@@ -45,6 +47,11 @@ public class ElevatorSubsystem extends SubsystemBase {
 	private final ElevatorFeedforward m_ff = new ElevatorFeedforward(kS, kG, kV, kA);
 	private final TrapezoidProfile m_profile = new TrapezoidProfile(
 			new TrapezoidProfile.Constraints(kMaxVelocity, kMaxAccel));
+	// Adjust ramp rate, step voltage, and timeout to make sure elevator doesn't
+	// break
+	private final SysIdRoutine m_sysidRoutine = new SysIdRoutine(
+			new SysIdRoutine.Config(Volts.of(2.5).div(Seconds.of(1)), Volts.of(3), Seconds.of(3)),
+			new SysIdRoutine.Mechanism(m_elevatorMotor::setVoltage, null, this));
 	private double m_setPosition = 0;
 
 	private final SparkMaxSim m_elevatorMotorSim;
@@ -294,5 +301,25 @@ public class ElevatorSubsystem extends SubsystemBase {
 			double nextVelocity = m_profile.calculate(time + 0.02, initial, finalState).velocity;
 			setPosition(finalState.position, m_ff.calculateWithVelocities(currentVelocity, nextVelocity));
 		}).withName("Lower Elevator to Score");
+	}
+
+	/**
+	 * Creates a command to run a SysId quasistatic test.
+	 * 
+	 * @param direction The direction to run the test in.
+	 * @return The command.
+	 */
+	public Command sysidQuasistatic(SysIdRoutine.Direction direction) {
+		return m_sysidRoutine.quasistatic(direction);
+	}
+
+	/**
+	 * Creates a command to run a SysId dynamic test.
+	 * 
+	 * @param direction The direction to run the test in.
+	 * @return The command.
+	 */
+	public Command sysidDynamic(SysIdRoutine.Direction direction) {
+		return m_sysidRoutine.dynamic(direction);
 	}
 }

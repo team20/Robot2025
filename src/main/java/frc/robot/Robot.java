@@ -19,16 +19,18 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
-import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.subsystems.AlgaeGrabberSubsystem;
 import frc.robot.subsystems.AlgaeGrabberSubsystem.GrabberState;
 import frc.robot.subsystems.CheeseStickSubsystem;
@@ -39,6 +41,7 @@ import frc.robot.subsystems.WristSubsystem;
 
 public class Robot extends TimedRobot {
 	private Command m_autonomousCommand;
+	private final SendableChooser<Command> m_testingChooser = new SendableChooser<>();
 	private final Mechanism2d m_mechanism = new Mechanism2d(Units.inchesToMeters(35), Units.inchesToMeters(100));
 	private final AlgaeGrabberSubsystem m_algaeGrabberSubsystem = new AlgaeGrabberSubsystem();
 	private final ClimberSubsystem m_climberSubsystem = new ClimberSubsystem();
@@ -49,8 +52,8 @@ public class Robot extends TimedRobot {
 	private final CheeseStickSubsystem m_cheeseStickSubsystem = new CheeseStickSubsystem(
 			m_wristSubsystem.getCheeseStickMount());
 	private final CommandPS5Controller m_driverController = new CommandPS5Controller(kDriverControllerPort);
-	private final CommandPS5Controller m_operatorController = newCommandPS5Controller(kOperatorControllerPort);
-	private final PowerDistribution m_pdh = new PowerDistribution(1, ModuleType.kRev);
+	private final CommandPS5Controller m_operatorController = new CommandPS5Controller(kOperatorControllerPort);
+	private final PowerDistribution m_pdh = new PowerDistribution();
 
 	public Robot() {
 		CommandComposer.setSubsystems(
@@ -70,10 +73,37 @@ public class Robot extends TimedRobot {
 						kClimberMotorPort, "Climber Motor", kWristMotorPort, "Wrist Motor", kFlywheelMotorPort,
 						"Algae Motor"));
 		DriverStation.startDataLog(DataLogManager.getLog());
+		addProgrammingCommands();
 		bindDriveControls();
 		bindElevatorControls();
 		bindWristControls();
 		bindAlgaeControls();
+		SmartDashboard.putData("Testing Chooser", m_testingChooser);
+		m_driverController.options().and(m_driverController.create()).and(() -> !DriverStation.isFMSAttached())
+				.onTrue(Commands.deferredProxy(m_testingChooser::getSelected));
+	}
+
+	public void addProgrammingCommands() {
+		m_testingChooser
+				.addOption("SysId Drive Quasistatic Forward", m_driveSubsystem.sysidQuasistatic(Direction.kForward));
+		m_testingChooser
+				.addOption("SysId Drive Quasistatic Reverse", m_driveSubsystem.sysidQuasistatic(Direction.kReverse));
+		m_testingChooser.addOption("SysId Drive Dynamic Forward", m_driveSubsystem.sysidDynamic(Direction.kForward));
+		m_testingChooser.addOption("SysId Drive Dynamic Reverse", m_driveSubsystem.sysidDynamic(Direction.kReverse));
+		m_testingChooser
+				.addOption("SysId Wrist Quasistatic Forward", m_wristSubsystem.sysidQuasistatic(Direction.kForward));
+		m_testingChooser
+				.addOption("SysId Wrist Quasistatic Reverse", m_wristSubsystem.sysidQuasistatic(Direction.kReverse));
+		m_testingChooser.addOption("SysId Wrist Dynamic Forward", m_wristSubsystem.sysidDynamic(Direction.kForward));
+		m_testingChooser.addOption("SysId Wrist Dynamic Reverse", m_wristSubsystem.sysidDynamic(Direction.kReverse));
+		m_testingChooser.addOption(
+				"SysId Elevator Quasistatic Forward", m_elevatorSubsystem.sysidQuasistatic(Direction.kForward));
+		m_testingChooser.addOption(
+				"SysId Elevator Quasistatic Reverse", m_elevatorSubsystem.sysidQuasistatic(Direction.kReverse));
+		m_testingChooser
+				.addOption("SysId Elevator Dynamic Forward", m_elevatorSubsystem.sysidDynamic(Direction.kForward));
+		m_testingChooser
+				.addOption("SysId Elevator Dynamic Reverse", m_elevatorSubsystem.sysidDynamic(Direction.kReverse));
 	}
 
 	public void bindDriveControls() {
