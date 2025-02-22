@@ -211,7 +211,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 			double currentVelocity = m_profile.calculate(time, initial, finalState).velocity;
 			double nextVelocity = m_profile.calculate(time + 0.02, initial, finalState).velocity;
 			setPosition(level, m_ff.calculateWithVelocities(currentVelocity, nextVelocity));
-		});
+		}).until(() -> m_profile.isFinished(m_timer.get())).finallyDo(() -> setSpeed(0));
 	}
 
 	/**
@@ -300,7 +300,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 			double currentVelocity = m_profile.calculate(time, initial, finalState).velocity;
 			double nextVelocity = m_profile.calculate(time + 0.02, initial, finalState).velocity;
 			setPosition(finalState.position, m_ff.calculateWithVelocities(currentVelocity, nextVelocity));
-		}).withName("Lower Elevator to Score");
+		}).until(() -> m_profile.isFinished(m_timer.get())).withName("Lower Elevator to Score");
 	}
 
 	/**
