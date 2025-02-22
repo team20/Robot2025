@@ -11,17 +11,14 @@ import edu.wpi.first.units.measure.Distance;
 
 public class Constants {
 	public static final class AlgaeConstants {
-		public static final int kFlywheelMotorPort = 55;
-		public static final int kGrabberAnglePort = 56;
+		public static final int kFlywheelMotorPort = 24;
+		public static final int kGrabberAnglePort = 23;
 		public static final boolean kFlywheelInvert = true;
 		public static final boolean kGrabberAngleInvert = false;
 
-		public static final int k550SmartCurrentLimit = 15;
-		public static final double k550SecondaryCurrentLimit = 20;
+		public static final int kSmartCurrentLimit = 15;
+		public static final double kSecondaryCurrentLimit = 20;
 		public static final double kTimeOverCurrentToStop = .01;
-
-		public static final int kSmartCurrentLimit = 50;
-		public static final int kSecondaryCurrentLimit = kSmartCurrentLimit + 15; // TODO: Check
 
 		public static final float kDeployGrabberRotations = 2;
 		public static final double kFlywheelSpeed = .8;
@@ -32,7 +29,7 @@ public class Constants {
 	}
 
 	public static final class CheeseStickConstants {
-		public static final int kServoPort = 53;
+		public static final int kServoPort = 0;
 		// TODO: test release angle(0=-135 0.5=0 1=135)
 		public static final double kReleaseDistance = 0.5;
 		/**
@@ -42,7 +39,7 @@ public class Constants {
 	}
 
 	public static final class ClimberConstants {
-		public static final int kClimberMotorPort = 54;
+		public static final int kClimberMotorPort = 25;
 		public static final double kSpeed = 0.5;
 
 		// TODO: Check
@@ -123,7 +120,7 @@ public class Constants {
 	}
 
 	public static final class ElevatorConstants {
-		public static final int kElevatorMotorPort = 51;
+		public static final int kElevatorMotorPort = 26;
 		public static final int kSmartCurrentLimit = 60;
 		public static final int kSecondaryCurrentLimit = 70;
 		public static final double kP = 0; // TODO: tune
@@ -163,7 +160,7 @@ public class Constants {
 	}
 
 	public static final class WristConstants {
-		public static final int kWristMotorPort = 52;
+		public static final int kWristMotorPort = 27;
 		public static final int kSmartCurrentLimit = 20;
 		public static final int kSecondaryCurrentLimit = 20;
 
