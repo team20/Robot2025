@@ -237,7 +237,7 @@ public class DriveSubsystem extends SubsystemBase {
 				rotSpeed = m_rotationController.calculate(getHeading().getRadians(), angle.getRadians());
 				var setpoint = m_rotationController.getSetpoint();
 				rotSpeed += m_rotationFeedforward.calculate(setpoint.velocity);
-				rotSpeed = Math.signum(rotSpeed) * Math.min(Math.abs(rotSpeed), 1) * kTeleopMaxTurnVoltage;
+				rotSpeed = Math.signum(rotSpeed) * Math.min(Math.abs(rotSpeed), 1) * distance * kTeleopMaxTurnVoltage;
 			}
 
 			double fwdSpeed = MathUtil.applyDeadband(forwardSpeed.getAsDouble(), ControllerConstants.kDeadzone);
