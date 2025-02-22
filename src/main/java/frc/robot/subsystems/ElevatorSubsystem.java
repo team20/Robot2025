@@ -78,8 +78,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 		config.closedLoop
 				.feedbackSensor(FeedbackSensor.kPrimaryEncoder)
 				.pid(kP, kI, kD);
-		config.encoder.positionConversionFactor(kMetersPerMotorRotation)
-				.velocityConversionFactor(kMetersPerMotorRotation / 60);
+		config.encoder.positionConversionFactor(kMetersPerMotorRotation);
 		m_elevatorMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 		resetEncoder();
 		if (RobotBase.isSimulation()) {

@@ -11,8 +11,8 @@ import edu.wpi.first.units.measure.Distance;
 
 public class Constants {
 	public static final class AlgaeConstants {
-		public static final int kFlywheelMotorPort = 24;
-		public static final int kGrabberAnglePort = 23;
+		public static final int kFlywheelMotorPort = 23;
+		public static final int kGrabberAnglePort = 24;
 		public static final boolean kFlywheelInvert = true;
 		public static final boolean kGrabberAngleInvert = false;
 
