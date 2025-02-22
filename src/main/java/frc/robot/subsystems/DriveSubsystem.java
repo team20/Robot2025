@@ -36,6 +36,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.ControllerConstants;
 import frc.robot.SwerveModule;
+import frc.robot.SwerveModuleSimulator;
 
 public class DriveSubsystem extends SubsystemBase {
 	private final SwerveModule m_frontLeft;
@@ -79,10 +80,18 @@ public class DriveSubsystem extends SubsystemBase {
 		m_targetHeadingPublisher = NetworkTableInstance.getDefault()
 				.getStructTopic("/SmartDashboard/Target Heading", Rotation2d.struct)
 				.publish();
-		m_frontLeft = new SwerveModule(kFrontLeftCANCoderPort, kFrontLeftDrivePort, kFrontLeftSteerPort);
-		m_frontRight = new SwerveModule(kFrontRightCANCoderPort, kFrontRightDrivePort, kFrontRightSteerPort);
-		m_backLeft = new SwerveModule(kBackLeftCANCoderPort, kBackLeftDrivePort, kBackLeftSteerPort);
-		m_backRight = new SwerveModule(kBackRightCANCoderPort, kBackRightDrivePort, kBackRightSteerPort);
+		if (RobotBase.isSimulation()) {
+			m_frontLeft = new SwerveModuleSimulator(kFrontLeftCANCoderPort, kFrontLeftDrivePort, kFrontLeftSteerPort);
+			m_frontRight = new SwerveModuleSimulator(kFrontRightCANCoderPort, kFrontRightDrivePort,
+					kFrontRightSteerPort);
+			m_backLeft = new SwerveModuleSimulator(kBackLeftCANCoderPort, kBackLeftDrivePort, kBackLeftSteerPort);
+			m_backRight = new SwerveModuleSimulator(kBackRightCANCoderPort, kBackRightDrivePort, kBackRightSteerPort);
+		} else {
+			m_frontLeft = new SwerveModule(kFrontLeftCANCoderPort, kFrontLeftDrivePort, kFrontLeftSteerPort);
+			m_frontRight = new SwerveModule(kFrontRightCANCoderPort, kFrontRightDrivePort, kFrontRightSteerPort);
+			m_backLeft = new SwerveModule(kBackLeftCANCoderPort, kBackLeftDrivePort, kBackLeftSteerPort);
+			m_backRight = new SwerveModule(kBackRightCANCoderPort, kBackRightDrivePort, kBackRightSteerPort);
+		}
 		// Adjust ramp rate, step voltage, and timeout to make sure robot doesn't
 		// collide with anything
 		var config = new SysIdRoutine.Config(Volts.of(2.5).div(Seconds.of(1)), null, Seconds.of(3));
@@ -129,6 +138,16 @@ public class DriveSubsystem extends SubsystemBase {
 	}
 
 	/**
+	 * Returns the {@code SwerveDriveKinematics} used by this
+	 * {@code DriveSubsystem}.
+	 * 
+	 * @return the {@code SwerveDriveKinematics} used by this {@code DriveSubsystem}
+	 */
+	public SwerveDriveKinematics kinematics() {
+		return m_kinematics;
+	}
+
+	/**
 	 * Returns robot pose.
 	 * 
 	 * @return The pose of the robot.
@@ -142,7 +161,7 @@ public class DriveSubsystem extends SubsystemBase {
 	 * 
 	 * @return The module positions, in order of FL, FR, BL, BR
 	 */
-	private SwerveModulePosition[] getModulePositions() {
+	public SwerveModulePosition[] getModulePositions() {
 		return new SwerveModulePosition[] { m_frontLeft.getModulePosition(), m_frontRight.getModulePosition(),
 				m_backLeft.getModulePosition(), m_backRight.getModulePosition() };
 	}
@@ -197,6 +216,32 @@ public class DriveSubsystem extends SubsystemBase {
 			m_gyroSim.set(-speedRot * 20 * 0.02 + m_gyro.getYaw());
 		}
 		setModuleStates(calculateModuleStates(new ChassisSpeeds(speedFwd, speedSide, speedRot), isFieldRelative));
+	}
+
+	/**
+	 * Drives the robot.
+	 * 
+	 * @param chassisSpeeds the {@code ChassisSpeeds} for the robot
+	 * @param isFieldRelative Whether or not the speeds are relative to the field
+	 */
+	public void drive(ChassisSpeeds chassisSpeeds, boolean isFieldRelative) {
+		setModuleStates(calculateModuleStates(chassisSpeeds, isFieldRelative));
+	}
+
+	/**
+	 * Constructs a {@code ChassisSpeeds} object.
+	 *
+	 * @param vxMetersPerSecond forward velocity in meters per second
+	 * @param vyMetersPerSecond sideways velocity in meters per second
+	 * @param omegaRadiansPerSecond angular velocity in radians per second
+	 */
+	public static ChassisSpeeds chassisSpeeds(double vxMetersPerSecond, double vyMetersPerSecond,
+			double omegaRadiansPerSecond) {
+		vxMetersPerSecond = MathUtil.clamp(vxMetersPerSecond, -kTeleopDriveMaxSpeed, kTeleopDriveMaxSpeed);
+		vyMetersPerSecond = MathUtil.clamp(vyMetersPerSecond, -kTeleopDriveMaxSpeed, kTeleopDriveMaxSpeed);
+		omegaRadiansPerSecond = MathUtil
+				.clamp(omegaRadiansPerSecond, -kTeleopTurnMaxAngularSpeed, kTeleopTurnMaxAngularSpeed);
+		return new ChassisSpeeds(vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond);
 	}
 
 	@Override

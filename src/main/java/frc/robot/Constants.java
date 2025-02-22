@@ -5,7 +5,12 @@ import static edu.wpi.first.units.Units.*;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Distance;
 
@@ -117,6 +122,26 @@ public class Constants {
 			kDriveConfig.ClosedLoopRamps.VoltageClosedLoopRampPeriod = kRampRate;
 			kDriveConfig.OpenLoopRamps.VoltageOpenLoopRampPeriod = kRampRate;
 		}
+
+		public static final double kTeleopDriveMaxSpeed = 5.0; // 5 meters per second
+		public static final double kTeleopTurnMaxAngularSpeed = Math.toRadians(360); // 1 rotation per second
+
+		public static final double kDriveMaxSpeed = 5.0; // 5 meters per second
+		public static final double kDriveMinSpeed = 0.4; // 0.4 meters per second
+		public static final double kTurnMaxAngularSpeed = Math.toRadians(360); // 1 rotation per second
+		public static final double kDriveMaxVoltage = 12;
+
+		// DriveCommand.java Constants
+		public static final double kDriveP = 5;
+		public static final double kDriveI = 0;
+		public static final double kDriveD = 0;
+		public static final double kDriveMaxAcceleration = 0.75 * kDriveMaxSpeed; // kDriveMaxSpeed in 1.5 sec
+
+		public static final double kTurnP = 5;
+		public static final double kTurnI = 0;
+		public static final double kTurnD = 0;
+		public static final double kTurnMaxAcceleration = 0.75 * kTurnMaxAngularSpeed; // kTurnMaxAngularSpeed in 1.5
+
 	}
 
 	public static final class ElevatorConstants {
@@ -175,4 +200,24 @@ public class Constants {
 
 		public static final double kTolerance = 0; // TODO: Change this
 	}
+
+	/**
+	 * The {@code AprilTagFieldLayout}.
+	 */
+	public static AprilTagFieldLayout kFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
+
+	/**
+	 * The {@code Transform3d} expressing the pose of the first camera relative to
+	 * the pose of the robot.
+	 */
+	public static Transform3d kRobotToCamera1 = new Transform3d(new Translation3d(0.3, 0.0, 0.2),
+			new Rotation3d(0, Units.degreesToRadians(-10), 0));
+
+	/**
+	 * The {@code Transform3d} expressing the pose of the second camera relative to
+	 * the pose of the robot.
+	 */
+	public static Transform3d kRobotToCamera2 = new Transform3d(new Translation3d(-0.5, -0.0, 0.2),
+			new Rotation3d(0, Units.degreesToRadians(-20), Units.degreesToRadians(180)));
+
 }

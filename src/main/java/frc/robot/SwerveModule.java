@@ -8,7 +8,6 @@ import static frc.robot.Constants.DriveConstants.*;
 
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.revrobotics.sim.SparkFlexSim;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkFlex;
@@ -20,10 +19,6 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.math.system.plant.LinearSystemId;
-import edu.wpi.first.wpilibj.RobotBase;
-import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import frc.robot.Constants.DriveConstants;
 
 /**
@@ -31,19 +26,14 @@ import frc.robot.Constants.DriveConstants;
  */
 public class SwerveModule {
 	private final PIDController m_steerController = new PIDController(kP, kI, kD);
-	private final CANcoder m_CANCoder;
-	private final TalonFX m_driveMotor;
-	private final SparkFlex m_steerMotor;
-
-	private final SparkFlexSim m_steerMotorSim;
-	private final DCMotorSim m_driveMotorModel;
-	private final DCMotorSim m_steerMotorModel;
+	protected final CANcoder m_CANCoder;
+	protected final TalonFX m_driveMotor;
+	protected final SparkFlex m_steerMotor;
 
 	public SwerveModule(int canId, int drivePort, int steerPort) {
 		m_CANCoder = new CANcoder(canId);
 		m_driveMotor = new TalonFX(drivePort);
 		m_steerMotor = new SparkFlex(steerPort, MotorType.kBrushless);
-		m_steerMotorSim = new SparkFlexSim(m_steerMotor, DCMotor.getNEO(1));
 		m_driveMotor.getConfigurator().apply(DriveConstants.kDriveConfig);
 		var config = new SparkMaxConfig();
 		config.idleMode(IdleMode.kBrake).voltageCompensation(12);
@@ -53,66 +43,55 @@ public class SwerveModule {
 		config.smartCurrentLimit(kSteerSmartCurrentLimit).secondaryCurrentLimit(kSteerSecondaryCurrentLimit);
 		m_steerMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 		m_steerController.enableContinuousInput(0, 360);
-		if (RobotBase.isSimulation()) {
-			m_driveMotorModel = new DCMotorSim(
-					LinearSystemId.createDCMotorSystem(kV / (2 * Math.PI), kA / (2 * Math.PI)),
-					DCMotor.getKrakenX60(1).withReduction(kDriveGearRatio));
-			m_steerMotorModel = new DCMotorSim(
-					LinearSystemId.createDCMotorSystem(kV / (2 * Math.PI), kA / (2 * Math.PI)),
-					DCMotor.getKrakenX60(1));
-		} else {
-			m_driveMotorModel = null;
-			m_steerMotorModel = null;
-		}
 	}
 
 	/**
-	 * Returns drive encoder distance in meters traveled.
+	 * Returns the drive encoder distance in meters.
 	 * 
-	 * @return The position in meters.
+	 * @return the drive encoder position in meters
 	 */
 	public double getDriveEncoderPosition() {
 		return m_driveMotor.getPosition().getValueAsDouble() * kMetersPerMotorRotation;
 	}
 
 	/**
-	 * Returns the current of the steer motor
+	 * Returns the steer current of this {@code SwerveModule}.
 	 * 
-	 * @return The current in amps
+	 * @return the steer current of this {@code SwerveModule}
 	 */
 	public double getSteerCurrent() {
 		return m_steerMotor.getOutputCurrent();
 	}
 
 	/**
-	 * Returns the current of the drive motor
+	 * Returns the steer current of this {@code SwerveModule}.
 	 * 
-	 * @return The current in amps
+	 * @return the steer current of this {@code SwerveModule}
 	 */
 	public double getDriveCurrent() {
 		return m_driveMotor.getStatorCurrent().getValueAsDouble();
 	}
 
 	/**
-	 * Resets drive encoder to zero.
+	 * Resets the drive encoder to zero.
 	 */
 	public void resetDriveEncoder() {
 		m_driveMotor.setPosition(0);
 	}
 
 	/**
-	 * Gets the current drive motor voltage.
+	 * Returns the current drive motor voltage.
 	 * 
-	 * @return The motor speed in voltage
+	 * @return the motor speed in voltage
 	 */
 	public double getDriveVoltage() {
 		return m_driveMotor.getMotorVoltage().getValueAsDouble();
 	}
 
 	/**
-	 * Gets the current drive motor temperature.
+	 * Returns the current drive motor temperature.
 	 * 
-	 * @return The temperature in degrees Celsius
+	 * @return the temperature in degrees Celsius
 	 */
 	public double getDriveTemperature() {
 		return m_driveMotor.getDeviceTemp().getValueAsDouble();
@@ -121,57 +100,41 @@ public class SwerveModule {
 	/**
 	 * Returns the module angle in degrees.
 	 * 
-	 * @return The module angle
+	 * @return the module angle in degrees
 	 */
 	public double getModuleAngle() {
 		return m_CANCoder.getAbsolutePosition().getValueAsDouble() * 360;
 	}
 
 	/**
-	 * Returns the module position.
+	 * Returns the current {@code SwerveModulePosition} of this
+	 * {@code SwerveModule}.
 	 * 
-	 * @return The module position
+	 * @return the current {@code SwerveModulePosition} of this {@code SwerveModule}
 	 */
 	public SwerveModulePosition getModulePosition() {
 		return new SwerveModulePosition(getDriveEncoderPosition(), Rotation2d.fromDegrees(getModuleAngle()));
 	}
 
 	/**
-	 * Gets the module speed and angle.
+	 * Returns the current {@code SwerveModuleState} of this {@code SwerveModule}.
 	 * 
-	 * @return The module state
+	 * @return the current {@code SwerveModuleState} of this {@code SwerveModule}
 	 */
 	public SwerveModuleState getModuleState() {
 		return new SwerveModuleState(getDriveVoltage(), Rotation2d.fromDegrees(getModuleAngle()));
 	}
 
 	/**
-	 * Sets the drive motor speeds and module angle.
+	 * Sets the drive motor speeds and module angle of this {@code SwerveModule}.
 	 * 
-	 * @param state The module state. Note that the speedMetersPerSecond field has
-	 *        been repurposed to contain volts, not velocity.
+	 * @param state a {@code SwerveModuleState} containing the target speeds and
+	 *        angle
 	 */
 	public void setModuleState(SwerveModuleState state) {
 		m_driveMotor.setVoltage(state.speedMetersPerSecond);
 		double turnPower = m_steerController.calculate(getModuleAngle(), state.angle.getDegrees());
 		m_steerMotor.setVoltage(turnPower);
-		updateSim();
 	}
 
-	private void updateSim() {
-		if (RobotBase.isSimulation()) {
-			var driveMotorState = m_driveMotor.getSimState();
-			m_driveMotorModel.setInputVoltage(driveMotorState.getMotorVoltage());
-			m_driveMotorModel.update(0.02);
-			driveMotorState.setRotorVelocity(m_driveMotorModel.getAngularVelocityRPM() / 60);
-			driveMotorState.setRawRotorPosition(m_driveMotorModel.getAngularPositionRotations());
-
-			var encoderSimState = m_CANCoder.getSimState();
-			m_steerMotorModel.setInputVoltage(m_steerMotorSim.getAppliedOutput() * 12);
-			m_steerMotorModel.update(0.02);
-			m_steerMotorSim.iterate(m_steerMotorModel.getAngularVelocityRPM(), 12, 0.02);
-			encoderSimState.setRawPosition(m_steerMotorModel.getAngularPositionRotations() / kSteerGearRatio);
-			encoderSimState.setVelocity(m_steerMotorModel.getAngularVelocityRPM() / 60 / kSteerGearRatio);
-		}
-	}
 }
