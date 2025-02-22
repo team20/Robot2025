@@ -83,15 +83,19 @@ public class Constants {
 		public static final double kV = 0.11;
 		public static final double kA = 0.009;
 
-		public static final double kRotationP = 0.4;
+		// public static final double kRotationP = 0.4;
+		public static final double kRotationP = 5;
 		public static final double kRotationI = 0.0;
 		public static final double kRotationD = 0;
 		public static final double kRotationS = 0;
-		public static final double kRotationV = 1.9;
+		// public static final double kRotationV = 1.9;
+		public static final double kRotationV = 0.5;
 		public static final double kRotationA = 0.009;
 
 		public static final double kTeleopMaxVoltage = 12;
-		public static final double kTeleopMaxTurnVoltage = 7.2;
+		// public static final double kTeleopMaxTurnVoltage = 7.2;
+		public static final double kTeleopDriveMaxSpeed = 5.0; // 5 meters per second
+		public static final double kTeleopTurnMaxAngularSpeed = Math.toRadians(360); // 1 rotation per second
 		public static final double kDriveGearRatio = 6.75;
 		public static final double kSteerGearRatio = 150.0 / 7;
 		public static final double kWheelDiameter = Units.inchesToMeters(4);
@@ -124,15 +128,11 @@ public class Constants {
 			kDriveConfig.OpenLoopRamps.VoltageOpenLoopRampPeriod = kRampRate;
 		}
 
-		public static final double kTeleopDriveMaxSpeed = 5.0; // 5 meters per second
-		public static final double kTeleopTurnMaxAngularSpeed = Math.toRadians(360); // 1 rotation per second
-
+		// DriveCommand.java Constants
 		public static final double kDriveMaxSpeed = 5.0; // 5 meters per second
 		public static final double kDriveMinSpeed = 0.4; // 0.4 meters per second
 		public static final double kTurnMaxAngularSpeed = Math.toRadians(360); // 1 rotation per second
-		public static final double kDriveMaxVoltage = 12;
 
-		// DriveCommand.java Constants
 		public static final double kDriveP = 5;
 		public static final double kDriveI = 0;
 		public static final double kDriveD = 0;
@@ -142,7 +142,6 @@ public class Constants {
 		public static final double kTurnI = 0;
 		public static final double kTurnD = 0;
 		public static final double kTurnMaxAcceleration = 0.75 * kTurnMaxAngularSpeed; // kTurnMaxAngularSpeed in 1.5
-
 	}
 
 	public static final class ElevatorConstants {

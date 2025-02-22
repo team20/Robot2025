@@ -38,7 +38,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.ControllerConstants;
 import frc.robot.SwerveModule;
-import frc.robot.SwerveModuleSimulator;
+import frc.robot.simulation.SwerveModuleSimulator;
 
 public class DriveSubsystem extends SubsystemBase {
 	private final SwerveModule m_frontLeft;
@@ -63,7 +63,7 @@ public class DriveSubsystem extends SubsystemBase {
 	private final SimpleMotorFeedforward m_rotationFeedforward = new SimpleMotorFeedforward(kRotationS, kRotationV,
 			kRotationA);
 	private final ProfiledPIDController m_rotationController = new ProfiledPIDController(kRotationP, kRotationI,
-			kRotationD, new Constraints(9, 25));
+			kRotationD, new Constraints(kTurnMaxAngularSpeed, kTurnMaxAcceleration));
 
 	/** Creates a new DriveSubsystem. */
 	public DriveSubsystem() {
@@ -264,6 +264,49 @@ public class DriveSubsystem extends SubsystemBase {
 	}
 
 	/**
+	 * Creates a {@code ChassisSpeeds} instance to drive the robot with joystick
+	 * input.
+	 *
+	 * @param forwardSpeed Forward speed supplier. Positive values make the robot
+	 *        go forward (+X direction).
+	 * @param strafeSpeed Strafe speed supplier. Positive values make the robot
+	 *        go to the left (+Y direction).
+	 * @param rotationY Rotation Y supplier. Positive is up on the joystick.
+	 * @param rotationX Rotation X supplier. Positive is right on the joystick.
+	 * @param isRobotRelative Supplier for determining if driving should be robot
+	 *        relative.
+	 * @return a {@code ChassisSpeeds} instance to drive the robot with joystick
+	 *         input
+	 */
+	public ChassisSpeeds chassisSpeeds(DoubleSupplier forwardSpeed, DoubleSupplier strafeSpeed,
+			DoubleSupplier rotationY, DoubleSupplier rotationX) {
+		// Get the forward, strafe, and rotation speed, using a deadband on the joystick
+		// input so slight movements don't move the robot
+
+		double rotY = rotationY.getAsDouble();
+		double rotX = rotationX.getAsDouble();
+		double distance = Math.hypot(rotX, rotY);
+		double rotSpeed = 0;
+		if (distance > 0.05) {
+			// 0 is facing towards the other alliance, but joystick forward is
+			var angle = new Rotation2d(rotX, rotY).minus(Rotation2d.kCCW_90deg);
+			m_targetHeadingPublisher.set(angle);
+			rotSpeed = m_rotationController.calculate(getHeading().getRadians(), angle.getRadians());
+			var setpoint = m_rotationController.getSetpoint();
+			rotSpeed += m_rotationFeedforward.calculate(setpoint.velocity);
+			rotSpeed = Math.signum(rotSpeed) * Math.min(Math.abs(rotSpeed), 1) * kTeleopTurnMaxAngularSpeed;
+		}
+
+		double fwdSpeed = MathUtil.applyDeadband(forwardSpeed.getAsDouble(), ControllerConstants.kDeadzone);
+		fwdSpeed = Math.signum(fwdSpeed) * Math.pow(fwdSpeed, 2) * kTeleopDriveMaxSpeed;
+
+		double strSpeed = MathUtil.applyDeadband(strafeSpeed.getAsDouble(), ControllerConstants.kDeadzone);
+		strSpeed = Math.signum(strSpeed) * Math.pow(strSpeed, 2) * kTeleopDriveMaxSpeed;
+
+		return chassisSpeeds(fwdSpeed, strSpeed, rotSpeed);
+	}
+
+	/**
 	 * Creates a command to drive the robot with joystick input.
 	 *
 	 * @param forwardSpeed Forward speed supplier. Positive values make the robot
@@ -279,30 +322,7 @@ public class DriveSubsystem extends SubsystemBase {
 	public Command driveCommand(DoubleSupplier forwardSpeed, DoubleSupplier strafeSpeed,
 			DoubleSupplier rotationY, DoubleSupplier rotationX, BooleanSupplier isRobotRelative) {
 		return run(() -> {
-			// Get the forward, strafe, and rotation speed, using a deadband on the joystick
-			// input so slight movements don't move the robot
-
-			double rotY = rotationY.getAsDouble();
-			double rotX = rotationX.getAsDouble();
-			double distance = Math.hypot(rotX, rotY);
-			double rotSpeed = 0;
-			if (distance > 0.05) {
-				// 0 is facing towards the other alliance, but joystick forward is
-				var angle = new Rotation2d(rotX, rotY).minus(Rotation2d.kCCW_90deg);
-				m_targetHeadingPublisher.set(angle);
-				rotSpeed = m_rotationController.calculate(getHeading().getRadians(), angle.getRadians());
-				var setpoint = m_rotationController.getSetpoint();
-				rotSpeed += m_rotationFeedforward.calculate(setpoint.velocity);
-				rotSpeed = Math.signum(rotSpeed) * Math.min(Math.abs(rotSpeed), 1) * kTeleopMaxTurnVoltage;
-			}
-
-			double fwdSpeed = MathUtil.applyDeadband(forwardSpeed.getAsDouble(), ControllerConstants.kDeadzone);
-			fwdSpeed = Math.signum(fwdSpeed) * Math.pow(fwdSpeed, 2) * kTeleopMaxVoltage;
-
-			double strSpeed = MathUtil.applyDeadband(strafeSpeed.getAsDouble(), ControllerConstants.kDeadzone);
-			strSpeed = Math.signum(strSpeed) * Math.pow(strSpeed, 2) * kTeleopMaxVoltage;
-
-			drive(fwdSpeed, strSpeed, rotSpeed, !isRobotRelative.getAsBoolean());
+			drive(chassisSpeeds(forwardSpeed, strafeSpeed, rotationY, rotationX), !isRobotRelative.getAsBoolean());
 		}).withName("DefaultDriveCommand");
 	}
 

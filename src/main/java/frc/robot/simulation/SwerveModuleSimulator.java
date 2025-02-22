@@ -2,7 +2,7 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot;
+package frc.robot.simulation;
 
 import static frc.robot.Constants.DriveConstants.*;
 
@@ -12,6 +12,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
+import frc.robot.SwerveModule;
 
 /**
  * Contains all the hardware and controllers for a swerve module.
@@ -42,13 +43,13 @@ public class SwerveModuleSimulator extends SwerveModule {
 	@Override
 	public void setModuleState(SwerveModuleState state) {
 		super.setModuleState(state);
-		updateSim();
+		update();
 	}
 
 	/**
 	 * Updates this {@code SwerveModuleSimulator}.
 	 */
-	private void updateSim() {
+	private void update() {
 		var driveMotorState = m_driveMotor.getSimState();
 		m_driveMotorModel.setInputVoltage(driveMotorState.getMotorVoltage());
 		m_driveMotorModel.update(0.02);

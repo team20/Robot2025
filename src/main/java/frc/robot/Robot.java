@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import static edu.wpi.first.wpilibj2.command.Commands.*;
 import static frc.robot.CommandComposer.*;
 import static frc.robot.Constants.*;
 import static frc.robot.Constants.AlgaeConstants.*;
@@ -15,14 +16,18 @@ import static frc.robot.subsystems.PoseEstimationSubsystem.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.DoubleSupplier;
 
 import org.littletonrobotics.urcl.URCL;
 import org.photonvision.PhotonCamera;
 import org.photonvision.simulation.PhotonCameraSim;
 import org.photonvision.simulation.SimCameraProperties;
 
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -39,6 +44,8 @@ import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
+import frc.robot.commands.DriveCommand;
+import frc.robot.simulation.VisionSimulator;
 import frc.robot.subsystems.AlgaeGrabberSubsystem;
 import frc.robot.subsystems.AlgaeGrabberSubsystem.GrabberState;
 import frc.robot.subsystems.CheeseStickSubsystem;
@@ -46,7 +53,6 @@ import frc.robot.subsystems.ClimberSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.PoseEstimationSubsystem;
-import frc.robot.subsystems.VisionSimulator;
 import frc.robot.subsystems.WristSubsystem;
 
 public class Robot extends TimedRobot {
@@ -106,6 +112,17 @@ public class Robot extends TimedRobot {
 		double angleToleranceInDegrees = 1.0;
 		double intermediateDistanceTolerance = 0.16;
 		double intermediateAngleToleranceInDegrees = 16.0;
+		m_testSelector.addOption(
+				"Test All Subsystems",
+				parallel(
+						m_driveSubsystem.testCommand(), m_elevatorSubsystem.testCommand(),
+						m_cheeseStickSubsystem.testCommand()));
+		m_testSelector.addOption(
+				"Test DriveSubsystem (F/B/L/R/LR/RR and F/B while rotating)", m_driveSubsystem.testCommand());
+		m_testSelector.addOption(
+				"Test ElevatorSubsystem", m_elevatorSubsystem.testCommand());
+		m_testSelector.addOption(
+				"Test CheeseStickSubsystem", m_cheeseStickSubsystem.testCommand());
 		m_testSelector
 				.addOption(
 						"Quickly Align to AprilTags 1, 2, 6, 7, and 8",
@@ -124,8 +141,6 @@ public class Robot extends TimedRobot {
 						"Check PID Constants for Driving (5'x5' Square)",
 						CommandComposer
 								.moveOnSquare(Units.feetToMeters(5), distanceTolerance, angleToleranceInDegrees, 16));
-		m_testSelector.addOption(
-				"Test DriveSubsystem (F/B/L/R/LR/RR and F/B while rotating)", m_driveSubsystem.testCommand());
 		SmartDashboard.putData("Test Selector", m_testSelector);
 
 		SmartDashboard.putData(m_pdh);
@@ -214,6 +229,46 @@ public class Robot extends TimedRobot {
 		cameraSim.enableDrawWireframe(true);
 		m_visionSimulator.addCamera(cameraSim, robotToCamera);
 		return camera;
+	}
+
+	/**
+	 * Creates a {@code Command} to automatically align the robot to the closest
+	 * {@code AprilTag} while driving the robot with joystick input.
+	 *
+	 * @param forwardSpeed Forward speed supplier. Positive values make the robot
+	 *        go forward (+X direction).
+	 * @param strafeSpeed Strafe speed supplier. Positive values make the robot
+	 *        go to the left (+Y direction).
+	 * @param rotationY Rotation Y supplier. Positive is up on the joystick.
+	 * @param rotationX Rotation X supplier. Positive is right on the joystick.
+	 * @param distanceThresholdInMeters the maximum distance (in meters) within
+	 *        which {@code AprilTag}s are considered
+	 * @param distanceTolerance the distance error in meters which is tolerable
+	 * @param angleToleranceInDegrees the angle error in degrees which is tolerable
+	 * @param robotToTag the {@code Tranform2d} representing the pose of the
+	 *        closest {@code AprilTag} relative to the robot when the robot is
+	 *        aligned
+	 * @return a {@code Command} to automatically align the robot to the closest tag
+	 *         while driving the robot with joystick input
+	 */
+	Command driveWithAlignmentCommand(DoubleSupplier forwardSpeed, DoubleSupplier strafeSpeed,
+			DoubleSupplier rotationY, DoubleSupplier rotationX, double distanceThresholdInMeters,
+			double distanceTolerance, double angleToleranceInDegrees,
+			Transform2d robotToTag) {
+		return new DriveCommand(m_driveSubsystem, distanceTolerance, angleToleranceInDegrees, () -> {
+			Pose2d closestTagPose = m_poseEstimationSubsystem.closestTagPose(180, distanceThresholdInMeters);
+			if (closestTagPose == null)
+				return m_driveSubsystem.getPose();
+			return m_poseEstimationSubsystem.odometryCentricPose(closestTagPose.plus(robotToTag));
+		}) {
+
+			@Override
+			public ChassisSpeeds chassisSpeeds() {
+				ChassisSpeeds speeds = DriveSubsystem.chassisSpeeds(forwardSpeed, strafeSpeed, rotation);
+				return speeds.plus(super.chassisSpeeds());
+			}
+
+		};
 	}
 
 	@Override
