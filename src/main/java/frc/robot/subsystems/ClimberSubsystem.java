@@ -26,7 +26,7 @@ public class ClimberSubsystem extends SubsystemBase {
 	 * @return forward command
 	 */
 	public Command moveForward() {
-		return run(() -> {
+		return runOnce(() -> {
 			m_motor.set(kSpeed);
 		}).withName("Climber Forwards");
 	}

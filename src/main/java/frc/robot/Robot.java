@@ -4,7 +4,6 @@
 
 package frc.robot;
 
-import static frc.robot.CommandComposer.*;
 import static frc.robot.Constants.AlgaeConstants.*;
 import static frc.robot.Constants.ClimberConstants.*;
 import static frc.robot.Constants.ControllerConstants.*;
@@ -79,6 +78,7 @@ public class Robot extends TimedRobot {
 		bindElevatorControls();
 		bindWristControls();
 		bindAlgaeControls();
+		bindCheeseStickControls();
 		SmartDashboard.putData("Testing Chooser", m_testingChooser);
 		m_driverController.options().and(m_driverController.create()).and(() -> !DriverStation.isFMSAttached())
 				.onTrue(Commands.deferredProxy(m_testingChooser::getSelected));
@@ -120,20 +120,27 @@ public class Robot extends TimedRobot {
 
 	public void bindElevatorControls() {
 		m_elevatorSubsystem.setDefaultCommand(m_elevatorSubsystem.manualMove(() -> -m_operatorController.getLeftY()));
-		m_operatorController.triangle().onTrue(scoreLevelFour());
-		m_operatorController.square().onTrue(scoreLevelThree());
-		m_operatorController.cross().onTrue(scoreLevelTwo());
-		m_operatorController.circle().onTrue(scoreLevelOne());
+		m_operatorController.triangle().onTrue(
+				m_elevatorSubsystem.goToLevelFourHeight().andThen(m_wristSubsystem.goToAngle(kGrabberAngleLevelFour)));
+		m_operatorController.square().onTrue(
+				m_elevatorSubsystem.goToLevelThreeHeight().andThen(m_wristSubsystem.goToAngle(kGrabberAngleOthers)));
+		m_operatorController.cross().onTrue(
+				m_elevatorSubsystem.goToLevelTwoHeight().andThen(m_wristSubsystem.goToAngle(kGrabberAngleOthers)));
+		m_operatorController.circle().onTrue(
+				m_elevatorSubsystem.goToLevelOneHeight().andThen(m_wristSubsystem.goToAngle(kGrabberAngleOthers)));
 		// m_operatorController.povLeft().onTrue(m_elevatorSubsystem.goToCoralStationHeight());
 		m_operatorController.L1().and(m_operatorController.circle()).onTrue(m_elevatorSubsystem.goToBaseHeight());
 	}
 
 	public void bindAlgaeControls() {
+		m_algaeGrabberSubsystem
+				.setDefaultCommand(m_algaeGrabberSubsystem.manualMove(() -> m_operatorController.getRightY()));
 		m_operatorController.L2().onTrue(
 				m_algaeGrabberSubsystem.deployGrabber(GrabberState.DOWN)
 						.andThen(m_algaeGrabberSubsystem.runFlywheel()).until(
 								() -> m_algaeGrabberSubsystem.checkCurrentOnFlywheel())
 						.andThen(m_algaeGrabberSubsystem.slowRunFlywheel()));
+		// m_operatorController.L2().whileTrue(m_algaeGrabberSubsystem.runFlywheel());
 		m_operatorController.R2().onTrue(
 				m_algaeGrabberSubsystem.deployGrabber(GrabberState.UP)
 						.andThen(m_algaeGrabberSubsystem.stopFlywheel()));
@@ -143,14 +150,15 @@ public class Robot extends TimedRobot {
 	}
 
 	public void bindWristControls() {
-		m_wristSubsystem.setDefaultCommand(m_wristSubsystem.manualMove(() -> m_operatorController.getRightY()));
+		// m_wristSubsystem.setDefaultCommand(m_wristSubsystem.manualMove(() ->
+		// m_operatorController.getRightY()));
 		// m_driverController.circle().onTrue(m_wristSubsystem.reverseMotor());
 		// m_driverController.square().onTrue(m_wristSubsystem.forwardMotor());
 	}
 
 	public void bindCheeseStickControls() {
-		m_operatorController.R1().whileFalse(m_cheeseStickSubsystem.grab());
-		m_operatorController.R1().whileTrue(m_cheeseStickSubsystem.release());
+		// m_operatorController.R1().whileFalse(m_cheeseStickSubsystem.grab());
+		m_operatorController.R1().onTrue(m_cheeseStickSubsystem.release());
 	}
 
 	public void bindClimberControls() {
@@ -165,6 +173,7 @@ public class Robot extends TimedRobot {
 
 	@Override
 	public void disabledInit() {
+		CommandScheduler.getInstance().cancelAll();
 	}
 
 	@Override
