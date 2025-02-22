@@ -6,6 +6,8 @@ package frc.robot.subsystems;
 
 import static frc.robot.Constants.AlgaeConstants.*;
 
+import java.util.function.DoubleSupplier;
+
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
@@ -21,7 +23,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class AlgaeGrabberSubsystem extends SubsystemBase {
-	private final SparkMax m_flywheel = new SparkMax(kFlywheelMotorPort, MotorType.kBrushless);;
+	private final SparkMax m_flywheel = new SparkMax(kFlywheelMotorPort, MotorType.kBrushless);
 	private final SparkMax m_grabberAngleMotor = new SparkMax(kGrabberAnglePort,
 			MotorType.kBrushless);
 	private final SparkClosedLoopController m_grabberClosedLoopController = m_grabberAngleMotor
@@ -31,6 +33,7 @@ public class AlgaeGrabberSubsystem extends SubsystemBase {
 	private double m_setVelocity;
 
 	public enum GrabberState {
+
 		UP,
 		DOWN
 	}
@@ -55,10 +58,30 @@ public class AlgaeGrabberSubsystem extends SubsystemBase {
 				.feedbackSensor(FeedbackSensor.kAbsoluteEncoder)
 				.pid(kP, kI, kD);
 		m_grabberAngleMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+		m_grabberAngleMotor.getAbsoluteEncoder().getPosition();
 	}
 
 	@Override
 	public void periodic() {
+	}
+
+	/**
+	 * Allows the operator to manually move the Wrist for adjustment
+	 * 
+	 * @param joystick Input from operator's right joystick Y-values
+	 * @return Command for moving
+	 */
+	public Command manualMove(DoubleSupplier joystick) {
+		return run(() -> {
+			double input = joystick.getAsDouble();
+			double speed = Math.signum(input) * Math.pow(input, 2);
+			if (Math.abs(speed) > 0.1) {
+				m_grabberAngleMotor.set(speed * 0.5);
+			} else {
+				m_grabberAngleMotor.stopMotor();
+			}
+
+		}).withName("Manual Algae Grabber");
 	}
 
 	/**

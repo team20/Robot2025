@@ -13,12 +13,12 @@ public class Constants {
 	public static final class AlgaeConstants {
 		public static final int kFlywheelMotorPort = 23;
 		public static final int kGrabberAnglePort = 24;
-		public static final boolean kFlywheelInvert = true;
+		public static final boolean kFlywheelInvert = false;
 		public static final boolean kGrabberAngleInvert = false;
 
 		public static final int kSmartCurrentLimit = 15;
 		public static final double kSecondaryCurrentLimit = 20;
-		public static final double kTimeOverCurrentToStop = .01;
+		public static final double kTimeOverCurrentToStop = .25;
 
 		public static final float kDeployGrabberRotations = 2;
 		public static final double kFlywheelSpeed = .8;
@@ -163,6 +163,8 @@ public class Constants {
 		public static final int kWristMotorPort = 27;
 		public static final int kSmartCurrentLimit = 20;
 		public static final int kSecondaryCurrentLimit = 20;
+		public static final int kGrabberAngleLevelFour = -55;
+		public static final int kGrabberAngleOthers = -35;
 
 		// TODO: Make sure these are tuned (can do with SysId)
 		public static final double kP = 0.09;
