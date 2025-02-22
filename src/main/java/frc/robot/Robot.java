@@ -124,7 +124,8 @@ public class Robot extends TimedRobot {
 						"Check PID Constants for Driving (5'x5' Square)",
 						CommandComposer
 								.moveOnSquare(Units.feetToMeters(5), distanceTolerance, angleToleranceInDegrees, 16));
-		m_testSelector.addOption("Test DriveSubsystem", m_driveSubsystem.testCommand());
+		m_testSelector.addOption(
+				"Test DriveSubsystem (F/B/L/R/LR/RR and F/B while rotating)", m_driveSubsystem.testCommand());
 		SmartDashboard.putData("Test Selector", m_testSelector);
 
 		SmartDashboard.putData(m_pdh);

@@ -30,8 +30,10 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.simulation.SimDeviceSim;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.ControllerConstants;
@@ -205,17 +207,18 @@ public class DriveSubsystem extends SubsystemBase {
 	/**
 	 * Drives the robot.
 	 * 
-	 * @param speedFwd The forward speed in voltage
-	 * @param speedSide The sideways speed in voltage
-	 * @param speedRot The rotation speed in voltage
-	 * @param isFieldRelative Whether or not the speeds are relative to the field
+	 * @param vxMetersPerSecond forward velocity in meters per second
+	 * @param vyMetersPerSecond sideways velocity in meters per second
+	 * @param omegaRadiansPerSecond angular velocityin radians per second
+	 * @param isFieldRelative a boolean value indicating whether or not the
+	 *        veloicities are relative to the field
 	 */
-	public void drive(double speedFwd, double speedSide, double speedRot, boolean isFieldRelative) {
-		if (RobotBase.isSimulation()) {
-			// TODO: Use SysId to get feedforward model for rotation
-			m_gyroSim.set(-speedRot * 20 * 0.02 + m_gyro.getYaw());
-		}
-		setModuleStates(calculateModuleStates(new ChassisSpeeds(speedFwd, speedSide, speedRot), isFieldRelative));
+	public void drive(double vxMetersPerSecond, double vyMetersPerSecond, double omegaRadiansPerSecond,
+			boolean isFieldRelative) {
+		setModuleStates(
+				calculateModuleStates(
+						chassisSpeeds(vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond),
+						isFieldRelative));
 	}
 
 	/**
@@ -244,13 +247,20 @@ public class DriveSubsystem extends SubsystemBase {
 		return new ChassisSpeeds(vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond);
 	}
 
+	/**
+	 * Is invoked periodically by the {@link CommandScheduler}. Useful
+	 * for updating subsystem-specific state.
+	 */
 	@Override
 	public void periodic() {
-		m_posePublisher.set(m_odometry.update(getHeading(), getModulePositions()));
 		SwerveModuleState[] states = { m_frontLeft.getModuleState(), m_frontRight.getModuleState(),
 				m_backLeft.getModuleState(), m_backRight.getModuleState() };
-		m_currentChassisSpeedsPublisher.set(m_kinematics.toChassisSpeeds(states));
 		m_currentModuleStatePublisher.set(states);
+		var speeds = m_kinematics.toChassisSpeeds(states);
+		m_currentChassisSpeedsPublisher.set(speeds);
+		if (RobotBase.isSimulation())// TODO: Use SysId to get feedforward model for rotation
+			m_gyroSim.set(-Math.toDegrees(speeds.omegaRadiansPerSecond * TimedRobot.kDefaultPeriod) + m_gyro.getYaw());
+		m_posePublisher.set(m_odometry.update(getHeading(), getModulePositions()));
 	}
 
 	/**
