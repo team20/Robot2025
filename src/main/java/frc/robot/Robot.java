@@ -71,9 +71,10 @@ public class Robot extends TimedRobot {
 				Map.of(
 						11, "FR Turn", 21, "BR Turn", 31, "BL Turn", 41, "FL Turn", kElevatorMotorPort, "Elevator",
 						kClimberMotorPort, "Climber Motor", kWristMotorPort, "Wrist Motor", kFlywheelMotorPort,
-						"Algae Motor"));
+						"Algae Flywheel Motor", kGrabberAnglePort, "Algae Pivot Motor"));
 		DriverStation.startDataLog(DataLogManager.getLog());
 		addProgrammingCommands();
+		bindClimberControls();
 		bindDriveControls();
 		bindElevatorControls();
 		bindWristControls();
