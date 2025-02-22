@@ -22,6 +22,7 @@ import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj.util.Color8Bit;
@@ -38,6 +39,8 @@ import frc.robot.subsystems.WristSubsystem;
 
 public class Robot extends TimedRobot {
 	private Command m_autonomousCommand;
+	private Command m_testCommand;
+	private final SendableChooser<Command> m_testSelector = new SendableChooser<Command>();
 	private final Mechanism2d m_mechanism = new Mechanism2d(Units.inchesToMeters(35), Units.inchesToMeters(100));
 	private final AlgaeGrabberSubsystem m_algaeGrabberSubsystem = new AlgaeGrabberSubsystem();
 
@@ -60,6 +63,10 @@ public class Robot extends TimedRobot {
 		dropChute.append(new MechanismLigament2d("side", Units.inchesToMeters(12), 90, 5, new Color8Bit(Color.kWhite)));
 		m_mechanism.getRoot("dropChute", Units.inchesToMeters(28), Units.inchesToMeters(9)).append(dropChute);
 		SmartDashboard.putData("Superstructure", m_mechanism);
+
+		m_testSelector.addOption("Test DriveSubsystem", m_driveSubsystem.testCommand());
+		SmartDashboard.putData("Test Selector", m_testSelector);
+
 		SmartDashboard.putData(m_pdh);
 		SmartDashboard.putData(CommandScheduler.getInstance());
 		DataLogManager.start();
@@ -179,6 +186,9 @@ public class Robot extends TimedRobot {
 	@Override
 	public void testInit() {
 		CommandScheduler.getInstance().cancelAll();
+		m_testCommand = m_testSelector.getSelected();
+		if (m_testCommand != null)
+			m_testCommand.schedule();
 	}
 
 	@Override

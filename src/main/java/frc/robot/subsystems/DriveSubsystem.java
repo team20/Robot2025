@@ -5,6 +5,7 @@
 package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.*;
+import static edu.wpi.first.wpilibj2.command.Commands.*;
 import static frc.robot.Constants.DriveConstants.*;
 
 import java.util.function.BooleanSupplier;
@@ -282,5 +283,27 @@ public class DriveSubsystem extends SubsystemBase {
 	 */
 	public Command sysidDynamic(SysIdRoutine.Direction direction) {
 		return m_sysidRoutine.dynamic(direction);
+	}
+
+	/**
+	 * Creates a {@code Command} for testing this {@code DriveSubsystem}. The robot
+	 * must move forward, backward, strafe left, strafe right, turn left, turn
+	 * right, and moving forward and backward while turning.
+	 * 
+	 * @return a {@code Command} for testing this {@code DriveSubsystem}
+	 */
+	public Command testCommand() {
+		double speed = .5;
+		double rotionalSpeed = Math.toRadians(45);
+		double duration = 2.0;
+		return sequence(
+				run(() -> drive(speed, 0, 0, false)).withTimeout(duration),
+				run(() -> drive(-speed, 0, 0, false)).withTimeout(duration),
+				run(() -> drive(0, speed, 0, false)).withTimeout(duration),
+				run(() -> drive(0, -speed, 0, false)).withTimeout(duration),
+				run(() -> drive(0, 0, rotionalSpeed, false)).withTimeout(duration),
+				run(() -> drive(0, 0, -rotionalSpeed, false)).withTimeout(duration),
+				run(() -> drive(speed, 0, rotionalSpeed, true)).withTimeout(duration),
+				run(() -> drive(-speed, 0, -rotionalSpeed, true)).withTimeout(duration));
 	}
 }
