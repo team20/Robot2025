@@ -123,12 +123,12 @@ public class Constants {
 		public static final int kElevatorMotorPort = 26;
 		public static final int kSmartCurrentLimit = 60;
 		public static final int kSecondaryCurrentLimit = 70;
-		public static final double kP = 1.3; // TODO: tune
+		public static final double kP = 1.1; // 1.3, 1
 		public static final double kI = 0;
 		public static final double kD = 0;
 		public static final double kS = 0;
 		public static final double kG = 1;
-		public static final double kV = 2;
+		public static final double kV = 0; // 2
 		public static final double kA = 0;
 		public static final double kGearRatio = 10;
 		/**
@@ -145,15 +145,15 @@ public class Constants {
 		 */
 		public static final double kMetersPerMotorRotation = (1 / kGearRatio)
 				* kMetersPerPulleyRotation;
-		public static final double kMaxVelocity = 2;
-		public static final double kMaxAccel = 2;
+		public static final double kMaxVelocity = 1.5;
+		public static final double kMaxAccel = 1; // 2
 		public static final double kTolerance = 1;
-		public static final int kMaxExtension = 250; // TODO: Check this?
 		// TODO: During testing make sure these are right
 		public static final double kLevelOneHeight = Units.inchesToMeters(41 - 24);
 		public static final double kLevelTwoHeight = kLevelOneHeight; // same as level 1
 		public static final double kLevelThreeHeight = Units.inchesToMeters(60 - 24);
-		public static final double kLevelFourHeight = Units.inchesToMeters(90 - 24);
+		public static final double kLevelFourHeight = Units.inchesToMeters(60 - 24);
+		public static final double kMaxHeight = 0.75 * kMetersPerMotorRotation;
 		// TODO: The amount that the elevator decreases in order to score
 		public static final double kToScoreHeightDecrease = 0;
 		public static final double kCoralStationHeight = 0; // TODO: Change
