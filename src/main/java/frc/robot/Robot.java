@@ -113,8 +113,7 @@ public class Robot extends TimedRobot {
 				m_driveSubsystem.driveCommand(
 						() -> -m_driverController.getLeftY(),
 						() -> -m_driverController.getLeftX(),
-						() -> -m_driverController.getRightY(),
-						() -> m_driverController.getRightX(),
+						() -> m_driverController.getL2Axis() - m_driverController.getR2Axis(),
 						m_driverController.getHID()::getSquareButton)); // makes the robot robot-oriented
 		// m_driveSubsystem.setDefaultCommand(
 		// m_driveSubsystem.driveCommand(
