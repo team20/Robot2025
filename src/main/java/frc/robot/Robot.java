@@ -32,7 +32,6 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.subsystems.AlgaeGrabberSubsystem;
-import frc.robot.subsystems.AlgaeGrabberSubsystem.GrabberState;
 import frc.robot.subsystems.CheeseStickSubsystem;
 import frc.robot.subsystems.ClimberSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
@@ -142,21 +141,12 @@ public class Robot extends TimedRobot {
 	}
 
 	public void bindAlgaeControls() {
-		// m_algaeGrabberSubsystem
-		// .setDefaultCommand(m_algaeGrabberSubsystem.manualMove(() ->
-		// m_operatorController.getRightY()));
-		m_operatorController.L2().onTrue(
-				m_algaeGrabberSubsystem.deployGrabber(GrabberState.DOWN)
-						.andThen(m_algaeGrabberSubsystem.runFlywheel()).until(
-								() -> m_algaeGrabberSubsystem.checkCurrentOnFlywheel())
-						.andThen(m_algaeGrabberSubsystem.slowRunFlywheel()));
-		// m_operatorController.L2().whileTrue(m_algaeGrabberSubsystem.runFlywheel());
-		m_operatorController.R2().onTrue(
-				m_algaeGrabberSubsystem.deployGrabber(GrabberState.UP)
-						.andThen(m_algaeGrabberSubsystem.stopFlywheel()));
+		m_algaeGrabberSubsystem
+				.setDefaultCommand(m_algaeGrabberSubsystem.manualMove(() -> m_operatorController.getRightY()));
+		m_operatorController.L2().onTrue(m_algaeGrabberSubsystem.grabAlgaeAndHold());
+		m_operatorController.R2().onTrue(m_algaeGrabberSubsystem.releaseAlgae());
 
-		m_operatorController.options().onTrue(m_algaeGrabberSubsystem.runFlywheelReverse());
-		m_operatorController.options().onFalse(m_algaeGrabberSubsystem.stopFlywheel());
+		m_operatorController.options().onTrue(m_algaeGrabberSubsystem.reverseFlywheelAndStop());
 	}
 
 	public void bindWristControls() {
