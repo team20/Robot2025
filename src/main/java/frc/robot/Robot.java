@@ -120,7 +120,7 @@ public class Robot extends TimedRobot {
 		// () -> -m_driverController.getLeftY(),
 		// () -> -m_driverController.getLeftX(),
 		// () -> -m_driverController.getRightY(),
-		// () -> m_driverController.getRightX(),
+		// () -> -m_driverController.getRightX(),
 		// m_driverController.getHID()::getSquareButton)); // makes the robot
 		// robot-oriented
 
