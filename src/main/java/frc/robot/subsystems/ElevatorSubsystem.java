@@ -5,7 +5,6 @@
 package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.*;
-import static edu.wpi.first.wpilibj2.command.Commands.*;
 import static frc.robot.Constants.ElevatorConstants.*;
 
 import java.util.function.DoubleSupplier;
@@ -33,6 +32,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -79,8 +79,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 		config.closedLoop
 				.feedbackSensor(FeedbackSensor.kPrimaryEncoder)
 				.pid(kP, kI, kD);
-		config.encoder.positionConversionFactor(kMetersPerMotorRotation)
-				.velocityConversionFactor(kMetersPerMotorRotation / 60);
+		config.encoder.positionConversionFactor(kMetersPerMotorRotation);
 		m_elevatorMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 		resetEncoder();
 		if (RobotBase.isSimulation()) {
@@ -168,6 +167,10 @@ public class ElevatorSubsystem extends SubsystemBase {
 		m_elevatorLigament.setLength(Units.inchesToMeters(24) + getPosition());
 	}
 
+	public Command resetTheEncoder() {
+		return runOnce(() -> resetEncoder());
+	}
+
 	/**
 	 * Stops the motor
 	 * 
@@ -203,16 +206,22 @@ public class ElevatorSubsystem extends SubsystemBase {
 	 */
 	private Command goToLevel(double level) {
 		var initial = new TrapezoidProfile.State();
+		// SmartDashboard.putNumber("initial 1", initial.position);
 		var finalState = new TrapezoidProfile.State(level, 0);
 		return startRun(() -> {
 			m_timer.restart();
 			initial.position = getPosition();
+			// SmartDashboard.putNumber("initial 2", initial.position);
 		}, () -> {
 			double time = m_timer.get();
 			double currentVelocity = m_profile.calculate(time, initial, finalState).velocity;
-			double nextVelocity = m_profile.calculate(time + 0.02, initial, finalState).velocity;
-			setPosition(level, m_ff.calculateWithVelocities(currentVelocity, nextVelocity));
+			double nextVelocity = m_profile.calculate(time + 0.01, initial, finalState).velocity; // time + 0.02
+			double ff = m_ff.calculateWithVelocities(currentVelocity, nextVelocity);
+			setPosition(level, ff);
+			SmartDashboard.putNumber("ff", ff);
+			// SmartDashboard.putNumber("initial 3", initial.position);
 		});
+		// .until(() -> m_profile.isFinished(m_timer.get()));// setSpeed(0.02)
 	}
 
 	/**
@@ -221,12 +230,18 @@ public class ElevatorSubsystem extends SubsystemBase {
 	 * @param joystick Input from operator's left joystick Y-values
 	 * @return Command for moving
 	 */
+	// public Command manualMove(DoubleSupplier joystick) {
+	// return run(() -> {
+	// double input = joystick.getAsDouble();
+	// double speed = Math.signum(input) * Math.pow(input, 2);
+	// setSpeed(speed * 0.5);
+	// }).withName("Manual Elevator");
+	// }
+
 	public Command manualMove(DoubleSupplier joystick) {
 		return run(() -> {
 			double input = joystick.getAsDouble();
-			double speed = Math.signum(input) * Math.pow(input, 2);
-			setSpeed(speed * 0.5);
-		}).withName("Manual Elevator");
+		}).withName("Manual Elevator 2");
 	}
 
 	/**
@@ -253,7 +268,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 	 * @return the command
 	 */
 	public Command goToLevelThreeHeight() {
-		return goToLevel(kLevelThreeHeight).withName("Elevator to Level 2");
+		return goToLevel(kLevelThreeHeight).withName("Elevator to Level 3");
 	}
 
 	/**
@@ -262,7 +277,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 	 * @return the command
 	 */
 	public Command goToLevelFourHeight() {
-		return goToLevel(kLevelFourHeight).withName("Elevator to Level 2");
+		return goToLevel(kLevelFourHeight).withName("Elevator to Level 4");
 	}
 
 	/**
@@ -301,7 +316,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 			double currentVelocity = m_profile.calculate(time, initial, finalState).velocity;
 			double nextVelocity = m_profile.calculate(time + 0.02, initial, finalState).velocity;
 			setPosition(finalState.position, m_ff.calculateWithVelocities(currentVelocity, nextVelocity));
-		}).withName("Lower Elevator to Score");
+		}).until(() -> m_profile.isFinished(m_timer.get())).withName("Lower Elevator to Score");
 	}
 
 	/**
@@ -323,16 +338,4 @@ public class ElevatorSubsystem extends SubsystemBase {
 	public Command sysidDynamic(SysIdRoutine.Direction direction) {
 		return m_sysidRoutine.dynamic(direction);
 	}
-
-	/**
-	 * Creates a {@code Command} for testing this {@code ElevatorSubsystem}.
-	 * 
-	 * @return a {@code Command} for testing this {@code ElevatorSubsystem}
-	 */
-	public Command testCommand() {
-		return sequence(
-				goToLevelOneHeight(), goToLevelTwoHeight(), goToLevelOneHeight(), goToLevelThreeHeight(),
-				goToLevelFourHeight(), goToLevelOneHeight());
-	}
-
 }

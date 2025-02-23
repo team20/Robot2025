@@ -16,16 +16,15 @@ import com.studica.frc.AHRS.NavXComType;
 
 import edu.wpi.first.hal.SimDouble;
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.controller.ProfiledPIDController;
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
@@ -38,7 +37,6 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.ControllerConstants;
 import frc.robot.SwerveModule;
-import frc.robot.simulation.SwerveModuleSimulator;
 
 public class DriveSubsystem extends SubsystemBase {
 	private final SwerveModule m_frontLeft;
@@ -60,14 +58,11 @@ public class DriveSubsystem extends SubsystemBase {
 	private final StructArrayPublisher<SwerveModuleState> m_currentModuleStatePublisher;
 	private final StructPublisher<Rotation2d> m_targetHeadingPublisher;
 
-	private final SimpleMotorFeedforward m_rotationFeedforward = new SimpleMotorFeedforward(kRotationS, kRotationV,
-			kRotationA);
-	private final ProfiledPIDController m_rotationController = new ProfiledPIDController(kRotationP, kRotationI,
-			kRotationD, new Constraints(kTurnMaxAngularSpeed, kTurnMaxAcceleration));
+	private final PIDController m_orientationController = new PIDController(kRotationP, kRotationI, kRotationD);
 
 	/** Creates a new DriveSubsystem. */
 	public DriveSubsystem() {
-		m_rotationController.enableContinuousInput(-Math.PI, Math.PI);
+		m_orientationController.enableContinuousInput(-Math.PI, Math.PI);
 		m_posePublisher = NetworkTableInstance.getDefault().getStructTopic("/SmartDashboard/Pose", Pose2d.struct)
 				.publish();
 		m_currentChassisSpeedsPublisher = NetworkTableInstance.getDefault()
@@ -82,18 +77,10 @@ public class DriveSubsystem extends SubsystemBase {
 		m_targetHeadingPublisher = NetworkTableInstance.getDefault()
 				.getStructTopic("/SmartDashboard/Target Heading", Rotation2d.struct)
 				.publish();
-		if (RobotBase.isSimulation()) {
-			m_frontLeft = new SwerveModuleSimulator(kFrontLeftCANCoderPort, kFrontLeftDrivePort, kFrontLeftSteerPort);
-			m_frontRight = new SwerveModuleSimulator(kFrontRightCANCoderPort, kFrontRightDrivePort,
-					kFrontRightSteerPort);
-			m_backLeft = new SwerveModuleSimulator(kBackLeftCANCoderPort, kBackLeftDrivePort, kBackLeftSteerPort);
-			m_backRight = new SwerveModuleSimulator(kBackRightCANCoderPort, kBackRightDrivePort, kBackRightSteerPort);
-		} else {
-			m_frontLeft = new SwerveModule(kFrontLeftCANCoderPort, kFrontLeftDrivePort, kFrontLeftSteerPort);
-			m_frontRight = new SwerveModule(kFrontRightCANCoderPort, kFrontRightDrivePort, kFrontRightSteerPort);
-			m_backLeft = new SwerveModule(kBackLeftCANCoderPort, kBackLeftDrivePort, kBackLeftSteerPort);
-			m_backRight = new SwerveModule(kBackRightCANCoderPort, kBackRightDrivePort, kBackRightSteerPort);
-		}
+		m_frontLeft = new SwerveModule(kFrontLeftCANCoderPort, kFrontLeftDrivePort, kFrontLeftSteerPort);
+		m_frontRight = new SwerveModule(kFrontRightCANCoderPort, kFrontRightDrivePort, kFrontRightSteerPort);
+		m_backLeft = new SwerveModule(kBackLeftCANCoderPort, kBackLeftDrivePort, kBackLeftSteerPort);
+		m_backRight = new SwerveModule(kBackRightCANCoderPort, kBackRightDrivePort, kBackRightSteerPort);
 		// Adjust ramp rate, step voltage, and timeout to make sure robot doesn't
 		// collide with anything
 		var config = new SysIdRoutine.Config(Volts.of(2.5).div(Seconds.of(1)), null, Seconds.of(3));
@@ -271,37 +258,29 @@ public class DriveSubsystem extends SubsystemBase {
 	 *        go forward (+X direction).
 	 * @param strafeSpeed Strafe speed supplier. Positive values make the robot
 	 *        go to the left (+Y direction).
-	 * @param rotationY Rotation Y supplier. Positive is up on the joystick.
-	 * @param rotationX Rotation X supplier. Positive is right on the joystick.
-	 * @param isRobotRelative Supplier for determining if driving should be robot
-	 *        relative.
+	 * @param forwardOrientation Forward orientation supplier. Positive values make
+	 *        the robot face forward (+X direction).
+	 * @param strafeOrientation Strafe orientation supplier. Positive values make
+	 *        the robot face left (+Y direction).
 	 * @return a {@code ChassisSpeeds} instance to drive the robot with joystick
 	 *         input
 	 */
 	public ChassisSpeeds chassisSpeeds(DoubleSupplier forwardSpeed, DoubleSupplier strafeSpeed,
-			DoubleSupplier rotationY, DoubleSupplier rotationX) {
-		// Get the forward, strafe, and rotation speed, using a deadband on the joystick
-		// input so slight movements don't move the robot
-
-		double rotY = rotationY.getAsDouble();
-		double rotX = rotationX.getAsDouble();
-		double distance = Math.hypot(rotX, rotY);
+			DoubleSupplier forwardOrientation, DoubleSupplier strafeOrientation) {
+		var orientation = new Translation2d(forwardOrientation.getAsDouble(), strafeOrientation.getAsDouble());
 		double rotSpeed = 0;
-		if (distance > 0.05) {
-			// 0 is facing towards the other alliance, but joystick forward is
-			var angle = new Rotation2d(rotX, rotY).minus(Rotation2d.kCCW_90deg);
+		if (orientation.getNorm() > 0.05) {
+			var angle = orientation.getAngle();
+			rotSpeed = m_orientationController
+					.calculate(getHeading().getRadians(), angle.getRadians());
 			m_targetHeadingPublisher.set(angle);
-			rotSpeed = m_rotationController.calculate(getHeading().getRadians(), angle.getRadians());
-			var setpoint = m_rotationController.getSetpoint();
-			rotSpeed += m_rotationFeedforward.calculate(setpoint.velocity);
-			rotSpeed = Math.signum(rotSpeed) * Math.min(Math.abs(rotSpeed), 1) * kTeleopTurnMaxAngularSpeed;
 		}
 
 		double fwdSpeed = MathUtil.applyDeadband(forwardSpeed.getAsDouble(), ControllerConstants.kDeadzone);
-		fwdSpeed = Math.signum(fwdSpeed) * Math.pow(fwdSpeed, 2) * kTeleopDriveMaxSpeed;
+		fwdSpeed = Math.signum(fwdSpeed) * Math.pow(fwdSpeed, 2) * kTeleopMaxVoltage;
 
 		double strSpeed = MathUtil.applyDeadband(strafeSpeed.getAsDouble(), ControllerConstants.kDeadzone);
-		strSpeed = Math.signum(strSpeed) * Math.pow(strSpeed, 2) * kTeleopDriveMaxSpeed;
+		strSpeed = Math.signum(strSpeed) * Math.pow(strSpeed, 2) * kTeleopMaxVoltage;
 
 		return chassisSpeeds(fwdSpeed, strSpeed, rotSpeed);
 	}
@@ -313,16 +292,51 @@ public class DriveSubsystem extends SubsystemBase {
 	 *        go forward (+X direction).
 	 * @param strafeSpeed Strafe speed supplier. Positive values make the robot
 	 *        go to the left (+Y direction).
-	 * @param rotationY Rotation Y supplier. Positive is up on the joystick.
-	 * @param rotationX Rotation X supplier. Positive is right on the joystick.
+	 * @param forwardOrientation Forward orientation supplier. Positive values make
+	 *        the robot face forward (+X direction).
+	 * @param strafeOrientation Strafe orientation supplier. Positive values make
+	 *        the robot face left (+Y direction).
 	 * @param isRobotRelative Supplier for determining if driving should be robot
 	 *        relative.
 	 * @return A command to drive the robot.
 	 */
 	public Command driveCommand(DoubleSupplier forwardSpeed, DoubleSupplier strafeSpeed,
-			DoubleSupplier rotationY, DoubleSupplier rotationX, BooleanSupplier isRobotRelative) {
+			DoubleSupplier forwardOrientation, DoubleSupplier strafeOrientation, BooleanSupplier isRobotRelative) {
 		return run(() -> {
-			drive(chassisSpeeds(forwardSpeed, strafeSpeed, rotationY, rotationX), !isRobotRelative.getAsBoolean());
+			var orientation = new Translation2d(forwardOrientation.getAsDouble(), strafeOrientation.getAsDouble());
+			double rotSpeed = 0;
+			if (orientation.getNorm() > 0.05) {
+				var angle = orientation.getAngle();
+				rotSpeed = m_orientationController
+						.calculate(getHeading().getRadians(), angle.getRadians());
+				m_targetHeadingPublisher.set(angle);
+			}
+
+			double fwdSpeed = MathUtil.applyDeadband(forwardSpeed.getAsDouble(), ControllerConstants.kDeadzone);
+			fwdSpeed = Math.signum(fwdSpeed) * Math.pow(fwdSpeed, 2) * kTeleopMaxVoltage;
+
+			double strSpeed = MathUtil.applyDeadband(strafeSpeed.getAsDouble(), ControllerConstants.kDeadzone);
+			strSpeed = Math.signum(strSpeed) * Math.pow(strSpeed, 2) * kTeleopMaxVoltage;
+
+			drive(fwdSpeed, strSpeed, rotSpeed, !isRobotRelative.getAsBoolean());
+		}).withName("DefaultDriveCommand");
+	}
+
+	public Command driveCommand(DoubleSupplier forwardSpeed, DoubleSupplier strafeSpeed,
+			DoubleSupplier rotation, BooleanSupplier isRobotRelative) {
+		return run(() -> {
+			// Get the forward, strafe, and rotation speed, using a deadband on the joystick
+			// input so slight movements don't move the robot
+			double rotSpeed = MathUtil.applyDeadband(rotation.getAsDouble(), ControllerConstants.kDeadzone);
+			rotSpeed = Math.signum(rotSpeed) * Math.pow(rotSpeed, 2) * kTeleopMaxTurnVoltage;
+
+			double fwdSpeed = MathUtil.applyDeadband(forwardSpeed.getAsDouble(), ControllerConstants.kDeadzone);
+			fwdSpeed = Math.signum(fwdSpeed) * Math.pow(fwdSpeed, 2) * kTeleopMaxVoltage;
+
+			double strSpeed = MathUtil.applyDeadband(strafeSpeed.getAsDouble(), ControllerConstants.kDeadzone);
+			strSpeed = Math.signum(strSpeed) * Math.pow(strSpeed, 2) * kTeleopMaxVoltage;
+
+			drive(fwdSpeed, strSpeed, rotSpeed, !isRobotRelative.getAsBoolean());
 		}).withName("DefaultDriveCommand");
 	}
 

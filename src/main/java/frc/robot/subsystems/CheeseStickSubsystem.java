@@ -1,9 +1,9 @@
 package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.*;
-import static edu.wpi.first.wpilibj2.command.Commands.*;
 import static frc.robot.Constants.CheeseStickConstants.*;
 
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.simulation.PWMSim;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
@@ -11,11 +11,10 @@ import edu.wpi.first.wpilibj.smartdashboard.MechanismObject2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
 
 public class CheeseStickSubsystem extends SubsystemBase {
 	private final Servo m_servo = new Servo(kServoPort);
-	private final PWMSim m_sim = new PWMSim(m_servo);
+	private final PWMSim m_sim;
 	private final MechanismLigament2d m_ligament = new MechanismLigament2d("Cheeese Stick", 0, 90);
 
 	public CheeseStickSubsystem(MechanismObject2d attachment) {
@@ -23,6 +22,11 @@ public class CheeseStickSubsystem extends SubsystemBase {
 		m_servo.setBoundsMicroseconds(2500, 0, 0, 0, 500);
 		m_servo.setZeroLatch();
 		attachment.append(m_ligament);
+		if (RobotBase.isSimulation()) {
+			m_sim = new PWMSim(m_servo);
+		} else {
+			m_sim = null;
+		}
 	}
 
 	/**
@@ -43,6 +47,7 @@ public class CheeseStickSubsystem extends SubsystemBase {
 	 * @return The command.
 	 */
 	public Command release() {
+		System.out.println("Servo Release");
 		return runOnce(() -> m_servo.set(kReleaseDistance)).withName("Servo Release");
 	}
 
@@ -56,14 +61,4 @@ public class CheeseStickSubsystem extends SubsystemBase {
 	public Command grab() {
 		return runOnce(() -> m_servo.set(1)).withName("Servo Grab");
 	}
-
-	/**
-	 * Creates a {@code Command} for testing this {@code CheeseStickSubsystem}.
-	 * 
-	 * @return a {@code Command} for testing this {@code CheeseStickSubsystem}
-	 */
-	public Command testCommand() {
-		return sequence(grab(), new WaitCommand(1), release());
-	}
-
 }

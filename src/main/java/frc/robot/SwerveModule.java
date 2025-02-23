@@ -36,7 +36,8 @@ public class SwerveModule {
 		m_steerMotor = new SparkFlex(steerPort, MotorType.kBrushless);
 		m_driveMotor.getConfigurator().apply(DriveConstants.kDriveConfig);
 		var config = new SparkMaxConfig();
-		config.idleMode(IdleMode.kBrake).voltageCompensation(12);
+		// MK4i modules need their steer motors inverted
+		config.idleMode(IdleMode.kBrake).voltageCompensation(12).inverted(true);
 		config.openLoopRampRate(kRampRate).closedLoopRampRate(kRampRate);
 		// Helps with encoder precision (not set in stone)
 		config.encoder.uvwAverageDepth(kEncoderDepth).uvwMeasurementPeriod(kEncoderMeasurementPeriod);
@@ -55,18 +56,18 @@ public class SwerveModule {
 	}
 
 	/**
-	 * Returns the steer current of this {@code SwerveModule}.
+	 * Returns the current of the steer motor
 	 * 
-	 * @return the steer current of this {@code SwerveModule}
+	 * @return The current in amps
 	 */
 	public double getSteerCurrent() {
 		return m_steerMotor.getOutputCurrent();
 	}
 
 	/**
-	 * Returns the steer current of this {@code SwerveModule}.
+	 * Returns the current of the drive motor
 	 * 
-	 * @return the steer current of this {@code SwerveModule}
+	 * @return The current in amps
 	 */
 	public double getDriveCurrent() {
 		return m_driveMotor.getStatorCurrent().getValueAsDouble();

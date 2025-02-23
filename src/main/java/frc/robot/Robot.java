@@ -5,7 +5,6 @@
 package frc.robot;
 
 import static edu.wpi.first.wpilibj2.command.Commands.*;
-import static frc.robot.CommandComposer.*;
 import static frc.robot.Constants.*;
 import static frc.robot.Constants.AlgaeConstants.*;
 import static frc.robot.Constants.ClimberConstants.*;
@@ -32,7 +31,6 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
-import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
@@ -43,11 +41,12 @@ import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.DriveCommand;
 import frc.robot.simulation.VisionSimulator;
 import frc.robot.subsystems.AlgaeGrabberSubsystem;
-import frc.robot.subsystems.AlgaeGrabberSubsystem.GrabberState;
 import frc.robot.subsystems.CheeseStickSubsystem;
 import frc.robot.subsystems.ClimberSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
@@ -57,11 +56,9 @@ import frc.robot.subsystems.WristSubsystem;
 
 public class Robot extends TimedRobot {
 	private Command m_autonomousCommand;
-	private Command m_testCommand;
-	private final SendableChooser<Command> m_testSelector = new SendableChooser<Command>();
+	private final SendableChooser<Command> m_testingChooser = new SendableChooser<>();
 	private final Mechanism2d m_mechanism = new Mechanism2d(Units.inchesToMeters(35), Units.inchesToMeters(100));
 	private final AlgaeGrabberSubsystem m_algaeGrabberSubsystem = new AlgaeGrabberSubsystem();
-
 	private final ClimberSubsystem m_climberSubsystem = new ClimberSubsystem();
 	private final DriveSubsystem m_driveSubsystem = new DriveSubsystem();
 	private final ElevatorSubsystem m_elevatorSubsystem = new ElevatorSubsystem(
@@ -71,7 +68,8 @@ public class Robot extends TimedRobot {
 			m_wristSubsystem.getCheeseStickMount());
 	private final CommandPS5Controller m_driverController = new CommandPS5Controller(kDriverControllerPort);
 	private final CommandPS5Controller m_operatorController = new CommandPS5Controller(kOperatorControllerPort);
-	private final PowerDistribution m_pdh = new PowerDistribution(1, ModuleType.kRev);
+	private final PowerDistribution m_pdh = new PowerDistribution();
+
 	private final VisionSimulator m_visionSimulator = new VisionSimulator(m_driveSubsystem,
 			pose(kFieldLayout.getFieldLength() / 2 + 2.5, 1.91 + .3, 180), 0.01);
 	SimCameraProperties cameraProp = new SimCameraProperties() {
@@ -107,42 +105,6 @@ public class Robot extends TimedRobot {
 		dropChute.append(new MechanismLigament2d("side", Units.inchesToMeters(12), 90, 5, new Color8Bit(Color.kWhite)));
 		m_mechanism.getRoot("dropChute", Units.inchesToMeters(28), Units.inchesToMeters(9)).append(dropChute);
 		SmartDashboard.putData("Superstructure", m_mechanism);
-
-		double distanceTolerance = 0.01;
-		double angleToleranceInDegrees = 1.0;
-		double intermediateDistanceTolerance = 0.16;
-		double intermediateAngleToleranceInDegrees = 16.0;
-		m_testSelector.addOption(
-				"Test All Subsystems",
-				parallel(
-						m_driveSubsystem.testCommand(), m_elevatorSubsystem.testCommand(),
-						m_cheeseStickSubsystem.testCommand()));
-		m_testSelector.addOption(
-				"Test DriveSubsystem (F/B/L/R/LR/RR and F/B while rotating)", m_driveSubsystem.testCommand());
-		m_testSelector.addOption(
-				"Test ElevatorSubsystem", m_elevatorSubsystem.testCommand());
-		m_testSelector.addOption(
-				"Test CheeseStickSubsystem", m_cheeseStickSubsystem.testCommand());
-		m_testSelector
-				.addOption(
-						"Quickly Align to AprilTags 1, 2, 6, 7, and 8",
-						CommandComposer.alignToTags(
-								distanceTolerance, angleToleranceInDegrees, intermediateDistanceTolerance,
-								intermediateAngleToleranceInDegrees,
-								List.of(transform(1.5, 0, 180), transform(1.0, 0, 180), transform(.5, 0, 180)),
-								transform(1.5, 0, 180), 7, 6, 1,
-								6, 7, 8, 2, 8, 7));
-		m_testSelector
-				.addOption(
-						"Check kDriveGearRatio and kWheelDiameter (F/B 6 feet)",
-						CommandComposer.moveForwardBackward(6, distanceTolerance, angleToleranceInDegrees));
-		m_testSelector
-				.addOption(
-						"Check PID Constants for Driving (5'x5' Square)",
-						CommandComposer
-								.moveOnSquare(Units.feetToMeters(5), distanceTolerance, angleToleranceInDegrees, 16));
-		SmartDashboard.putData("Test Selector", m_testSelector);
-
 		SmartDashboard.putData(m_pdh);
 
 		SmartDashboard.putData(CommandScheduler.getInstance());
@@ -152,12 +114,69 @@ public class Robot extends TimedRobot {
 				Map.of(
 						11, "FR Turn", 21, "BR Turn", 31, "BL Turn", 41, "FL Turn", kElevatorMotorPort, "Elevator",
 						kClimberMotorPort, "Climber Motor", kWristMotorPort, "Wrist Motor", kFlywheelMotorPort,
-						"Algae Motor"));
+						"Algae Flywheel Motor", kGrabberAnglePort, "Algae Pivot Motor"));
 		DriverStation.startDataLog(DataLogManager.getLog());
+		addProgrammingCommands();
+		bindClimberControls();
 		bindDriveControls();
 		bindElevatorControls();
 		bindWristControls();
 		bindAlgaeControls();
+		bindCheeseStickControls();
+		SmartDashboard.putData("Testing Chooser", m_testingChooser);
+		m_driverController.options().and(m_driverController.create()).and(() -> !DriverStation.isFMSAttached())
+				.onTrue(Commands.deferredProxy(m_testingChooser::getSelected));
+	}
+
+	public void addProgrammingCommands() {
+		m_testingChooser
+				.addOption("SysId Drive Quasistatic Forward", m_driveSubsystem.sysidQuasistatic(Direction.kForward));
+		m_testingChooser
+				.addOption("SysId Drive Quasistatic Reverse", m_driveSubsystem.sysidQuasistatic(Direction.kReverse));
+		m_testingChooser.addOption("SysId Drive Dynamic Forward", m_driveSubsystem.sysidDynamic(Direction.kForward));
+		m_testingChooser.addOption("SysId Drive Dynamic Reverse", m_driveSubsystem.sysidDynamic(Direction.kReverse));
+		m_testingChooser
+				.addOption("SysId Wrist Quasistatic Forward", m_wristSubsystem.sysidQuasistatic(Direction.kForward));
+		m_testingChooser
+				.addOption("SysId Wrist Quasistatic Reverse", m_wristSubsystem.sysidQuasistatic(Direction.kReverse));
+		m_testingChooser.addOption("SysId Wrist Dynamic Forward", m_wristSubsystem.sysidDynamic(Direction.kForward));
+		m_testingChooser.addOption("SysId Wrist Dynamic Reverse", m_wristSubsystem.sysidDynamic(Direction.kReverse));
+		m_testingChooser.addOption(
+				"SysId Elevator Quasistatic Forward", m_elevatorSubsystem.sysidQuasistatic(Direction.kForward));
+		m_testingChooser.addOption(
+				"SysId Elevator Quasistatic Reverse", m_elevatorSubsystem.sysidQuasistatic(Direction.kReverse));
+		m_testingChooser
+				.addOption("SysId Elevator Dynamic Forward", m_elevatorSubsystem.sysidDynamic(Direction.kForward));
+		m_testingChooser
+				.addOption("SysId Elevator Dynamic Reverse", m_elevatorSubsystem.sysidDynamic(Direction.kReverse));
+		double distanceTolerance = 0.01;
+		double angleToleranceInDegrees = 1.0;
+		double intermediateDistanceTolerance = 0.16;
+		double intermediateAngleToleranceInDegrees = 16.0;
+		m_testingChooser.addOption(
+				"Test All Subsystems",
+				parallel(
+						m_driveSubsystem.testCommand()));
+		m_testingChooser.addOption(
+				"Test DriveSubsystem (F/B/L/R/LR/RR and F/B while rotating)", m_driveSubsystem.testCommand());
+		m_testingChooser
+				.addOption(
+						"Quickly Align to AprilTags 1, 2, 6, 7, and 8",
+						CommandComposer.alignToTags(
+								distanceTolerance, angleToleranceInDegrees, intermediateDistanceTolerance,
+								intermediateAngleToleranceInDegrees,
+								List.of(transform(1.5, 0, 180), transform(1.0, 0, 180), transform(.5, 0, 180)),
+								transform(1.5, 0, 180), 7, 6, 1,
+								6, 7, 8, 2, 8, 7));
+		m_testingChooser
+				.addOption(
+						"Check kDriveGearRatio and kWheelDiameter (F/B 6 feet)",
+						CommandComposer.moveForwardBackward(6, distanceTolerance, angleToleranceInDegrees));
+		m_testingChooser
+				.addOption(
+						"Check PID Constants for Driving (5'x5' Square)",
+						CommandComposer
+								.moveOnSquare(Units.feetToMeters(5), distanceTolerance, angleToleranceInDegrees, 16));
 	}
 
 	public void bindDriveControls() {
@@ -165,38 +184,49 @@ public class Robot extends TimedRobot {
 				m_driveSubsystem.driveCommand(
 						() -> -m_driverController.getLeftY(),
 						() -> -m_driverController.getLeftX(),
-						() -> -m_driverController.getRightY(),
-						() -> m_driverController.getRightX(),
+						// (m_driverController.axisMagnitudeGreaterThan(1, 5) == 0) ?
+						() -> m_driverController.getL2Axis() - m_driverController.getR2Axis(),
 						m_driverController.getHID()::getSquareButton)); // makes the robot robot-oriented
+		// m_driveSubsystem.setDefaultCommand(
+		// m_driveSubsystem.driveCommand(
+		// () -> -m_driverController.getLeftY(),
+		// () -> -m_driverController.getLeftX(),
+		// () -> -m_driverController.getRightY(),
+		// () -> -m_driverController.getRightX(),
+		// m_driverController.getHID()::getSquareButton)); // makes the robot
+		// robot-oriented
+
 		m_driverController.options().onTrue(m_driveSubsystem.resetHeading());
 	}
 
 	public void bindElevatorControls() {
-		m_elevatorSubsystem.setDefaultCommand(m_elevatorSubsystem.manualMove(() -> -m_operatorController.getLeftY()));
-		m_operatorController.triangle().onTrue(scoreLevelFour());
-		m_operatorController.square().onTrue(scoreLevelThree());
-		m_operatorController.cross().onTrue(scoreLevelTwo());
-		m_operatorController.circle().onTrue(scoreLevelOne());
+		m_operatorController.axisMagnitudeGreaterThan((int) m_operatorController.getLeftY(), 0)
+				.whileTrue(m_elevatorSubsystem.manualMove(() -> -m_operatorController.getLeftY()));
+		m_operatorController.triangle().onTrue(
+				m_elevatorSubsystem.goToLevelFourHeight().andThen(m_wristSubsystem.goToAngle(kGrabberAngleLevelFour)));
+		m_operatorController.square().onTrue(
+				m_elevatorSubsystem.goToLevelThreeHeight().andThen(m_wristSubsystem.goToAngle(kGrabberAngleOthers)));
+		m_operatorController.cross().onTrue(
+				m_elevatorSubsystem.goToLevelTwoHeight().andThen(m_wristSubsystem.goToAngle(kGrabberAngleOthers)));
+		m_operatorController.circle().onTrue(
+				m_elevatorSubsystem.goToLevelOneHeight().andThen(m_wristSubsystem.goToAngle(kGrabberAngleOthers)));
 		// m_operatorController.povLeft().onTrue(m_elevatorSubsystem.goToCoralStationHeight());
 		m_operatorController.L1().and(m_operatorController.circle()).onTrue(m_elevatorSubsystem.goToBaseHeight());
+		m_operatorController.create().onTrue(m_elevatorSubsystem.resetTheEncoder());
 	}
 
 	public void bindAlgaeControls() {
-		m_operatorController.L2().onTrue(
-				m_algaeGrabberSubsystem.deployGrabber(GrabberState.DOWN)
-						.andThen(m_algaeGrabberSubsystem.runFlywheel()).until(
-								() -> m_algaeGrabberSubsystem.checkCurrentOnFlywheel())
-						.andThen(m_algaeGrabberSubsystem.slowRunFlywheel()));
-		m_operatorController.R2().onTrue(
-				m_algaeGrabberSubsystem.deployGrabber(GrabberState.UP)
-						.andThen(m_algaeGrabberSubsystem.stopFlywheel()));
+		m_algaeGrabberSubsystem
+				.setDefaultCommand(m_algaeGrabberSubsystem.manualMove(() -> m_operatorController.getRightY()));
+		m_operatorController.L2().onTrue(m_algaeGrabberSubsystem.grabAlgaeAndHold());
+		m_operatorController.R2().onTrue(m_algaeGrabberSubsystem.releaseAlgae());
 
-		m_operatorController.options().onTrue(m_algaeGrabberSubsystem.runFlywheelReverse());
-		m_operatorController.options().onFalse(m_algaeGrabberSubsystem.stopFlywheel());
+		m_operatorController.options().onTrue(m_algaeGrabberSubsystem.reverseFlywheelAndStop());
 	}
 
 	public void bindWristControls() {
-		m_wristSubsystem.setDefaultCommand(m_wristSubsystem.manualMove(() -> m_operatorController.getRightY()));
+		// m_wristSubsystem.setDefaultCommand(m_wristSubsystem.manualMove(() ->
+		// m_operatorController.getRightY()));
 		// m_driverController.circle().onTrue(m_wristSubsystem.reverseMotor());
 		// m_driverController.square().onTrue(m_wristSubsystem.forwardMotor());
 	}
@@ -207,8 +237,10 @@ public class Robot extends TimedRobot {
 	}
 
 	public void bindClimberControls() {
-		m_operatorController.povDown().whileTrue(m_climberSubsystem.moveForward())
-				.onFalse(m_climberSubsystem.moveBackward());
+		m_climberSubsystem.setDefaultCommand(m_climberSubsystem.manualMove(() -> m_operatorController.getRightY()));
+
+		// m_operatorController.povDown().whileTrue(m_climberSubsystem.moveForward())
+		// .onFalse(m_climberSubsystem.moveBackward());
 	}
 
 	/**
@@ -278,6 +310,7 @@ public class Robot extends TimedRobot {
 
 	@Override
 	public void disabledInit() {
+		CommandScheduler.getInstance().cancelAll();
 	}
 
 	@Override
@@ -323,9 +356,9 @@ public class Robot extends TimedRobot {
 	@Override
 	public void testInit() {
 		CommandScheduler.getInstance().cancelAll();
-		m_testCommand = m_testSelector.getSelected();
-		if (m_testCommand != null)
-			m_testCommand.schedule();
+		var testCommand = m_testingChooser.getSelected();
+		if (testCommand != null)
+			testCommand.schedule();
 	}
 
 	@Override

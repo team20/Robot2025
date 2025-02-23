@@ -16,14 +16,14 @@ import edu.wpi.first.units.measure.Distance;
 
 public class Constants {
 	public static final class AlgaeConstants {
-		public static final int kFlywheelMotorPort = 24;
-		public static final int kGrabberAnglePort = 23;
-		public static final boolean kFlywheelInvert = true;
+		public static final int kFlywheelMotorPort = 23;
+		public static final int kGrabberAnglePort = 24;
+		public static final boolean kFlywheelInvert = false;
 		public static final boolean kGrabberAngleInvert = false;
 
 		public static final int kSmartCurrentLimit = 15;
 		public static final double kSecondaryCurrentLimit = 20;
-		public static final double kTimeOverCurrentToStop = .01;
+		public static final double kTimeOverCurrentToStop = .25;
 
 		public static final float kDeployGrabberRotations = 2;
 		public static final double kFlywheelSpeed = .8;
@@ -75,27 +75,25 @@ public class Constants {
 		public static final int kBackLeftCANCoderPort = 32;
 
 		// TODO: Make sure these are tuned (can do with SysId)
-		// public static final double kP = 0.09;
-		public static final double kP = 0.03;
+		public static final double kP = 0.09;
 		public static final double kI = 0.0;
 		public static final double kD = 0.1 * kP;
 		public static final double kS = 0;
 		public static final double kV = 0.11;
 		public static final double kA = 0.009;
 
-		// public static final double kRotationP = 0.4;
-		public static final double kRotationP = 5;
+		public static final double kRotationP = 5; // TODO: tune it
 		public static final double kRotationI = 0.0;
-		public static final double kRotationD = 0;
+		public static final double kRotationD = 0.1; // TODO: tune it
 		public static final double kRotationS = 0;
-		// public static final double kRotationV = 1.9;
-		public static final double kRotationV = 0.5;
+		public static final double kRotationV = 1.9;
 		public static final double kRotationA = 0.009;
 
 		public static final double kTeleopMaxVoltage = 12;
-		// public static final double kTeleopMaxTurnVoltage = 7.2;
 		public static final double kTeleopDriveMaxSpeed = 5.0; // 5 meters per second
 		public static final double kTeleopTurnMaxAngularSpeed = Math.toRadians(360); // 1 rotation per second
+
+		public static final double kTeleopMaxTurnVoltage = 7.2;
 		public static final double kDriveGearRatio = 6.75;
 		public static final double kSteerGearRatio = 150.0 / 7;
 		public static final double kWheelDiameter = Units.inchesToMeters(4);
@@ -148,12 +146,12 @@ public class Constants {
 		public static final int kElevatorMotorPort = 26;
 		public static final int kSmartCurrentLimit = 60;
 		public static final int kSecondaryCurrentLimit = 70;
-		public static final double kP = 0; // TODO: tune
+		public static final double kP = 1.1; // 1.3, 1
 		public static final double kI = 0;
 		public static final double kD = 0;
 		public static final double kS = 0;
-		public static final double kG = 2;
-		public static final double kV = 2;
+		public static final double kG = 1;
+		public static final double kV = 0; // 2
 		public static final double kA = 0;
 		public static final double kGearRatio = 10;
 		/**
@@ -169,16 +167,16 @@ public class Constants {
 		 * </pre>
 		 */
 		public static final double kMetersPerMotorRotation = (1 / kGearRatio)
-				* (2 * Math.PI * kMetersPerPulleyRotation);
-		public static final double kMaxVelocity = 2;
-		public static final double kMaxAccel = 2;
+				* kMetersPerPulleyRotation;
+		public static final double kMaxVelocity = 1.5;
+		public static final double kMaxAccel = 1; // 2
 		public static final double kTolerance = 1;
-		public static final int kMaxExtension = 250; // TODO: Check this?
 		// TODO: During testing make sure these are right
 		public static final double kLevelOneHeight = Units.inchesToMeters(41 - 24);
 		public static final double kLevelTwoHeight = kLevelOneHeight; // same as level 1
 		public static final double kLevelThreeHeight = Units.inchesToMeters(60 - 24);
-		public static final double kLevelFourHeight = Units.inchesToMeters(90 - 24);
+		public static final double kLevelFourHeight = Units.inchesToMeters(60 - 24);
+		public static final double kMaxHeight = 0.75 * kMetersPerMotorRotation;
 		// TODO: The amount that the elevator decreases in order to score
 		public static final double kToScoreHeightDecrease = 0;
 		public static final double kCoralStationHeight = 0; // TODO: Change
@@ -188,6 +186,8 @@ public class Constants {
 		public static final int kWristMotorPort = 27;
 		public static final int kSmartCurrentLimit = 20;
 		public static final int kSecondaryCurrentLimit = 20;
+		public static final int kGrabberAngleLevelFour = -55;
+		public static final int kGrabberAngleOthers = -35;
 
 		// TODO: Make sure these are tuned (can do with SysId)
 		public static final double kP = 0.09;
