@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import static edu.wpi.first.wpilibj2.command.Commands.*;
 import static frc.robot.Constants.AlgaeConstants.*;
 import static frc.robot.Constants.ClimberConstants.*;
 import static frc.robot.Constants.ControllerConstants.*;
@@ -115,6 +116,15 @@ public class Robot extends TimedRobot {
 						() -> -m_driverController.getRightY(),
 						() -> m_driverController.getRightX(),
 						m_driverController.getHID()::getSquareButton)); // makes the robot robot-oriented
+		// m_driveSubsystem.setDefaultCommand(
+		// m_driveSubsystem.driveCommand(
+		// () -> -m_driverController.getLeftY(),
+		// () -> -m_driverController.getLeftX(),
+		// () -> -m_driverController.getRightY(),
+		// () -> m_driverController.getRightX(),
+		// m_driverController.getHID()::getSquareButton)); // makes the robot
+		// robot-oriented
+
 		m_driverController.options().onTrue(m_driveSubsystem.resetHeading());
 	}
 
@@ -133,8 +143,9 @@ public class Robot extends TimedRobot {
 	}
 
 	public void bindAlgaeControls() {
-		m_algaeGrabberSubsystem
-				.setDefaultCommand(m_algaeGrabberSubsystem.manualMove(() -> m_operatorController.getRightY()));
+		// m_algaeGrabberSubsystem
+		// .setDefaultCommand(m_algaeGrabberSubsystem.manualMove(() ->
+		// m_operatorController.getRightY()));
 		m_operatorController.L2().onTrue(
 				m_algaeGrabberSubsystem.deployGrabber(GrabberState.DOWN)
 						.andThen(m_algaeGrabberSubsystem.runFlywheel()).until(
@@ -157,13 +168,14 @@ public class Robot extends TimedRobot {
 	}
 
 	public void bindCheeseStickControls() {
-		// m_operatorController.R1().whileFalse(m_cheeseStickSubsystem.grab());
-		m_operatorController.R1().onTrue(m_cheeseStickSubsystem.release());
+		m_operatorController.R1().whileFalse(m_cheeseStickSubsystem.grab()).onFalse(m_cheeseStickSubsystem.release());
 	}
 
 	public void bindClimberControls() {
-		m_operatorController.povDown().whileTrue(m_climberSubsystem.moveForward())
-				.onFalse(m_climberSubsystem.moveBackward());
+		m_climberSubsystem.setDefaultCommand(m_climberSubsystem.manualMove(() -> m_operatorController.getRightY()));
+
+		// m_operatorController.povDown().whileTrue(m_climberSubsystem.moveForward())
+		// .onFalse(m_climberSubsystem.moveBackward());
 	}
 
 	@Override
@@ -219,6 +231,14 @@ public class Robot extends TimedRobot {
 	@Override
 	public void testInit() {
 		CommandScheduler.getInstance().cancelAll();
+		sequence(
+				m_driveSubsystem.run(() -> m_driveSubsystem.drive(0.5, 0, 0, false)).withTimeout(4),
+				m_driveSubsystem.run(() -> m_driveSubsystem.drive(-0.5, 0, 0, false)).withTimeout(4),
+				m_driveSubsystem.run(() -> m_driveSubsystem.drive(0, 0.5, 0, false)).withTimeout(4),
+				m_driveSubsystem.run(() -> m_driveSubsystem.drive(0, -0.5, 0, false)).withTimeout(4),
+				m_driveSubsystem.run(() -> m_driveSubsystem.drive(0, 0, 0.5, false)).withTimeout(4),
+				m_driveSubsystem.run(() -> m_driveSubsystem.drive(0, 0, -0.5, false)).withTimeout(4)).schedule();
+
 	}
 
 	@Override
