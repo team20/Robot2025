@@ -251,7 +251,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 	 * @return the command
 	 */
 	public Command goToLevelThreeHeight() {
-		return goToLevel(kLevelThreeHeight).withName("Elevator to Level 2");
+		return goToLevel(kLevelThreeHeight).withName("Elevator to Level 3");
 	}
 
 	/**
@@ -260,7 +260,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 	 * @return the command
 	 */
 	public Command goToLevelFourHeight() {
-		return goToLevel(kLevelFourHeight).withName("Elevator to Level 2");
+		return goToLevel(kLevelFourHeight).withName("Elevator to Level 4");
 	}
 
 	/**
