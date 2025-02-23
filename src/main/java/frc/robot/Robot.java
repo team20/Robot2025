@@ -127,7 +127,8 @@ public class Robot extends TimedRobot {
 	}
 
 	public void bindElevatorControls() {
-		m_elevatorSubsystem.setDefaultCommand(m_elevatorSubsystem.manualMove(() -> -m_operatorController.getLeftY()));
+		m_operatorController.axisMagnitudeGreaterThan((int) m_operatorController.getLeftY(), 0)
+				.whileTrue(m_elevatorSubsystem.manualMove(() -> -m_operatorController.getLeftY()));
 		m_operatorController.triangle().onTrue(
 				m_elevatorSubsystem.goToLevelFourHeight().andThen(m_wristSubsystem.goToAngle(kGrabberAngleLevelFour)));
 		m_operatorController.square().onTrue(
@@ -138,6 +139,7 @@ public class Robot extends TimedRobot {
 				m_elevatorSubsystem.goToLevelOneHeight().andThen(m_wristSubsystem.goToAngle(kGrabberAngleOthers)));
 		// m_operatorController.povLeft().onTrue(m_elevatorSubsystem.goToCoralStationHeight());
 		m_operatorController.L1().and(m_operatorController.circle()).onTrue(m_elevatorSubsystem.goToBaseHeight());
+		m_operatorController.create().onTrue(m_elevatorSubsystem.resetTheEncoder());
 	}
 
 	public void bindAlgaeControls() {
@@ -157,7 +159,8 @@ public class Robot extends TimedRobot {
 	}
 
 	public void bindCheeseStickControls() {
-		m_operatorController.R1().whileFalse(m_cheeseStickSubsystem.grab()).onFalse(m_cheeseStickSubsystem.release());
+		m_operatorController.R1().whileFalse(m_cheeseStickSubsystem.grab());
+		m_operatorController.R1().whileTrue(m_cheeseStickSubsystem.release());
 	}
 
 	public void bindClimberControls() {
