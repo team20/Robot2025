@@ -3,6 +3,7 @@ package frc.robot.subsystems;
 import static edu.wpi.first.units.Units.*;
 import static frc.robot.Constants.CheeseStickConstants.*;
 
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.simulation.PWMSim;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
@@ -13,7 +14,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class CheeseStickSubsystem extends SubsystemBase {
 	private final Servo m_servo = new Servo(kServoPort);
-	private final PWMSim m_sim = new PWMSim(m_servo);
+	private final PWMSim m_sim;
 	private final MechanismLigament2d m_ligament = new MechanismLigament2d("Cheeese Stick", 0, 90);
 
 	public CheeseStickSubsystem(MechanismObject2d attachment) {
@@ -21,6 +22,11 @@ public class CheeseStickSubsystem extends SubsystemBase {
 		m_servo.setBoundsMicroseconds(2500, 0, 0, 0, 500);
 		m_servo.setZeroLatch();
 		attachment.append(m_ligament);
+		if (RobotBase.isSimulation()) {
+			m_sim = new PWMSim(m_servo);
+		} else {
+			m_sim = null;
+		}
 	}
 
 	/**
