@@ -52,7 +52,7 @@ public class ClimberSubsystem extends SubsystemBase {
 	 * 
 	 * @return backwards command
 	 */
-	public Command moveBackward() { // TODO: might break things?
+	public Command moveBackward() {
 		return run(() -> {
 			m_motor.set(-kSpeed);
 		}).withName("Climber Backwards");

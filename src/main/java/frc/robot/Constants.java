@@ -123,11 +123,11 @@ public class Constants {
 		public static final int kElevatorMotorPort = 26;
 		public static final int kSmartCurrentLimit = 60;
 		public static final int kSecondaryCurrentLimit = 70;
-		public static final double kP = 0; // TODO: tune
+		public static final double kP = 1.3; // TODO: tune
 		public static final double kI = 0;
 		public static final double kD = 0;
 		public static final double kS = 0;
-		public static final double kG = 2;
+		public static final double kG = 1;
 		public static final double kV = 2;
 		public static final double kA = 0;
 		public static final double kGearRatio = 10;
