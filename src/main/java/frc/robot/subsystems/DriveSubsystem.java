@@ -250,6 +250,24 @@ public class DriveSubsystem extends SubsystemBase {
 		}).withName("DefaultDriveCommand");
 	}
 
+	public Command driveCommand(DoubleSupplier forwardSpeed, DoubleSupplier strafeSpeed,
+			DoubleSupplier rotation, BooleanSupplier isRobotRelative) {
+		return run(() -> {
+			// Get the forward, strafe, and rotation speed, using a deadband on the joystick
+			// input so slight movements don't move the robot
+			double rotSpeed = MathUtil.applyDeadband(rotation.getAsDouble(), ControllerConstants.kDeadzone);
+			rotSpeed = Math.signum(rotSpeed) * Math.pow(rotSpeed, 2) * kTeleopMaxTurnVoltage;
+
+			double fwdSpeed = MathUtil.applyDeadband(forwardSpeed.getAsDouble(), ControllerConstants.kDeadzone);
+			fwdSpeed = Math.signum(fwdSpeed) * Math.pow(fwdSpeed, 2) * kTeleopMaxVoltage;
+
+			double strSpeed = MathUtil.applyDeadband(strafeSpeed.getAsDouble(), ControllerConstants.kDeadzone);
+			strSpeed = Math.signum(strSpeed) * Math.pow(strSpeed, 2) * kTeleopMaxVoltage;
+
+			drive(fwdSpeed, strSpeed, rotSpeed, !isRobotRelative.getAsBoolean());
+		}).withName("DefaultDriveCommand");
+	}
+
 	/**
 	 * Creates a command to reset the gyro heading to zero.
 	 * 
