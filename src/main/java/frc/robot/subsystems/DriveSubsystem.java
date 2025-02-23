@@ -15,16 +15,15 @@ import com.studica.frc.AHRS.NavXComType;
 
 import edu.wpi.first.hal.SimDouble;
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.controller.ProfiledPIDController;
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
@@ -56,14 +55,11 @@ public class DriveSubsystem extends SubsystemBase {
 	private final StructArrayPublisher<SwerveModuleState> m_currentModuleStatePublisher;
 	private final StructPublisher<Rotation2d> m_targetHeadingPublisher;
 
-	private final SimpleMotorFeedforward m_rotationFeedforward = new SimpleMotorFeedforward(kRotationS, kRotationV,
-			kRotationA);
-	private final ProfiledPIDController m_rotationController = new ProfiledPIDController(kRotationP, kRotationI,
-			kRotationD, new Constraints(9, 25));
+	private final PIDController m_orientationController = new PIDController(kRotationP, kRotationI, kRotationD);
 
 	/** Creates a new DriveSubsystem. */
 	public DriveSubsystem() {
-		m_rotationController.enableContinuousInput(-Math.PI, Math.PI);
+		m_orientationController.enableContinuousInput(-Math.PI, Math.PI);
 		m_posePublisher = NetworkTableInstance.getDefault().getStructTopic("/SmartDashboard/Pose", Pose2d.struct)
 				.publish();
 		m_currentChassisSpeedsPublisher = NetworkTableInstance.getDefault()
@@ -214,30 +210,24 @@ public class DriveSubsystem extends SubsystemBase {
 	 *        go forward (+X direction).
 	 * @param strafeSpeed Strafe speed supplier. Positive values make the robot
 	 *        go to the left (+Y direction).
-	 * @param rotationY Rotation Y supplier. Positive is up on the joystick.
-	 * @param rotationX Rotation X supplier. Positive is right on the joystick.
+	 * @param forwardOrientation Forward orientation supplier. Positive values make
+	 *        the robot face forward (+X direction).
+	 * @param strafeOrientation Strafe orientation supplier. Positive values make
+	 *        the robot face left (+Y direction).
 	 * @param isRobotRelative Supplier for determining if driving should be robot
 	 *        relative.
 	 * @return A command to drive the robot.
 	 */
 	public Command driveCommand(DoubleSupplier forwardSpeed, DoubleSupplier strafeSpeed,
-			DoubleSupplier rotationY, DoubleSupplier rotationX, BooleanSupplier isRobotRelative) {
+			DoubleSupplier forwardOrientation, DoubleSupplier strafeOrientation, BooleanSupplier isRobotRelative) {
 		return run(() -> {
-			// Get the forward, strafe, and rotation speed, using a deadband on the joystick
-			// input so slight movements don't move the robot
-
-			double rotY = rotationY.getAsDouble();
-			double rotX = rotationX.getAsDouble();
-			double distance = Math.hypot(rotX, rotY);
+			var orientation = new Translation2d(forwardOrientation.getAsDouble(), strafeOrientation.getAsDouble());
 			double rotSpeed = 0;
-			if (distance > 0.05) {
-				// 0 is facing towards the other alliance, but joystick forward is
-				var angle = new Rotation2d(rotX, rotY).minus(Rotation2d.kCCW_90deg);
+			if (orientation.getNorm() > 0.05) {
+				var angle = orientation.getAngle();
+				rotSpeed = m_orientationController
+						.calculate(getHeading().getRadians(), angle.getRadians());
 				m_targetHeadingPublisher.set(angle);
-				rotSpeed = m_rotationController.calculate(getHeading().getRadians(), angle.getRadians());
-				var setpoint = m_rotationController.getSetpoint();
-				rotSpeed += m_rotationFeedforward.calculate(setpoint.velocity);
-				rotSpeed = Math.signum(rotSpeed) * Math.min(Math.abs(rotSpeed), 1) * distance * kTeleopMaxTurnVoltage;
 			}
 
 			double fwdSpeed = MathUtil.applyDeadband(forwardSpeed.getAsDouble(), ControllerConstants.kDeadzone);
