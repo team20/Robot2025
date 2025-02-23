@@ -41,6 +41,7 @@ public class CheeseStickSubsystem extends SubsystemBase {
 	 * @return The command.
 	 */
 	public Command release() {
+		System.out.println("Servo Release");
 		return runOnce(() -> m_servo.set(kReleaseDistance)).withName("Servo Release");
 	}
 

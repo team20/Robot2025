@@ -56,7 +56,7 @@ public class AlgaeGrabberSubsystem extends SubsystemBase {
 		config.voltageCompensation(12).secondaryCurrentLimit(kSecondaryCurrentLimit);
 		config.closedLoop
 				.feedbackSensor(FeedbackSensor.kAbsoluteEncoder)
-				.pid(kP, \[], kD);
+				.pid(kP, kI, kD);
 		m_grabberAngleMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 		m_grabberAngleMotor.getEncoder().getPosition();
 		m_grabberAngleMotor.getAbsoluteEncoder().getPosition();
