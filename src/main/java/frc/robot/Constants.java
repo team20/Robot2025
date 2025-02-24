@@ -77,7 +77,7 @@ public class Constants {
 		// TODO: Make sure these are tuned (can do with SysId)
 		public static final double kP = 0.09;
 		public static final double kI = 0.0;
-		public static final double kD = 0.1 * kP;
+		public static final double kD = 0;
 		public static final double kS = 0;
 		public static final double kV = 0.11;
 		public static final double kA = 0.009;
@@ -126,19 +126,19 @@ public class Constants {
 			kDriveConfig.OpenLoopRamps.VoltageOpenLoopRampPeriod = kRampRate;
 		}
 
-		// DriveCommand.java Constants
 		public static final double kDriveMaxSpeed = 5.0; // 5 meters per second
 		public static final double kDriveMinSpeed = 0.4; // 0.4 meters per second
 		public static final double kTurnMaxAngularSpeed = Math.toRadians(360); // 1 rotation per second
 
+		// DriveCommand.java Constants
 		public static final double kDriveP = 5;
 		public static final double kDriveI = 0;
 		public static final double kDriveD = 0;
 		public static final double kDriveMaxAcceleration = 0.75 * kDriveMaxSpeed; // kDriveMaxSpeed in 1.5 sec
 
-		public static final double kTurnP = 5;
+		public static final double kTurnP = 10;
 		public static final double kTurnI = 0;
-		public static final double kTurnD = 0;
+		public static final double kTurnD = 0.1;
 		public static final double kTurnMaxAcceleration = 0.75 * kTurnMaxAngularSpeed; // kTurnMaxAngularSpeed in 1.5
 	}
 

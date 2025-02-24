@@ -4,7 +4,6 @@
 
 package frc.robot;
 
-import static edu.wpi.first.wpilibj2.command.Commands.*;
 import static frc.robot.Constants.*;
 import static frc.robot.Constants.AlgaeConstants.*;
 import static frc.robot.Constants.ClimberConstants.*;
@@ -106,7 +105,6 @@ public class Robot extends TimedRobot {
 		m_mechanism.getRoot("dropChute", Units.inchesToMeters(28), Units.inchesToMeters(9)).append(dropChute);
 		SmartDashboard.putData("Superstructure", m_mechanism);
 		SmartDashboard.putData(m_pdh);
-
 		SmartDashboard.putData(CommandScheduler.getInstance());
 		DataLogManager.start();
 		DataLogManager.logNetworkTables(true);
@@ -151,14 +149,28 @@ public class Robot extends TimedRobot {
 				.addOption("SysId Elevator Dynamic Reverse", m_elevatorSubsystem.sysidDynamic(Direction.kReverse));
 		double distanceTolerance = 0.01;
 		double angleToleranceInDegrees = 1.0;
-		double intermediateDistanceTolerance = 0.16;
-		double intermediateAngleToleranceInDegrees = 16.0;
-		m_testingChooser.addOption(
-				"Test All Subsystems",
-				parallel(
-						m_driveSubsystem.testCommand()));
-		m_testingChooser.addOption(
-				"Test DriveSubsystem (F/B/L/R/LR/RR and F/B while rotating)", m_driveSubsystem.testCommand());
+		double intermediateDistanceTolerance = 0.08;
+		double intermediateAngleToleranceInDegrees = 8.0;
+
+		m_testingChooser
+				.addOption(
+						"Quickly Align to AprilTags 12, 13, 17, 18, and 19",
+						CommandComposer.alignToTags(
+								distanceTolerance, angleToleranceInDegrees, intermediateDistanceTolerance,
+								intermediateAngleToleranceInDegrees,
+								List.of(transform(1.5, 0, 180), transform(1.0, 0, 180), transform(.8, 0, 180)),
+								transform(1.5, 0, 180), 18, 17, 12, 17, 18, 19, 13, 19, 18));
+		m_testingChooser
+				.addOption(
+						"Quickly Align AprilTags 17, 18, 19, 20, 21, and 22",
+						CommandComposer.alignToTags(
+								distanceTolerance, angleToleranceInDegrees, intermediateDistanceTolerance,
+								intermediateAngleToleranceInDegrees,
+								List.of(
+										transform(1.5, 0.33 / 2, 180), transform(1.0, 0.33 / 2, 180),
+										transform(.5, 0.33 / 2, 180)),
+								transform(1.5, 0.33 / 2, 180),
+								17, 18, 19, 20, 21, 22, 17));
 		m_testingChooser
 				.addOption(
 						"Quickly Align to AprilTags 1, 2, 6, 7, and 8",
@@ -177,6 +189,9 @@ public class Robot extends TimedRobot {
 						"Check PID Constants for Driving (5'x5' Square)",
 						CommandComposer
 								.moveOnSquare(Units.feetToMeters(5), distanceTolerance, angleToleranceInDegrees, 16));
+		m_testingChooser
+				.addOption(
+						"Check DriveSubsystem (F/B/L/R/LR/RR and F/B while rotating)", m_driveSubsystem.testCommand());
 	}
 
 	public void bindDriveControls() {

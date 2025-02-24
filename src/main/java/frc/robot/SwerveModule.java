@@ -8,6 +8,7 @@ import static frc.robot.Constants.DriveConstants.*;
 
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.revrobotics.sim.SparkFlexSim;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkFlex;
@@ -19,6 +20,10 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.system.plant.LinearSystemId;
+import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import frc.robot.Constants.DriveConstants;
 
 /**
@@ -30,10 +35,15 @@ public class SwerveModule {
 	protected final TalonFX m_driveMotor;
 	protected final SparkFlex m_steerMotor;
 
+	private final SparkFlexSim m_steerMotorSim;
+	private final DCMotorSim m_driveMotorModel;
+	private final DCMotorSim m_steerMotorModel;
+
 	public SwerveModule(int canId, int drivePort, int steerPort) {
 		m_CANCoder = new CANcoder(canId);
 		m_driveMotor = new TalonFX(drivePort);
 		m_steerMotor = new SparkFlex(steerPort, MotorType.kBrushless);
+		m_steerMotorSim = new SparkFlexSim(m_steerMotor, DCMotor.getNEO(1));
 		m_driveMotor.getConfigurator().apply(DriveConstants.kDriveConfig);
 		var config = new SparkMaxConfig();
 		// MK4i modules need their steer motors inverted
@@ -44,6 +54,17 @@ public class SwerveModule {
 		config.smartCurrentLimit(kSteerSmartCurrentLimit).secondaryCurrentLimit(kSteerSecondaryCurrentLimit);
 		m_steerMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 		m_steerController.enableContinuousInput(0, 360);
+		if (RobotBase.isSimulation()) {
+			m_driveMotorModel = new DCMotorSim(
+					LinearSystemId.createDCMotorSystem(kV / (2 * Math.PI), kA / (2 * Math.PI)),
+					DCMotor.getKrakenX60(1).withReduction(kDriveGearRatio));
+			m_steerMotorModel = new DCMotorSim(
+					LinearSystemId.createDCMotorSystem(kV / (2 * Math.PI), kA / (2 * Math.PI)),
+					DCMotor.getKrakenX60(1));
+		} else {
+			m_driveMotorModel = null;
+			m_steerMotorModel = null;
+		}
 	}
 
 	/**
@@ -136,6 +157,23 @@ public class SwerveModule {
 		m_driveMotor.setVoltage(state.speedMetersPerSecond);
 		double turnPower = m_steerController.calculate(getModuleAngle(), state.angle.getDegrees());
 		m_steerMotor.setVoltage(turnPower);
+		updateSim();
 	}
 
+	private void updateSim() {
+		if (RobotBase.isSimulation()) {
+			var driveMotorState = m_driveMotor.getSimState();
+			m_driveMotorModel.setInputVoltage(driveMotorState.getMotorVoltage());
+			m_driveMotorModel.update(0.02);
+			driveMotorState.setRotorVelocity(m_driveMotorModel.getAngularVelocityRPM() / 60);
+			driveMotorState.setRawRotorPosition(m_driveMotorModel.getAngularPositionRotations());
+
+			var encoderSimState = m_CANCoder.getSimState();
+			m_steerMotorModel.setInputVoltage(m_steerMotorSim.getAppliedOutput() * 12);
+			m_steerMotorModel.update(0.02);
+			m_steerMotorSim.iterate(m_steerMotorModel.getAngularVelocityRPM(), 12, 0.02);
+			encoderSimState.setRawPosition(m_steerMotorModel.getAngularPositionRotations() / kSteerGearRatio);
+			encoderSimState.setVelocity(m_steerMotorModel.getAngularVelocityRPM() / 60 / kSteerGearRatio);
+		}
+	}
 }
