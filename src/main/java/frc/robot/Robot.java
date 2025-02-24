@@ -49,14 +49,17 @@ import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.DriveCommand;
 import frc.robot.commands.PathDriveCommand;
+import frc.robot.simulation.CheeseStickSimulator;
+import frc.robot.simulation.ElevatorSimulator;
+import frc.robot.simulation.SimpleCheeseStickSubsystem;
+import frc.robot.simulation.SimpleElevatorSubsystem;
+import frc.robot.simulation.SimpleWristSubsystem;
 import frc.robot.simulation.VisionSimulator;
+import frc.robot.simulation.WristSimulator;
 import frc.robot.subsystems.AlgaeGrabberSubsystem;
-import frc.robot.subsystems.CheeseStickSubsystem;
 import frc.robot.subsystems.ClimberSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
-import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.PoseEstimationSubsystem;
-import frc.robot.subsystems.WristSubsystem;
 
 public class Robot extends TimedRobot {
 	private Command m_autonomousCommand;
@@ -65,11 +68,13 @@ public class Robot extends TimedRobot {
 	private final AlgaeGrabberSubsystem m_algaeGrabberSubsystem = new AlgaeGrabberSubsystem();
 	private final ClimberSubsystem m_climberSubsystem = new ClimberSubsystem();
 	private final DriveSubsystem m_driveSubsystem = new DriveSubsystem();
-	private final ElevatorSubsystem m_elevatorSubsystem = new ElevatorSubsystem(
-			m_mechanism.getRoot("anchor", Units.inchesToMeters(23), 0));
-	private final WristSubsystem m_wristSubsystem = new WristSubsystem(m_elevatorSubsystem.getWristMount());
-	private final CheeseStickSubsystem m_cheeseStickSubsystem = new CheeseStickSubsystem(
-			m_wristSubsystem.getCheeseStickMount());
+	private final SimpleElevatorSubsystem m_elevatorSubsystem = RobotBase.isSimulation() ? new ElevatorSimulator(
+			m_mechanism.getRoot("anchor", Units.inchesToMeters(23), 0)) : new SimpleElevatorSubsystem();
+	private final SimpleWristSubsystem m_wristSubsystem = RobotBase.isSimulation()
+			? new WristSimulator(((ElevatorSimulator) m_elevatorSubsystem).getWristMount())
+			: new SimpleWristSubsystem();
+	private final SimpleCheeseStickSubsystem m_cheeseStickSubsystem = new CheeseStickSimulator(
+			((WristSimulator) m_wristSubsystem).getCheeseStickMount());
 	private final CommandPS5Controller m_driverController = new CommandPS5Controller(kDriverControllerPort);
 	private final CommandPS5Controller m_operatorController = new CommandPS5Controller(kOperatorControllerPort);
 	private final PowerDistribution m_pdh = new PowerDistribution();
@@ -132,6 +137,18 @@ public class Robot extends TimedRobot {
 	}
 
 	public void addProgrammingCommands() {
+		m_testingChooser
+				.addOption(
+						"Check SimpleElevatorSubsystem (Levels 0, 1, 0, 3, 2, 4, and 0)",
+						m_elevatorSubsystem.testCommand(3.0));
+		m_testingChooser
+				.addOption(
+						"Check SimpleElevatorSubsystem (Levels 4 and others)",
+						m_wristSubsystem.testCommand(3.0));
+		m_testingChooser
+				.addOption(
+						"Check SimpleElevatorSubsystem (grab and release)",
+						m_cheeseStickSubsystem.testCommand(3.0));
 		m_testingChooser
 				.addOption("SysId Drive Quasistatic Forward", m_driveSubsystem.sysidQuasistatic(Direction.kForward));
 		m_testingChooser

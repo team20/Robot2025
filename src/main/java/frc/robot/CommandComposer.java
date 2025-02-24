@@ -16,29 +16,29 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.commands.DriveCommand;
 import frc.robot.commands.PathDriveCommand;
+import frc.robot.simulation.SimpleCheeseStickSubsystem;
+import frc.robot.simulation.SimpleElevatorSubsystem;
+import frc.robot.simulation.SimpleWristSubsystem;
 import frc.robot.subsystems.AlgaeGrabberSubsystem;
-import frc.robot.subsystems.CheeseStickSubsystem;
 import frc.robot.subsystems.ClimberSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
-import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.PoseEstimationSubsystem;
-import frc.robot.subsystems.WristSubsystem;
 
 public class CommandComposer {
 	private static DriveSubsystem m_driveSubsystem;
 	private static AlgaeGrabberSubsystem m_algaeGrabberSubsystem;
-	private static CheeseStickSubsystem m_cheeseStickSubsystem;
+	private static SimpleCheeseStickSubsystem m_cheeseStickSubsystem;
 	private static ClimberSubsystem m_climberSubsystem;
-	private static ElevatorSubsystem m_elevatorSubsystem;
-	private static WristSubsystem m_wristSubsystem;
+	private static SimpleElevatorSubsystem m_elevatorSubsystem;
+	private static SimpleWristSubsystem m_wristSubsystem;
 	private static PoseEstimationSubsystem m_poseEstimationSubsystem;
 
 	public static void setSubsystems(DriveSubsystem driveSubsystem,
 			AlgaeGrabberSubsystem algaeGrabberSubsystem,
-			CheeseStickSubsystem cheeseStickSubsystem,
+			SimpleCheeseStickSubsystem cheeseStickSubsystem,
 			ClimberSubsystem climberSubsystem,
-			ElevatorSubsystem elevatorSubsystem,
-			WristSubsystem wristSubsystem, PoseEstimationSubsystem poseEstimationSubsystem) {
+			SimpleElevatorSubsystem elevatorSubsystem,
+			SimpleWristSubsystem wristSubsystem, PoseEstimationSubsystem poseEstimationSubsystem) {
 		m_driveSubsystem = driveSubsystem;
 		m_algaeGrabberSubsystem = algaeGrabberSubsystem;
 		m_cheeseStickSubsystem = cheeseStickSubsystem;
