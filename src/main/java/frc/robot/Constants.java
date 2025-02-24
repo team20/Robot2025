@@ -129,6 +129,7 @@ public class Constants {
 		public static final double kDriveMaxSpeed = 5.0; // 5 meters per second
 		public static final double kDriveMinSpeed = 0.4; // 0.4 meters per second
 		public static final double kTurnMaxAngularSpeed = Math.toRadians(360); // 1 rotation per second
+		public static final double kTurnMinAngularSpeed = Math.toRadians(1); // 1 degree per second
 
 		// DriveCommand.java Constants
 		public static final double kDriveP = 5;
@@ -139,7 +140,7 @@ public class Constants {
 		public static final double kTurnP = 10;
 		public static final double kTurnI = 0;
 		public static final double kTurnD = 0.1;
-		public static final double kTurnMaxAcceleration = 0.75 * kTurnMaxAngularSpeed; // kTurnMaxAngularSpeed in 1.5
+		public static final double kTurnMaxAcceleration = 2 * kTurnMaxAngularSpeed; // kTurnMaxAngularSpeed in 0.5
 	}
 
 	public static final class ElevatorConstants {

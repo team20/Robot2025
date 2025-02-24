@@ -146,6 +146,8 @@ public class DriveCommand extends Command {
 		}
 		double angularVelocityRadiansPerSecond = m_controllerYaw
 				.calculate(currentPose.getRotation().getRadians(), m_targetPose.getRotation().getRadians());
+		if (Math.abs(angularVelocityRadiansPerSecond) < kTurnMinAngularSpeed)
+			angularVelocityRadiansPerSecond = Math.signum(angularVelocityRadiansPerSecond) * kTurnMinAngularSpeed;
 		return new ChassisSpeeds(velocityX, velocityY, angularVelocityRadiansPerSecond);
 	}
 

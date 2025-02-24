@@ -4,10 +4,12 @@
 
 package frc.robot;
 
+import static edu.wpi.first.wpilibj2.command.Commands.*;
 import static frc.robot.Constants.*;
 import static frc.robot.Constants.AlgaeConstants.*;
 import static frc.robot.Constants.ClimberConstants.*;
 import static frc.robot.Constants.ControllerConstants.*;
+import static frc.robot.Constants.DriveConstants.*;
 import static frc.robot.Constants.ElevatorConstants.*;
 import static frc.robot.Constants.WristConstants.*;
 import static frc.robot.subsystems.PoseEstimationSubsystem.*;
@@ -15,6 +17,8 @@ import static frc.robot.subsystems.PoseEstimationSubsystem.*;
 import java.util.List;
 import java.util.Map;
 import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
+import java.util.stream.IntStream;
 
 import org.littletonrobotics.urcl.URCL;
 import org.photonvision.PhotonCamera;
@@ -44,6 +48,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.DriveCommand;
+import frc.robot.commands.PathDriveCommand;
 import frc.robot.simulation.VisionSimulator;
 import frc.robot.subsystems.AlgaeGrabberSubsystem;
 import frc.robot.subsystems.CheeseStickSubsystem;
@@ -147,11 +152,16 @@ public class Robot extends TimedRobot {
 				.addOption("SysId Elevator Dynamic Forward", m_elevatorSubsystem.sysidDynamic(Direction.kForward));
 		m_testingChooser
 				.addOption("SysId Elevator Dynamic Reverse", m_elevatorSubsystem.sysidDynamic(Direction.kReverse));
+
 		double distanceTolerance = 0.01;
-		double angleToleranceInDegrees = 1.0;
+		double angleToleranceInDegrees = 1;
 		double intermediateDistanceTolerance = 0.08;
 		double intermediateAngleToleranceInDegrees = 8.0;
-
+		m_testingChooser
+				.addOption(
+						"Check PID Constants for Driving (5'x5' Square)",
+						CommandComposer
+								.moveOnSquare(Units.feetToMeters(5), distanceTolerance, angleToleranceInDegrees, 16));
 		m_testingChooser
 				.addOption(
 						"Quickly Align to AprilTags 12, 13, 17, 18, and 19",
@@ -186,12 +196,47 @@ public class Robot extends TimedRobot {
 						CommandComposer.moveForwardBackward(6, distanceTolerance, angleToleranceInDegrees));
 		m_testingChooser
 				.addOption(
-						"Check PID Constants for Driving (5'x5' Square)",
-						CommandComposer
-								.moveOnSquare(Units.feetToMeters(5), distanceTolerance, angleToleranceInDegrees, 16));
+						"Check DriveSubsystem (F/B/L/R/LR/RR and F/B while rotating)",
+						m_driveSubsystem.testCommand(0.5, Math.toRadians(45), 1.0));
 		m_testingChooser
 				.addOption(
-						"Check DriveSubsystem (F/B/L/R/LR/RR and F/B while rotating)", m_driveSubsystem.testCommand());
+						"Slowest Movement Test (F/B/L/R/LR/RR and F/B while rotating)",
+						m_driveSubsystem.testCommand(kDriveMinSpeed, kTurnMinAngularSpeed, 1.0));
+		m_testingChooser
+				.addOption(
+						"Fastest Forward/Backward Movement Test (5m)",
+						sequence(
+								driveForwardBackward(m_driveSubsystem, 5, 0.1, 10),
+								driveForwardBackward(m_driveSubsystem, -5, 0.1, 10)));
+		m_testingChooser
+				.addOption(
+						"Fastest Rotation Test (5 rotations)",
+						new PathDriveCommand(m_driveSubsystem, 1, 10,
+								1, 100,
+								IntStream.range(1, 1 + 3 * 5)
+										.mapToObj(
+												i -> (Supplier<Pose2d>) (() -> {
+													var pose = m_driveSubsystem.getPose();
+													return pose(pose.getX(), pose.getY(), 120 * i);
+												}))
+										.toList()));
+	}
+
+	/**
+	 * Constructs a new {@code DriveCommand} whose purpose is to move
+	 * the robot forward or backward.
+	 * 
+	 * @param driveSubsystem the {@code DriveSubsystem} to use
+	 * @param displacement the displacement (positive: forward, negative: backward)
+	 *        of the movement
+	 * @param distanceTolerance the distance error in meters which is tolerable
+	 * @param angleToleranceInDegrees the angle error in degrees which is tolerable
+	 */
+	private Command driveForwardBackward(DriveSubsystem m_driveSubsystem, double displacement, double distanceTolerance,
+			double angleToleranceInDegrees) {
+		return new DriveCommand(m_driveSubsystem, distanceTolerance, angleToleranceInDegrees, () -> {
+			return m_driveSubsystem.getPose().plus(transform(displacement, 0, 0));
+		});
 	}
 
 	public void bindDriveControls() {

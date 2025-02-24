@@ -415,12 +415,13 @@ public class DriveSubsystem extends SubsystemBase {
 	 * must move forward, backward, strafe left, strafe right, turn left, turn
 	 * right, and moving forward and backward while turning.
 	 * 
+	 * @param speed the speed in meters per second
+	 * @param rotionalSpeed the angular speed in radians per second
+	 * @param duration the duration of each movement in seconds
+	 * 
 	 * @return a {@code Command} for testing this {@code DriveSubsystem}
 	 */
-	public Command testCommand() {
-		double speed = .5;
-		double rotionalSpeed = Math.toRadians(45);
-		double duration = 1.0;
+	public Command testCommand(double speed, double rotionalSpeed, double duration) {
 		return sequence(
 				run(() -> drive(speed, 0, 0, false)).withTimeout(duration),
 				run(() -> drive(-speed, 0, 0, false)).withTimeout(duration),
