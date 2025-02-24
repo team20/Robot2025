@@ -127,7 +127,7 @@ public class Constants {
 		public static final double kI = 0;
 		public static final double kD = 0;
 		public static final double kS = 0;
-		public static final double kG = 1;
+		public static final double kG = 0;
 		public static final double kV = 0; // 2
 		public static final double kA = 0;
 		public static final double kGearRatio = 10;
@@ -153,7 +153,7 @@ public class Constants {
 		public static final double kLevelTwoHeight = kLevelOneHeight; // same as level 1
 		public static final double kLevelThreeHeight = Units.inchesToMeters(60 - 24);
 		public static final double kLevelFourHeight = Units.inchesToMeters(60 - 24);
-		public static final double kMaxHeight = 0.75 * kMetersPerMotorRotation;
+		public static final double kMaxExtension = 1.243 - 0.05; // 1.243 meters is the max, taking off 5 cm for safety
 		// TODO: The amount that the elevator decreases in order to score
 		public static final double kToScoreHeightDecrease = 0;
 		public static final double kCoralStationHeight = 0; // TODO: Change
