@@ -5,6 +5,7 @@
 package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.*;
+import static edu.wpi.first.wpilibj2.command.Commands.*;
 import static frc.robot.Constants.DriveConstants.*;
 
 import java.util.function.BooleanSupplier;
@@ -28,8 +29,10 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.simulation.SimDeviceSim;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.ControllerConstants;
@@ -124,6 +127,16 @@ public class DriveSubsystem extends SubsystemBase {
 	}
 
 	/**
+	 * Returns the {@code SwerveDriveKinematics} used by this
+	 * {@code DriveSubsystem}.
+	 * 
+	 * @return the {@code SwerveDriveKinematics} used by this {@code DriveSubsystem}
+	 */
+	public SwerveDriveKinematics kinematics() {
+		return m_kinematics;
+	}
+
+	/**
 	 * Returns robot pose.
 	 * 
 	 * @return The pose of the robot.
@@ -137,7 +150,7 @@ public class DriveSubsystem extends SubsystemBase {
 	 * 
 	 * @return The module positions, in order of FL, FR, BL, BR
 	 */
-	private SwerveModulePosition[] getModulePositions() {
+	public SwerveModulePosition[] getModulePositions() {
 		return new SwerveModulePosition[] { m_frontLeft.getModulePosition(), m_frontRight.getModulePosition(),
 				m_backLeft.getModulePosition(), m_backRight.getModulePosition() };
 	}
@@ -181,30 +194,99 @@ public class DriveSubsystem extends SubsystemBase {
 	/**
 	 * Drives the robot.
 	 * 
-	 * @param speedFwd The forward speed in voltage
-	 * @param speedSide The sideways speed in voltage
-	 * @param speedRot The rotation speed in voltage
-	 * @param isFieldRelative Whether or not the speeds are relative to the field
+	 * @param vxMetersPerSecond the forward velocity in meters per second
+	 * @param vyMetersPerSecond the sideways velocity in meters per second
+	 * @param omegaRadiansPerSecond the angular velocity in radians per second
+	 * @param isFieldRelative a boolean value indicating whether or not the
+	 *        velocities are relative to the field
 	 */
-	public void drive(double speedFwd, double speedSide, double speedRot, boolean isFieldRelative) {
-		if (RobotBase.isSimulation()) {
-			// TODO: Use SysId to get feedforward model for rotation
-			m_gyroSim.set(-speedRot * 20 * 0.02 + m_gyro.getYaw());
-		}
-		setModuleStates(calculateModuleStates(new ChassisSpeeds(speedFwd, speedSide, speedRot), isFieldRelative));
-	}
-
-	@Override
-	public void periodic() {
-		m_posePublisher.set(m_odometry.update(getHeading(), getModulePositions()));
-		SwerveModuleState[] states = { m_frontLeft.getModuleState(), m_frontRight.getModuleState(),
-				m_backLeft.getModuleState(), m_backRight.getModuleState() };
-		m_currentChassisSpeedsPublisher.set(m_kinematics.toChassisSpeeds(states));
-		m_currentModuleStatePublisher.set(states);
+	public void drive(double vxMetersPerSecond, double vyMetersPerSecond, double omegaRadiansPerSecond,
+			boolean isFieldRelative) {
+		setModuleStates(
+				calculateModuleStates(
+						chassisSpeeds(vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond),
+						isFieldRelative));
 	}
 
 	/**
-	 * Creates a command to drive the robot with joystick input.
+	 * Drives the robot.
+	 * 
+	 * @param chassisSpeeds the {@code ChassisSpeeds} for the robot
+	 * @param isFieldRelative Whether or not the speeds are relative to the field
+	 */
+	public void drive(ChassisSpeeds chassisSpeeds, boolean isFieldRelative) {
+		setModuleStates(calculateModuleStates(chassisSpeeds, isFieldRelative));
+	}
+
+	/**
+	 * Constructs a {@code ChassisSpeeds} object.
+	 *
+	 * @param vxMetersPerSecond forward velocity in meters per second
+	 * @param vyMetersPerSecond sideways velocity in meters per second
+	 * @param omegaRadiansPerSecond angular velocity in radians per second
+	 */
+	public static ChassisSpeeds chassisSpeeds(double vxMetersPerSecond, double vyMetersPerSecond,
+			double omegaRadiansPerSecond) {
+		vxMetersPerSecond = MathUtil.clamp(vxMetersPerSecond, -kTeleopDriveMaxSpeed, kTeleopDriveMaxSpeed);
+		vyMetersPerSecond = MathUtil.clamp(vyMetersPerSecond, -kTeleopDriveMaxSpeed, kTeleopDriveMaxSpeed);
+		omegaRadiansPerSecond = MathUtil
+				.clamp(omegaRadiansPerSecond, -kTeleopTurnMaxAngularSpeed, kTeleopTurnMaxAngularSpeed);
+		return new ChassisSpeeds(vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond);
+	}
+
+	/**
+	 * Is invoked periodically by the {@link CommandScheduler}. Useful
+	 * for updating subsystem-specific state.
+	 */
+	@Override
+	public void periodic() {
+		SwerveModuleState[] states = { m_frontLeft.getModuleState(), m_frontRight.getModuleState(),
+				m_backLeft.getModuleState(), m_backRight.getModuleState() };
+		m_currentModuleStatePublisher.set(states);
+		var speeds = m_kinematics.toChassisSpeeds(states);
+		m_currentChassisSpeedsPublisher.set(speeds);
+		if (RobotBase.isSimulation())// TODO: Use SysId to get feedforward model for rotation
+			m_gyroSim.set(-Math.toDegrees(speeds.omegaRadiansPerSecond * TimedRobot.kDefaultPeriod) + m_gyro.getYaw());
+		m_posePublisher.set(m_odometry.update(getHeading(), getModulePositions()));
+	}
+
+	/**
+	 * Creates a {@code ChassisSpeeds} instance to drive the robot with joystick
+	 * input.
+	 *
+	 * @param forwardSpeed Forward speed supplier. Positive values make the robot
+	 *        go forward (+X direction).
+	 * @param strafeSpeed Strafe speed supplier. Positive values make the robot
+	 *        go to the left (+Y direction).
+	 * @param forwardOrientation Forward orientation supplier. Positive values make
+	 *        the robot face forward (+X direction).
+	 * @param strafeOrientation Strafe orientation supplier. Positive values make
+	 *        the robot face left (+Y direction).
+	 * @return a {@code ChassisSpeeds} instance to drive the robot with joystick
+	 *         input
+	 */
+	public ChassisSpeeds chassisSpeeds(DoubleSupplier forwardSpeed, DoubleSupplier strafeSpeed,
+			DoubleSupplier forwardOrientation, DoubleSupplier strafeOrientation) {
+		var orientation = new Translation2d(forwardOrientation.getAsDouble(), strafeOrientation.getAsDouble());
+		double rotSpeed = 0;
+		if (orientation.getNorm() > 0.05) {
+			var angle = orientation.getAngle();
+			rotSpeed = m_orientationController
+					.calculate(getHeading().getRadians(), angle.getRadians());
+			m_targetHeadingPublisher.set(angle);
+		}
+
+		double fwdSpeed = MathUtil.applyDeadband(forwardSpeed.getAsDouble(), ControllerConstants.kDeadzone);
+		fwdSpeed = Math.signum(fwdSpeed) * Math.pow(fwdSpeed, 2) * kTeleopMaxVoltage;
+
+		double strSpeed = MathUtil.applyDeadband(strafeSpeed.getAsDouble(), ControllerConstants.kDeadzone);
+		strSpeed = Math.signum(strSpeed) * Math.pow(strSpeed, 2) * kTeleopMaxVoltage;
+
+		return chassisSpeeds(fwdSpeed, strSpeed, rotSpeed);
+	}
+
+	/**
+	 * Creates a {@code Command} to drive the robot with joystick input.
 	 *
 	 * @param forwardSpeed Forward speed supplier. Positive values make the robot
 	 *        go forward (+X direction).
@@ -220,42 +302,55 @@ public class DriveSubsystem extends SubsystemBase {
 	 */
 	public Command driveCommand(DoubleSupplier forwardSpeed, DoubleSupplier strafeSpeed,
 			DoubleSupplier forwardOrientation, DoubleSupplier strafeOrientation, BooleanSupplier isRobotRelative) {
-		return run(() -> {
-			var orientation = new Translation2d(forwardOrientation.getAsDouble(), strafeOrientation.getAsDouble());
-			double rotSpeed = 0;
-			if (orientation.getNorm() > 0.05) {
-				var angle = orientation.getAngle();
-				rotSpeed = m_orientationController
-						.calculate(getHeading().getRadians(), angle.getRadians());
-				m_targetHeadingPublisher.set(angle);
-			}
-
-			double fwdSpeed = MathUtil.applyDeadband(forwardSpeed.getAsDouble(), ControllerConstants.kDeadzone);
-			fwdSpeed = Math.signum(fwdSpeed) * Math.pow(fwdSpeed, 2) * kTeleopMaxVoltage;
-
-			double strSpeed = MathUtil.applyDeadband(strafeSpeed.getAsDouble(), ControllerConstants.kDeadzone);
-			strSpeed = Math.signum(strSpeed) * Math.pow(strSpeed, 2) * kTeleopMaxVoltage;
-
-			drive(fwdSpeed, strSpeed, rotSpeed, !isRobotRelative.getAsBoolean());
-		}).withName("DefaultDriveCommand");
+		return run(
+				() -> drive(
+						chassisSpeeds(forwardSpeed, strafeSpeed, forwardOrientation, strafeOrientation),
+						!isRobotRelative.getAsBoolean())).withName("DefaultDriveCommand");
 	}
 
+	/**
+	 * Creates a {@code ChassisSpeeds} instance to drive the robot with joystick
+	 * input.
+	 *
+	 * @param forwardSpeed Forward speed supplier. Positive values make the robot
+	 *        go forward (+X direction).
+	 * @param strafeSpeed Strafe speed supplier. Positive values make the robot
+	 *        go to the left (+Y direction).
+	 * @param rotation Rotation supplier. Positive values make
+	 *        the robot rotate left (CCW direction).
+	 * @return a {@code ChassisSpeeds} instance to drive the robot with joystick
+	 *         input
+	 */
+	public static ChassisSpeeds chassisSpeeds(DoubleSupplier forwardSpeed, DoubleSupplier strafeSpeed,
+			DoubleSupplier rotation) {
+		double rotSpeed = MathUtil.applyDeadband(rotation.getAsDouble(), ControllerConstants.kDeadzone);
+		rotSpeed = Math.signum(rotSpeed) * Math.pow(rotSpeed, 2) * kTeleopTurnMaxAngularSpeed;
+
+		double fwdSpeed = MathUtil.applyDeadband(forwardSpeed.getAsDouble(), ControllerConstants.kDeadzone);
+		fwdSpeed = Math.signum(fwdSpeed) * Math.pow(fwdSpeed, 2) * kTeleopDriveMaxSpeed;
+
+		double strSpeed = MathUtil.applyDeadband(strafeSpeed.getAsDouble(), ControllerConstants.kDeadzone);
+		strSpeed = Math.signum(strSpeed) * Math.pow(strSpeed, 2) * kTeleopDriveMaxSpeed;
+
+		return chassisSpeeds(fwdSpeed, strSpeed, rotSpeed);
+	}
+
+	/**
+	 * Creates a {@code Command} to drive the robot with joystick input.
+	 *
+	 * @param forwardSpeed Forward speed supplier. Positive values make the robot
+	 *        go forward (+X direction).
+	 * @param strafeSpeed Strafe speed supplier. Positive values make the robot
+	 *        go to the left (+Y direction).
+	 * @param rotation Rotation supplier. Positive values make
+	 *        the robot rotate left (CCW direction).
+	 * @return a {@code ChassisSpeeds} instance to drive the robot with joystick
+	 *         input
+	 */
 	public Command driveCommand(DoubleSupplier forwardSpeed, DoubleSupplier strafeSpeed,
 			DoubleSupplier rotation, BooleanSupplier isRobotRelative) {
-		return run(() -> {
-			// Get the forward, strafe, and rotation speed, using a deadband on the joystick
-			// input so slight movements don't move the robot
-			double rotSpeed = MathUtil.applyDeadband(rotation.getAsDouble(), ControllerConstants.kDeadzone);
-			rotSpeed = Math.signum(rotSpeed) * Math.pow(rotSpeed, 2) * kTeleopMaxTurnVoltage;
-
-			double fwdSpeed = MathUtil.applyDeadband(forwardSpeed.getAsDouble(), ControllerConstants.kDeadzone);
-			fwdSpeed = Math.signum(fwdSpeed) * Math.pow(fwdSpeed, 2) * kTeleopMaxVoltage;
-
-			double strSpeed = MathUtil.applyDeadband(strafeSpeed.getAsDouble(), ControllerConstants.kDeadzone);
-			strSpeed = Math.signum(strSpeed) * Math.pow(strSpeed, 2) * kTeleopMaxVoltage;
-
-			drive(fwdSpeed, strSpeed, rotSpeed, !isRobotRelative.getAsBoolean());
-		}).withName("DefaultDriveCommand");
+		return run(() -> drive(chassisSpeeds(forwardSpeed, strafeSpeed, rotation), !isRobotRelative.getAsBoolean()))
+				.withName("DefaultDriveCommand");
 	}
 
 	/**
@@ -291,4 +386,28 @@ public class DriveSubsystem extends SubsystemBase {
 	public Command sysidDynamic(SysIdRoutine.Direction direction) {
 		return m_sysidRoutine.dynamic(direction);
 	}
+
+	/**
+	 * Creates a {@code Command} for testing this {@code DriveSubsystem}. The robot
+	 * must move forward, backward, strafe left, strafe right, turn left, turn
+	 * right, and moving forward and backward while turning.
+	 * 
+	 * @param speed the speed in meters per second
+	 * @param rotionalSpeed the angular speed in radians per second
+	 * @param duration the duration of each movement in seconds
+	 * 
+	 * @return a {@code Command} for testing this {@code DriveSubsystem}
+	 */
+	public Command testCommand(double speed, double rotionalSpeed, double duration) {
+		return sequence(
+				run(() -> drive(speed, 0, 0, false)).withTimeout(duration),
+				run(() -> drive(-speed, 0, 0, false)).withTimeout(duration),
+				run(() -> drive(0, speed, 0, false)).withTimeout(duration),
+				run(() -> drive(0, -speed, 0, false)).withTimeout(duration),
+				run(() -> drive(0, 0, rotionalSpeed, false)).withTimeout(duration),
+				run(() -> drive(0, 0, -rotionalSpeed, false)).withTimeout(duration),
+				run(() -> drive(speed, 0, rotionalSpeed, true)).withTimeout(duration),
+				run(() -> drive(-speed, 0, -rotionalSpeed, true)).withTimeout(duration));
+	}
+
 }

@@ -5,6 +5,7 @@
 package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.*;
+import static edu.wpi.first.wpilibj2.command.Commands.*;
 import static frc.robot.Constants.ElevatorConstants.*;
 
 import java.util.function.DoubleSupplier;
@@ -338,4 +339,21 @@ public class ElevatorSubsystem extends SubsystemBase {
 	public Command sysidDynamic(SysIdRoutine.Direction direction) {
 		return m_sysidRoutine.dynamic(direction);
 	}
+
+	/**
+	 * Creates a {@code Command} for testing this {@code SimpleElevatorSubsystem}
+	 * (Levels 0, 1, 0, 3, 2, 4, and 0).
+	 * 
+	 * @param duration the duration of each movement in seconds
+	 * 
+	 * @return a {@code Command} for testing this {@code SimpleElevatorSubsystem}
+	 */
+	public Command testCommand(double duration) {
+		return sequence(
+				goToBaseHeight().withTimeout(duration), goToLevelOneHeight().withTimeout(duration),
+				goToBaseHeight().withTimeout(duration), goToLevelThreeHeight().withTimeout(duration),
+				goToLevelTwoHeight().withTimeout(duration), goToLevelFourHeight().withTimeout(duration),
+				goToBaseHeight().withTimeout(duration));
+	}
+
 }
