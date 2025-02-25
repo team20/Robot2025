@@ -14,6 +14,7 @@ import static frc.robot.Constants.ElevatorConstants.*;
 import static frc.robot.Constants.WristConstants.*;
 import static frc.robot.subsystems.PoseEstimationSubsystem.*;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.DoubleSupplier;
@@ -274,6 +275,23 @@ public class Robot extends TimedRobot {
 		// robot-oriented
 
 		m_driverController.options().onTrue(m_driveSubsystem.resetHeading());
+
+		m_operatorController.povLeft().whileTrue(
+				driveWithAlignmentCommand(
+						() -> -m_driverController.getLeftY(),
+						() -> -m_driverController.getLeftX(),
+						() -> m_driverController.getL2Axis() - m_driverController.getR2Axis(), 2, 0.01, 1, 0.1, 5,
+						transform(1.0, -0.165, 180),
+						transform(0.5, -0.165, 180)));
+
+		m_operatorController.povRight().whileTrue(
+				driveWithAlignmentCommand(
+						() -> -m_driverController.getLeftY(),
+						() -> -m_driverController.getLeftX(),
+						() -> m_driverController.getL2Axis() - m_driverController.getR2Axis(), 2, 0.01, 1, 0.1, 5,
+						transform(1.0, 0.165, 180),
+						transform(0.5, 0.165, 180)));
+
 	}
 
 	public void bindElevatorControls() {
@@ -344,36 +362,38 @@ public class Robot extends TimedRobot {
 	 * Creates a {@code Command} to automatically align the robot to the closest
 	 * {@code AprilTag} while driving the robot with joystick input.
 	 *
-	 * @param forwardSpeed Forward speed supplier. Positive values make the robot
+	 * @param forwardSpeed forward speed supplier. Positive values make the robot
 	 *        go forward (+X direction).
-	 * @param strafeSpeed Strafe speed supplier. Positive values make the robot
+	 * @param strafeSpeed strafe speed supplier. Positive values make the robot
 	 *        go to the left (+Y direction).
-	 * @param rotationY Rotation Y supplier. Positive is up on the joystick.
-	 * @param rotationX Rotation X supplier. Positive is right on the joystick.
+	 * @param rotation rotation speed supplier. Positive values make the
+	 *        robot rotate CCW.
 	 * @param distanceThresholdInMeters the maximum distance (in meters) within
 	 *        which {@code AprilTag}s are considered
 	 * @param distanceTolerance the distance error in meters which is tolerable
 	 * @param angleToleranceInDegrees the angle error in degrees which is tolerable
-	 * @param robotToTag the {@code Tranform2d} representing the pose of the
+	 * @param robotToTags the {@code Tranform2d} representing the pose of the
 	 *        closest {@code AprilTag} relative to the robot when the robot is
 	 *        aligned
 	 * @return a {@code Command} to automatically align the robot to the closest tag
 	 *         while driving the robot with joystick input
 	 */
-	Command driveWithAlignmentCommand(DoubleSupplier forwardSpeed, DoubleSupplier strafeSpeed,
-			DoubleSupplier rotationY, DoubleSupplier rotationX, double distanceThresholdInMeters,
-			double distanceTolerance, double angleToleranceInDegrees,
-			Transform2d robotToTag) {
-		return new DriveCommand(m_driveSubsystem, distanceTolerance, angleToleranceInDegrees, () -> {
+	Command driveWithAlignmentCommand(DoubleSupplier forwardSpeed, DoubleSupplier strafeSpeed, DoubleSupplier rotation,
+			double distanceThresholdInMeters, double distanceTolerance, double angleToleranceInDegrees,
+			double intermedateDistanceTolerance, double intermediateAngleToleranceInDegrees,
+			Transform2d... robotToTags) {
+		var l = Arrays.stream(robotToTags).map(r -> (Supplier<Pose2d>) (() -> {
 			Pose2d closestTagPose = m_poseEstimationSubsystem.closestTagPose(180, distanceThresholdInMeters);
 			if (closestTagPose == null)
 				return m_driveSubsystem.getPose();
-			return m_poseEstimationSubsystem.odometryCentricPose(closestTagPose.plus(robotToTag));
-		}) {
+			return m_poseEstimationSubsystem.odometryCentricPose(closestTagPose.plus(r));
+		})).toList();
+		return new PathDriveCommand(m_driveSubsystem, distanceTolerance, angleToleranceInDegrees,
+				intermedateDistanceTolerance, intermediateAngleToleranceInDegrees, l) {
 
 			@Override
 			public ChassisSpeeds chassisSpeeds() {
-				ChassisSpeeds speeds = m_driveSubsystem.chassisSpeeds(forwardSpeed, strafeSpeed, rotationY, rotationX);
+				ChassisSpeeds speeds = DriveSubsystem.chassisSpeeds(forwardSpeed, strafeSpeed, rotation);
 				return speeds.plus(super.chassisSpeeds());
 			}
 
