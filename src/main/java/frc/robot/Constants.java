@@ -1,6 +1,7 @@
 package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
+import static frc.robot.subsystems.PoseEstimationSubsystem.*;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.signals.NeutralModeValue;
@@ -8,6 +9,7 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
@@ -176,7 +178,7 @@ public class Constants {
 		public static final double kLevelOneHeight = Units.inchesToMeters(41 - 24);
 		public static final double kLevelTwoHeight = kLevelOneHeight; // same as level 1
 		public static final double kLevelThreeHeight = Units.inchesToMeters(60 - 24);
-		public static final double kLevelFourHeight = Units.inchesToMeters(60 - 24);
+		public static final double kLevelFourHeight = Units.inchesToMeters(80 - 24);
 		public static final double kMaxHeight = 0.75 * kMetersPerMotorRotation;
 		// TODO: The amount that the elevator decreases in order to score
 		public static final double kToScoreHeightDecrease = 0;
@@ -220,5 +222,11 @@ public class Constants {
 	 */
 	public static Transform3d kRobotToCamera2 = new Transform3d(new Translation3d(-0.5, -0.0, 0.2),
 			new Rotation3d(0, Units.degreesToRadians(-20), Units.degreesToRadians(180)));
+
+	static Transform2d[] kRobotToTagsLeft = { transform(1.0, -0.165, 180),
+			transform(0.5, -0.165, 180) };
+
+	static Transform2d[] kRobotToTagsRight = { transform(1.0, 0.165, 180),
+			transform(0.5, 0.165, 180) };
 
 }
