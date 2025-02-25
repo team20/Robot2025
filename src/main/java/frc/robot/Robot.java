@@ -52,7 +52,6 @@ import frc.robot.commands.PathDriveCommand;
 import frc.robot.simulation.CheeseStickSimulator;
 import frc.robot.simulation.ElevatorSimulator;
 import frc.robot.simulation.SimpleCheeseStickSubsystem;
-import frc.robot.simulation.SimpleElevatorSubsystem;
 import frc.robot.simulation.SimpleWristSubsystem;
 import frc.robot.simulation.VisionSimulator;
 import frc.robot.simulation.WristSimulator;
@@ -60,6 +59,7 @@ import frc.robot.subsystems.AlgaeGrabberSubsystem;
 import frc.robot.subsystems.ClimberSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.PoseEstimationSubsystem;
+import frc.robot.subsystems.SimpleElevatorSubsystem;
 
 public class Robot extends TimedRobot {
 	private Command m_autonomousCommand;
@@ -143,11 +143,11 @@ public class Robot extends TimedRobot {
 						m_elevatorSubsystem.testCommand(3.0));
 		m_testingChooser
 				.addOption(
-						"Check SimpleElevatorSubsystem (Levels 4 and others)",
+						"Check SimpleWristSubsystem (Levels 4 and others)",
 						m_wristSubsystem.testCommand(3.0));
 		m_testingChooser
 				.addOption(
-						"Check SimpleElevatorSubsystem (grab and release)",
+						"Check SimpleCheeseStickSubsystem (grab and release)",
 						m_cheeseStickSubsystem.testCommand(3.0));
 		m_testingChooser
 				.addOption("SysId Drive Quasistatic Forward", m_driveSubsystem.sysidQuasistatic(Direction.kForward));

@@ -17,12 +17,12 @@ import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.commands.DriveCommand;
 import frc.robot.commands.PathDriveCommand;
 import frc.robot.simulation.SimpleCheeseStickSubsystem;
-import frc.robot.simulation.SimpleElevatorSubsystem;
 import frc.robot.simulation.SimpleWristSubsystem;
 import frc.robot.subsystems.AlgaeGrabberSubsystem;
 import frc.robot.subsystems.ClimberSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.PoseEstimationSubsystem;
+import frc.robot.subsystems.SimpleElevatorSubsystem;
 
 public class CommandComposer {
 	private static DriveSubsystem m_driveSubsystem;

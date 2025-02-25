@@ -2,7 +2,7 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot.simulation;
+package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.*;
 import static edu.wpi.first.wpilibj2.command.Commands.*;
@@ -153,27 +153,45 @@ public class SimpleElevatorSubsystem extends SubsystemBase {
 	/**
 	 * Using Trapezoid Profile to set the position of the elevator
 	 * 
+	 * @param supplier a {@code DoubleSupplier} providing the target position
+	 * @return the command
+	 */
+	private Command goToLevel(DoubleSupplier supplier) {
+		var initial = new TrapezoidProfile.State();
+		var finalState = new TrapezoidProfile.State();
+		return startRun(() -> {
+			m_timer.restart();
+			initial.position = getPosition();
+			finalState.position = supplier.getAsDouble();
+		}, () -> {
+			double time = m_timer.get();
+			double currentVelocity = m_profile.calculate(time, initial, finalState).velocity;
+			double nextVelocity = m_profile.calculate(time + 0.01 /* 0.02? */, initial, finalState).velocity;
+			double ff = m_ff.calculateWithVelocities(currentVelocity, nextVelocity);
+			setPosition(finalState.position, ff);
+			SmartDashboard.putNumber("ff", ff);
+		}).finallyDo(() -> setPosition(0, 0));
+	}
+
+	/**
+	 * Using Trapezoid Profile to set the position of the elevator
+	 * 
 	 * @param level the level we want to go to
 	 * @return the command
 	 */
 	private Command goToLevel(double level) {
-		var initial = new TrapezoidProfile.State();
-		// SmartDashboard.putNumber("initial 1", initial.position);
-		var finalState = new TrapezoidProfile.State(level, 0);
-		return startRun(() -> {
-			m_timer.restart();
-			initial.position = getPosition();
-			// SmartDashboard.putNumber("initial 2", initial.position);
-		}, () -> {
-			double time = m_timer.get();
-			double currentVelocity = m_profile.calculate(time, initial, finalState).velocity;
-			double nextVelocity = m_profile.calculate(time + 0.01, initial, finalState).velocity; // time + 0.02
-			double ff = m_ff.calculateWithVelocities(currentVelocity, nextVelocity);
-			setPosition(level, ff);
-			SmartDashboard.putNumber("ff", ff);
-			// SmartDashboard.putNumber("initial 3", initial.position);
-		});
-		// .until(() -> m_profile.isFinished(m_timer.get()));// setSpeed(0.02)
+		return goToLevel(() -> level);
+	}
+
+	/**
+	 * The other heights when scoring go to a higher height than what is needed to
+	 * score so this lowers it to the proper height
+	 * 
+	 * @return the command
+	 */
+	public Command lowerToScore() {
+		return goToLevel(() -> getPosition() - kToScoreHeightDecrease).until(() -> m_profile.isFinished(m_timer.get()))
+				.withName("Lower Elevator to Score");
 	}
 
 	/**
@@ -248,27 +266,6 @@ public class SimpleElevatorSubsystem extends SubsystemBase {
 	 */
 	public Command goToBaseHeight() {
 		return goToLevel(0).withName("Go to Base Height");
-	}
-
-	/**
-	 * The other heights when scoring go to a higher height than what is needed to
-	 * score so this lowers it to the proper height
-	 * 
-	 * @return the command
-	 */
-	public Command lowerToScore() {
-		var initial = new TrapezoidProfile.State();
-		var finalState = new TrapezoidProfile.State();
-		return startRun(() -> {
-			m_timer.restart();
-			initial.position = getPosition();
-			finalState.position = getPosition() - kToScoreHeightDecrease;
-		}, () -> {
-			double time = m_timer.get();
-			double currentVelocity = m_profile.calculate(time, initial, finalState).velocity;
-			double nextVelocity = m_profile.calculate(time + 0.02, initial, finalState).velocity;
-			setPosition(finalState.position, m_ff.calculateWithVelocities(currentVelocity, nextVelocity));
-		}).until(() -> m_profile.isFinished(m_timer.get())).withName("Lower Elevator to Score");
 	}
 
 	/**

@@ -24,6 +24,7 @@ public class WristSimulator extends SimpleWristSubsystem {
 	/** Creates a new WristSubsystem. */
 	public WristSimulator(MechanismLigament2d wristMount) {
 		super();
+		wristMount.append(m_wrist);
 		m_wristSim = new SparkMaxSim(m_wristMotor, DCMotor.getNEO(1));
 		m_absoluteEncoderSim = new SparkAbsoluteEncoderSim(m_wristMotor);
 		m_wristModel = new SingleJointedArmSim(DCMotor.getNEO(1), 5, 2, 0.1, 0,
