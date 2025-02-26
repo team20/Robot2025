@@ -30,6 +30,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.PS5Controller;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.TimedRobot;
@@ -43,7 +44,9 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
+import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+import frc.robot.Constants.ControllerConstants;
 import frc.robot.commands.PathDriveCommand;
 import frc.robot.simulation.VisionSimulator;
 import frc.robot.subsystems.AlgaeGrabberSubsystem;
@@ -260,7 +263,8 @@ public class Robot extends TimedRobot {
 	}
 
 	public void bindElevatorControls() {
-		m_operatorController.axisMagnitudeGreaterThan((int) m_operatorController.getLeftY(), 0)
+		RobotModeTriggers.disabled().onTrue(m_elevatorSubsystem.stopMotor());
+		m_operatorController.axisMagnitudeGreaterThan(PS5Controller.Axis.kLeftY.value, ControllerConstants.kDeadzone)
 				.whileTrue(m_elevatorSubsystem.manualMove(() -> -m_operatorController.getLeftY()));
 		m_operatorController.triangle().onTrue(
 				m_elevatorSubsystem.goToLevelFourHeight().andThen(m_wristSubsystem.goToAngle(kGrabberAngleLevelFour)));
@@ -276,8 +280,9 @@ public class Robot extends TimedRobot {
 	}
 
 	public void bindAlgaeControls() {
-		m_algaeGrabberSubsystem
-				.setDefaultCommand(m_algaeGrabberSubsystem.manualMove(() -> m_operatorController.getRightY()));
+		// m_algaeGrabberSubsystem
+		// .setDefaultCommand(m_algaeGrabberSubsystem.manualMove(() ->
+		// m_operatorController.getRightY()));
 		m_operatorController.L2().onTrue(m_algaeGrabberSubsystem.grabAlgaeAndHold());
 		m_operatorController.R2().onTrue(m_algaeGrabberSubsystem.releaseAlgae());
 
@@ -285,8 +290,7 @@ public class Robot extends TimedRobot {
 	}
 
 	public void bindWristControls() {
-		// m_wristSubsystem.setDefaultCommand(m_wristSubsystem.manualMove(() ->
-		// m_operatorController.getRightY()));
+		m_wristSubsystem.setDefaultCommand(m_wristSubsystem.manualMove(() -> m_operatorController.getRightY()));
 		// m_driverController.circle().onTrue(m_wristSubsystem.reverseMotor());
 		// m_driverController.square().onTrue(m_wristSubsystem.forwardMotor());
 	}
@@ -297,7 +301,8 @@ public class Robot extends TimedRobot {
 	}
 
 	public void bindClimberControls() {
-		m_climberSubsystem.setDefaultCommand(m_climberSubsystem.manualMove(() -> m_operatorController.getRightY()));
+		// m_climberSubsystem.setDefaultCommand(m_climberSubsystem.manualMove(() ->
+		// m_operatorController.getRightY()));
 
 		// m_operatorController.povDown().whileTrue(m_climberSubsystem.moveForward())
 		// .onFalse(m_climberSubsystem.moveBackward());

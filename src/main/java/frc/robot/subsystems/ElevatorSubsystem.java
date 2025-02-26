@@ -33,7 +33,6 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -73,13 +72,14 @@ public class ElevatorSubsystem extends SubsystemBase {
 		root.append(m_elevatorLigament);
 		var config = new SparkMaxConfig();
 		config
-				.idleMode(IdleMode.kBrake) // TODO: Soft limits?
+				.idleMode(IdleMode.kBrake)
 				.smartCurrentLimit(kSmartCurrentLimit)
 				.secondaryCurrentLimit(kSecondaryCurrentLimit)
 				.voltageCompensation(12);
 		config.closedLoop
 				.feedbackSensor(FeedbackSensor.kPrimaryEncoder)
 				.pid(kP, kI, kD);
+		config.softLimit.forwardSoftLimit(kMaxExtension).forwardSoftLimitEnabled(true);
 		config.encoder.positionConversionFactor(kMetersPerMotorRotation);
 		m_elevatorMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 		resetEncoder();
@@ -178,11 +178,11 @@ public class ElevatorSubsystem extends SubsystemBase {
 	 * @return Sets the speed to 0
 	 */
 	public Command stopMotor() {
-		return runOnce(() -> setSpeed(0)).withName("Elevator motor stop");
+		return runOnce(() -> setSpeed(0)).ignoringDisable(true).withName("Elevator motor stop");
 	}
 
 	/**
-	 * Reverse the motor by setting the speeed to negative
+	 * Reverse the motor by setting the speed to negative
 	 * 
 	 * @return the command to set the speed
 	 */
@@ -202,47 +202,41 @@ public class ElevatorSubsystem extends SubsystemBase {
 	/**
 	 * Using Trapezoid Profile to set the position of the elevator
 	 * 
-	 * @param level the level we want to go to
+	 * @param level A function that returns the level we want to go to
 	 * @return the command
 	 */
-	private Command goToLevel(double level) {
+	private Command goToLevel(DoubleSupplier level) {
 		var initial = new TrapezoidProfile.State();
-		// SmartDashboard.putNumber("initial 1", initial.position);
-		var finalState = new TrapezoidProfile.State(level, 0);
+		var finalState = new TrapezoidProfile.State();
 		return startRun(() -> {
 			m_timer.restart();
 			initial.position = getPosition();
-			// SmartDashboard.putNumber("initial 2", initial.position);
+			finalState.position = level.getAsDouble();
 		}, () -> {
 			double time = m_timer.get();
 			double currentVelocity = m_profile.calculate(time, initial, finalState).velocity;
-			double nextVelocity = m_profile.calculate(time + 0.01, initial, finalState).velocity; // time + 0.02
-			double ff = m_ff.calculateWithVelocities(currentVelocity, nextVelocity);
-			setPosition(level, ff);
-			SmartDashboard.putNumber("ff", ff);
-			// SmartDashboard.putNumber("initial 3", initial.position);
+			TrapezoidProfile.State nextState = m_profile.calculate(time + 0.02, initial, finalState);
+			double ff = m_ff.calculateWithVelocities(currentVelocity, nextState.velocity);
+			setPosition(nextState.position, ff);
 		});
-		// .until(() -> m_profile.isFinished(m_timer.get()));// setSpeed(0.02)
 	}
 
 	/**
 	 * Allows the operator to manually move the Elevator for adjustment
 	 * 
-	 * @param joystick Input from operator's left joystick Y-values
+	 * @param joystick Joystick input. Positive values make the elevator move up.
 	 * @return Command for moving
 	 */
-	// public Command manualMove(DoubleSupplier joystick) {
-	// return run(() -> {
-	// double input = joystick.getAsDouble();
-	// double speed = Math.signum(input) * Math.pow(input, 2);
-	// setSpeed(speed * 0.5);
-	// }).withName("Manual Elevator");
-	// }
-
 	public Command manualMove(DoubleSupplier joystick) {
+		// double speed = 0;
 		return run(() -> {
 			double input = joystick.getAsDouble();
-		}).withName("Manual Elevator 2");
+			double speed = Math.signum(input) * Math.pow(input, 2);
+			// m_elevatorMotor.setVoltage(m_ff.calculate(speed * kMaxVelocity / 2));
+			setSpeed(speed);
+		}).withName("Manual Elevator");
+		// .until(() -> m_elevatorMotor.get() == speed).finallyDo(() -> goToLevel(() ->
+		// getPosition()));
 	}
 
 	/**
@@ -251,7 +245,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 	 * @return the command
 	 */
 	public Command goToLevelOneHeight() {
-		return goToLevel(kLevelOneHeight).withName("Elevator to Level 1");
+		return goToLevel(() -> kLevelOneHeight).withName("Elevator to Level 1");
 	}
 
 	/**
@@ -260,7 +254,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 	 * @return the command
 	 */
 	public Command goToLevelTwoHeight() {
-		return goToLevel(kLevelTwoHeight).withName("Elevator to Level 2");
+		return goToLevel(() -> kLevelTwoHeight).withName("Elevator to Level 2");
 	}
 
 	/**
@@ -269,7 +263,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 	 * @return the command
 	 */
 	public Command goToLevelThreeHeight() {
-		return goToLevel(kLevelThreeHeight).withName("Elevator to Level 3");
+		return goToLevel(() -> kLevelThreeHeight).withName("Elevator to Level 3");
 	}
 
 	/**
@@ -278,7 +272,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 	 * @return the command
 	 */
 	public Command goToLevelFourHeight() {
-		return goToLevel(kLevelFourHeight).withName("Elevator to Level 4");
+		return goToLevel(() -> kLevelFourHeight).withName("Elevator to Level 4");
 	}
 
 	/**
@@ -287,16 +281,16 @@ public class ElevatorSubsystem extends SubsystemBase {
 	 * @return the command
 	 */
 	public Command goToCoralStationHeight() {
-		return goToLevel(kCoralStationHeight).withName("Elevator to Coral Station");
+		return goToLevel(() -> kCoralStationHeight).withName("Elevator to Coral Station");
 	}
 
 	/**
-	 * Moves the elevator to the base height positon
+	 * Moves the elevator to the base height position
 	 * 
 	 * @return
 	 */
 	public Command goToBaseHeight() {
-		return goToLevel(0).withName("Go to Base Height");
+		return goToLevel(() -> 0).withName("Go to Base Height");
 	}
 
 	/**
@@ -306,18 +300,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 	 * @return the command
 	 */
 	public Command lowerToScore() {
-		var initial = new TrapezoidProfile.State();
-		var finalState = new TrapezoidProfile.State();
-		return startRun(() -> {
-			m_timer.restart();
-			initial.position = getPosition();
-			finalState.position = getPosition() - kToScoreHeightDecrease;
-		}, () -> {
-			double time = m_timer.get();
-			double currentVelocity = m_profile.calculate(time, initial, finalState).velocity;
-			double nextVelocity = m_profile.calculate(time + 0.02, initial, finalState).velocity;
-			setPosition(finalState.position, m_ff.calculateWithVelocities(currentVelocity, nextVelocity));
-		}).until(() -> m_profile.isFinished(m_timer.get())).withName("Lower Elevator to Score");
+		return goToLevel(() -> getPosition() - kToScoreHeightDecrease).withName("Lower Elevator to Score");
 	}
 
 	/**
