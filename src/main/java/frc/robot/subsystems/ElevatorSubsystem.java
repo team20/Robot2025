@@ -227,11 +227,15 @@ public class ElevatorSubsystem extends SubsystemBase {
 	 * @return Command for moving
 	 */
 	public Command manualMove(DoubleSupplier joystick) {
+		// double speed = 0;
 		return run(() -> {
 			double input = joystick.getAsDouble();
 			double speed = Math.signum(input) * Math.pow(input, 2);
-			m_elevatorMotor.setVoltage(m_ff.calculate(speed * kMaxVelocity / 2));
+			// m_elevatorMotor.setVoltage(m_ff.calculate(speed * kMaxVelocity / 2));
+			setSpeed(speed);
 		}).withName("Manual Elevator");
+		// .until(() -> m_elevatorMotor.get() == speed).finallyDo(() -> goToLevel(() ->
+		// getPosition()));
 	}
 
 	/**
