@@ -24,6 +24,7 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
@@ -137,6 +138,8 @@ public class PoseEstimationSubsystem extends SubsystemBase {
 		}
 		m_poseEstimator.update(m_driveSubsystem.getHeading(), m_driveSubsystem.getModulePositions());
 		m_estimatedPosePublisher.set(m_poseEstimator.getEstimatedPosition());
+		var closest = closestTagID(getEstimatedPose(), 180, 3);
+		SmartDashboard.putString("Closest AprilTag (within 3m)", closest == null ? "" : ("" + closest));
 	}
 
 	/**

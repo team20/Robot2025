@@ -77,7 +77,7 @@ public class Constants {
 		public static final int kBackLeftCANCoderPort = 32;
 
 		// TODO: Make sure these are tuned (can do with SysId)
-		public static final double kP = 0.09;
+		public static final double kP = 0.04;
 		public static final double kI = 0.0;
 		public static final double kD = 0;
 		public static final double kS = 0;
@@ -129,9 +129,9 @@ public class Constants {
 		public static final double kTeleopTurnMaxAngularSpeed = Math.toRadians(360); // 1 rotation per second
 
 		public static final double kDriveMaxSpeed = 5.0; // 5 meters per second
-		public static final double kDriveMinSpeed = 0.4; // 0.4 meters per second
+		public static final double kDriveMinSpeed = 0.2; // 0.2 meters per second
 		public static final double kTurnMaxAngularSpeed = Math.toRadians(360); // 1 rotation per second
-		public static final double kTurnMinAngularSpeed = Math.toRadians(1); // 1 degree per second
+		public static final double kTurnMinAngularSpeed = Math.toRadians(0); // 0 degree per second
 
 		// DriveCommand.java Constants
 		public static final double kDriveP = 5;
@@ -139,7 +139,7 @@ public class Constants {
 		public static final double kDriveD = 0;
 		public static final double kDriveMaxAcceleration = 0.75 * kDriveMaxSpeed; // kDriveMaxSpeed in 1.5 sec
 
-		public static final double kTurnP = 10;
+		public static final double kTurnP = 5;
 		public static final double kTurnI = 0;
 		public static final double kTurnD = 0.1;
 		public static final double kTurnMaxAcceleration = 2 * kTurnMaxAngularSpeed; // kTurnMaxAngularSpeed in 0.5
@@ -223,9 +223,24 @@ public class Constants {
 	public static Transform3d kRobotToCamera2 = new Transform3d(new Translation3d(-0.5, -0.0, 0.2),
 			new Rotation3d(0, Units.degreesToRadians(-20), Units.degreesToRadians(180)));
 
+	/**
+	 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
+	 * {@code AprilTag} to align the robot to that {@code AprilTag}.
+	 */
+	static Transform2d[] kRobotToTags = { transform(1.0, 0.0, 180),
+			transform(0.5, 0.0, 180) };
+
+	/**
+	 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
+	 * {@code AprilTag} to align the robot to the left of that {@code AprilTag}.
+	 */
 	static Transform2d[] kRobotToTagsLeft = { transform(1.0, -0.165, 180),
 			transform(0.5, -0.165, 180) };
 
+	/**
+	 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
+	 * {@code AprilTag} to align the robot to the right of that {@code AprilTag}.
+	 */
 	static Transform2d[] kRobotToTagsRight = { transform(1.0, 0.165, 180),
 			transform(0.5, 0.165, 180) };
 
