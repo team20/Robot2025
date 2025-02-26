@@ -37,6 +37,7 @@ import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
 public class ElevatorSubsystem extends SubsystemBase {
@@ -53,7 +54,6 @@ public class ElevatorSubsystem extends SubsystemBase {
 	private final SysIdRoutine m_sysidRoutine = new SysIdRoutine(
 			new SysIdRoutine.Config(Volts.of(2.5).div(Seconds.of(1)), Volts.of(3), Seconds.of(3)),
 			new SysIdRoutine.Mechanism(m_elevatorMotor::setVoltage, null, this));
-	private double m_setPosition = 0;
 
 	private final SparkMaxSim m_elevatorMotorSim;
 	private final ElevatorSim m_elevatorModel;
@@ -117,22 +117,12 @@ public class ElevatorSubsystem extends SubsystemBase {
 	}
 
 	/**
-	 * Tests if within the tolerance of the setpoint of the motor
-	 * 
-	 * @return true if at the setpoint
-	 */
-	public boolean atSetpoint() {
-		return (Math.abs(m_setPosition - getPosition()) <= kTolerance);
-	}
-
-	/**
 	 * Sets the position of the motor (using PID)
 	 * 
 	 * @param position Position to set the master motor
 	 * @param arbFF Feedforward voltage
 	 */
 	public void setPosition(double position, double arbFF) {
-		m_setPosition = position;
 		m_closedLoopController
 				.setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot0, arbFF, ArbFFUnits.kVoltage);
 	}
@@ -218,7 +208,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 			TrapezoidProfile.State nextState = m_profile.calculate(time + 0.02, initial, finalState);
 			double ff = m_ff.calculateWithVelocities(currentVelocity, nextState.velocity);
 			setPosition(nextState.position, ff);
-		});
+		}).until(() -> Math.abs(getPosition() - level.getAsDouble()) < kTolerance);
 	}
 
 	/**
@@ -333,10 +323,12 @@ public class ElevatorSubsystem extends SubsystemBase {
 	 */
 	public Command testCommand(double duration) {
 		return sequence(
-				goToBaseHeight().withTimeout(duration), goToLevelOneHeight().withTimeout(duration),
-				goToBaseHeight().withTimeout(duration), goToLevelThreeHeight().withTimeout(duration),
-				goToLevelTwoHeight().withTimeout(duration), goToLevelFourHeight().withTimeout(duration),
-				goToBaseHeight().withTimeout(duration));
+				runOnce(() -> setSpeed(0.2)), new WaitCommand(1), // checking setSpeed(double)
+				runOnce(() -> setSpeed(0.0)), new WaitCommand(1),
+				goToLevelOneHeight(), // checking goToLevel(DoubleSupplier)
+				goToBaseHeight(), goToLevelThreeHeight(),
+				goToLevelTwoHeight(), new WaitCommand(3), goToLevelFourHeight(),
+				goToBaseHeight());
 	}
 
 }

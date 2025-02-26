@@ -173,7 +173,7 @@ public class Constants {
 				* kMetersPerPulleyRotation;
 		public static final double kMaxVelocity = 1.5;
 		public static final double kMaxAccel = 1; // 2
-		public static final double kTolerance = 1;
+		public static final double kTolerance = 0.2;
 		// TODO: During testing make sure these are right
 		public static final double kLevelOneHeight = Units.inchesToMeters(41 - 24);
 		public static final double kLevelTwoHeight = kLevelOneHeight; // same as level 1
