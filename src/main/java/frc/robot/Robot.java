@@ -35,11 +35,8 @@ import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
-import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.util.Color;
-import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -103,9 +100,12 @@ public class Robot extends TimedRobot {
 		CommandComposer.setSubsystems(
 				m_driveSubsystem, m_algaeGrabberSubsystem, m_cheeseStickSubsystem, m_climberSubsystem,
 				m_elevatorSubsystem, m_wristSubsystem, m_poseEstimationSubsystem);
-		var dropChute = new MechanismLigament2d("bottom", Units.inchesToMeters(5), 0, 5, new Color8Bit(Color.kBeige));
-		dropChute.append(new MechanismLigament2d("side", Units.inchesToMeters(12), 90, 5, new Color8Bit(Color.kWhite)));
-		m_mechanism.getRoot("dropChute", Units.inchesToMeters(28), Units.inchesToMeters(9)).append(dropChute);
+		// var dropChute = new MechanismLigament2d("bottom", Units.inchesToMeters(5), 0,
+		// 5, new Color8Bit(Color.kBeige));
+		// dropChute.append(new MechanismLigament2d("side", Units.inchesToMeters(12),
+		// 90, 5, new Color8Bit(Color.kWhite)));
+		// m_mechanism.getRoot("dropChute", Units.inchesToMeters(28),
+		// Units.inchesToMeters(9)).append(dropChute);
 		SmartDashboard.putData("Superstructure", m_mechanism);
 		SmartDashboard.putData(m_pdh);
 		SmartDashboard.putData(CommandScheduler.getInstance());
@@ -133,14 +133,23 @@ public class Robot extends TimedRobot {
 	public void addTestingCommands() {
 		m_testingChooser
 				.addOption(
-						"Check Subsystems in Pitt",
+						"Check All Subsystems",
 						parallel(
+								m_cheeseStickSubsystem.testCommand(2.0), m_wristSubsystem.testCommand(2.0),
 								m_elevatorSubsystem.testCommand(3.0),
 								m_driveSubsystem.testCommand(0.5, Math.toRadians(45), 1.0)));
 		m_testingChooser
 				.addOption(
+						"Check CheeseStickSubsystem",
+						m_cheeseStickSubsystem.testCommand(2.0));
+		m_testingChooser
+				.addOption(
+						"Check WristSubsystem",
+						m_wristSubsystem.testCommand(2.0));
+		m_testingChooser
+				.addOption(
 						"Check ElevatorSubsystem (Levels 0, 1, 0, 3, 2, 4, and 0)",
-						m_elevatorSubsystem.testCommand(3.0));
+						m_elevatorSubsystem.testCommand(2.0));
 		m_testingChooser
 				.addOption(
 						"Check DriveSubsystem (F/B/L/R/LR/RR and F/B while rotating)",

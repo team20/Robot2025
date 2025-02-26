@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.*;
+import static edu.wpi.first.wpilibj2.command.Commands.*;
 import static frc.robot.Constants.CheeseStickConstants.*;
 
 import edu.wpi.first.wpilibj.RobotBase;
@@ -9,13 +10,17 @@ import edu.wpi.first.wpilibj.simulation.PWMSim;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismObject2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.util.Color;
+import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 
 public class CheeseStickSubsystem extends SubsystemBase {
 	private final Servo m_servo = new Servo(kServoPort);
 	private final PWMSim m_sim;
-	private final MechanismLigament2d m_ligament = new MechanismLigament2d("Cheeese Stick", 0, 90);
+	private final MechanismLigament2d m_ligament = new MechanismLigament2d("Cheeese Stick", 0, 90, 10,
+			new Color8Bit(Color.kDarkGreen));
 
 	public CheeseStickSubsystem(MechanismObject2d attachment) {
 		// https://docs.revrobotics.com/rev-crossover-products/servo/srs#electrical-specifications
@@ -47,7 +52,6 @@ public class CheeseStickSubsystem extends SubsystemBase {
 	 * @return The command.
 	 */
 	public Command release() {
-		System.out.println("Servo Release");
 		return runOnce(() -> m_servo.set(kReleaseDistance)).withName("Servo Release");
 	}
 
@@ -61,4 +65,20 @@ public class CheeseStickSubsystem extends SubsystemBase {
 	public Command grab() {
 		return runOnce(() -> m_servo.set(1)).withName("Servo Grab");
 	}
+
+	/**
+	 * Creates a {@code Command} for testing this {@code CheeseStickSubsystem}.
+	 * 
+	 * @param duration the duration of each movement in seconds
+	 * 
+	 * @return a {@code Command} for testing this {@code CheeseStickSubsystem}
+	 */
+	public Command testCommand(double duration) {
+		return sequence(
+				new WaitCommand(duration), grab(),
+				new WaitCommand(duration), release(),
+				new WaitCommand(duration), grab(),
+				new WaitCommand(duration), release());
+	}
+
 }

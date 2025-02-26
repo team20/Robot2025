@@ -33,6 +33,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -155,6 +156,8 @@ public class ElevatorSubsystem extends SubsystemBase {
 
 	@Override
 	public void periodic() {
+		SmartDashboard.putNumber("Elevator Position", getPosition());
+
 		m_elevatorLigament.setLength(Units.inchesToMeters(24) + getPosition());
 	}
 
@@ -314,20 +317,22 @@ public class ElevatorSubsystem extends SubsystemBase {
 	}
 
 	/**
-	 * Creates a {@code Command} for testing this {@code SimpleElevatorSubsystem}
+	 * Creates a {@code Command} for testing this {@code ElevatorSubsystem}
 	 * (Levels 0, 1, 0, 3, 2, 4, and 0).
 	 * 
 	 * @param duration the duration of each movement in seconds
 	 * 
-	 * @return a {@code Command} for testing this {@code SimpleElevatorSubsystem}
+	 * @return a {@code Command} for testing this {@code ElevatorSubsystem}
 	 */
 	public Command testCommand(double duration) {
 		return sequence(
-				runOnce(() -> setSpeed(0.2)), new WaitCommand(1), // checking setSpeed(double)
-				runOnce(() -> setSpeed(0.0)), new WaitCommand(1),
+				startRun(() -> setSpeed(0.2), () -> {
+				}).until(() -> getPosition() > 0.2), // checking setSpeed(double)
+				runOnce(() -> setSpeed(0.0)), new WaitCommand(duration),
 				goToLevelOneHeight(), // checking goToLevel(DoubleSupplier)
 				goToBaseHeight(), goToLevelThreeHeight(),
-				goToLevelTwoHeight(), new WaitCommand(3), goToLevelFourHeight(),
+				goToLevelTwoHeight(), new WaitCommand(duration), // checking if the elevator can stay at level 2
+				goToLevelFourHeight(),
 				goToBaseHeight());
 	}
 

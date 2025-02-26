@@ -193,15 +193,15 @@ public class Constants {
 		public static final int kGrabberAngleOthers = -35;
 
 		// TODO: Make sure these are tuned (can do with SysId)
-		public static final double kP = 0.09;
+		public static final double kP = 0.1;
 		public static final double kI = 0.0;
-		public static final double kD = 0;
+		public static final double kD = 0.1;
 		public static final double kS = 0;
 		public static final double kG = 0;
 		public static final double kV = 0.11;
 		public static final double kA = 0.009;
 
-		public static final double kTolerance = 0; // TODO: Change this
+		public static final double kTolerance = 1; // 1 degree TODO: Change this
 	}
 
 	/**
