@@ -31,7 +31,7 @@ public class Constants {
 	public static final class CheeseStickConstants {
 		public static final int kServoPort = 0;
 		// TODO: test release angle(0=-135 0.5=0 1=135)
-		public static final double kReleaseDistance = 0.5;
+		public static final double kReleaseDistance = 0.4;
 		/**
 		 * Set this value to how far the cheese stick wheels extend beyond the lexan.
 		 */
@@ -121,7 +121,7 @@ public class Constants {
 
 	public static final class ElevatorConstants {
 		public static final int kElevatorMotorPort = 26;
-		public static final int kSmartCurrentLimit = 60;
+		public static final int kSmartCurrentLimit = 60; // TODO: 45
 		public static final int kSecondaryCurrentLimit = 70;
 		public static final double kP = 1.1; // 1.3, 1
 		public static final double kI = 0;

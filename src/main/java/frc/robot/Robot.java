@@ -147,8 +147,9 @@ public class Robot extends TimedRobot {
 	}
 
 	public void bindAlgaeControls() {
-		m_algaeGrabberSubsystem
-				.setDefaultCommand(m_algaeGrabberSubsystem.manualMove(() -> m_operatorController.getRightY()));
+		// m_algaeGrabberSubsystem
+		// .setDefaultCommand(m_algaeGrabberSubsystem.manualMove(() ->
+		// m_operatorController.getRightY()));
 		m_operatorController.L2().onTrue(m_algaeGrabberSubsystem.grabAlgaeAndHold());
 		m_operatorController.R2().onTrue(m_algaeGrabberSubsystem.releaseAlgae());
 
@@ -156,8 +157,7 @@ public class Robot extends TimedRobot {
 	}
 
 	public void bindWristControls() {
-		// m_wristSubsystem.setDefaultCommand(m_wristSubsystem.manualMove(() ->
-		// m_operatorController.getRightY()));
+		m_wristSubsystem.setDefaultCommand(m_wristSubsystem.manualMove(() -> m_operatorController.getRightY()));
 		// m_driverController.circle().onTrue(m_wristSubsystem.reverseMotor());
 		// m_driverController.square().onTrue(m_wristSubsystem.forwardMotor());
 	}
@@ -168,7 +168,8 @@ public class Robot extends TimedRobot {
 	}
 
 	public void bindClimberControls() {
-		m_climberSubsystem.setDefaultCommand(m_climberSubsystem.manualMove(() -> m_operatorController.getRightY()));
+		// m_climberSubsystem.setDefaultCommand(m_climberSubsystem.manualMove(() ->
+		// m_operatorController.getRightY()));
 
 		// m_operatorController.povDown().whileTrue(m_climberSubsystem.moveForward())
 		// .onFalse(m_climberSubsystem.moveBackward());
