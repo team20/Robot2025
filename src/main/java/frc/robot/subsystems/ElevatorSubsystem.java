@@ -339,6 +339,8 @@ public class ElevatorSubsystem extends SubsystemBase {
 				startRun(() -> setSpeed(0.2), () -> {
 				}).until(() -> getPosition() > 0.2), // checking setSpeed(double)
 				runOnce(() -> setSpeed(0.0)), new WaitCommand(duration),
+				manualMove(() -> 0.5).withTimeout(1), // checking manualMove(DoubleSupplier)
+				runOnce(() -> setSpeed(0.0)), new WaitCommand(duration),
 				goToLevelOneHeight(), // checking goToLevel(DoubleSupplier)
 				goToBaseHeight(), goToLevelThreeHeight(), new WaitCommand(duration),
 				goToLevelTwoHeight(), new WaitCommand(duration), // checking if the elevator can stay at level 2
