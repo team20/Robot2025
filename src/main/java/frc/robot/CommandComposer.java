@@ -16,6 +16,7 @@ import java.util.function.Supplier;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
@@ -53,6 +54,35 @@ public class CommandComposer {
 		m_poseEstimationSubsystem = poseEstimationSubsystem;
 	}
 
+	public static Command get3ScoreSouth() {
+		return redAlliance() ? get3ScoreSouthRed() : get3ScoreSouthBlue();
+	}
+
+	private static Command get3ScoreSouthBlue() {
+		return get3Score(22, 12, 17);
+	}
+
+	private static Command get3ScoreSouthRed() {
+		return get3Score(11, 1, 6);
+	}
+
+	private static Command get3Score(int score1TagID, int pickupTagID, int score23TagID) {
+		return sequence(
+				scoreLevelFour(toTag(score1TagID, kRobotToTagsRight)), pickup(pickupTagID),
+				scoreLevelFour(toTag(score23TagID, kRobotToTagsLeft)),
+				pickup(pickupTagID),
+				scoreLevelFour(toTag(score23TagID, kRobotToTagsLeft)));
+	}
+
+	private static Command pickup(int tagID) {
+		return sequence(toTag(tagID, kRobotToTags));
+	}
+
+	private static boolean redAlliance() {
+		return DriverStation.getAlliance().isPresent()
+				&& DriverStation.getAlliance().get() == DriverStation.Alliance.Red;
+	}
+
 	private static Command scoreLevel(Supplier<Command> levelCommand) {
 		return sequence(
 				levelCommand.get(),
@@ -81,36 +111,24 @@ public class CommandComposer {
 		return scoreLevel(m_elevatorSubsystem::goToLevelOneHeight);
 	}
 
-	public static Command scoreLevelFourWithLeftAlignment() {
-		return scoreWithAlignment(kLevelFourHeight, kGrabberAngleLevelFour, kRobotToTagsLeft);
+	public static Command scoreLevelFour(Command align) {
+		return scoreWithAlignment(kLevelFourHeight, kGrabberAngleLevelFour, align);
 	}
 
-	public static Command scoreLevelThreeWithLeftAlignment() {
-		return scoreWithAlignment(kLevelThreeHeight, kGrabberAngleOthers, kRobotToTagsLeft);
+	public static Command scoreLevelThree(Command align) {
+		return scoreWithAlignment(kLevelThreeHeight, kGrabberAngleOthers, align);
 	}
 
-	public static Command scoreLevelTwoWithLeftAlignment() {
-		return scoreWithAlignment(kLevelTwoHeight, kGrabberAngleOthers, kRobotToTagsLeft);
+	public static Command scoreLevelTwo(Command align) {
+		return scoreWithAlignment(kLevelTwoHeight, kGrabberAngleOthers, align);
 	}
 
-	public static Command scoreLevelFourWithRightAlignment() {
-		return scoreWithAlignment(kLevelFourHeight, kGrabberAngleLevelFour, kRobotToTagsRight);
-	}
-
-	public static Command scoreLevelThreeWithRightAlignment() {
-		return scoreWithAlignment(kLevelThreeHeight, kGrabberAngleOthers, kRobotToTagsRight);
-	}
-
-	public static Command scoreLevelTwoWithRightAlignment() {
-		return scoreWithAlignment(kLevelTwoHeight, kGrabberAngleOthers, kRobotToTagsRight);
-	}
-
-	private static Command scoreWithAlignment(double level, double angle,
-			Transform2d[] robotToTags) {
+	private static Command scoreWithAlignment(double level, double angle, Command align) {
 		return sequence(
 				parallel(
-						m_elevatorSubsystem.goToLevel(level), m_wristSubsystem.goToAngle(angle),
-						toClosestTag(robotToTags)),
+						m_elevatorSubsystem.goToLevel(level),
+						m_wristSubsystem.goToAngle(angle),
+						align),
 				m_elevatorSubsystem.lowerToScore(),
 				m_cheeseStickSubsystem.release(),
 				new WaitCommand(1),
@@ -145,7 +163,26 @@ public class CommandComposer {
 	 *         {@code AprilTag}
 	 */
 	public static Command toClosestTag(Transform2d... robotToTags) {
-		return toClosestTag(3, 0.01, 1, 0.08, 8, robotToTags);
+		return new PathDriveCommand(m_driveSubsystem, 0.01, 1,
+				0.08, 8,
+				posesToClosestTag(3, robotToTags));
+	}
+
+	/**
+	 * Creates a {@code Command} to automatically align the robot to the target
+	 * {@code AprilTag}.
+	 *
+	 * @param tagID the ID of the target {@code AprilTag}
+	 * @param robotToTags the {@code Tranform2d} representing the pose of the
+	 *        target {@code AprilTag} relative to the robot when the robot is
+	 *        aligned
+	 * @return a {@code Command} to automatically align the robot to the target
+	 *         {@code AprilTag}
+	 */
+	public static Command toTag(int tagID, Transform2d... robotToTags) {
+		return new PathDriveCommand(m_driveSubsystem, 0.01, 1,
+				0.08, 8,
+				posesToTag(tagID, robotToTags));
 	}
 
 	/**
@@ -162,7 +199,7 @@ public class CommandComposer {
 	 * @return a {@code Command} to automatically align the robot to the closest
 	 *         {@code AprilTag}
 	 */
-	public static Command toClosestTag(double distanceThresholdInMeters, double distanceTolerance,
+	public static Command toTag(double distanceThresholdInMeters, double distanceTolerance,
 			double angleToleranceInDegrees,
 			double intermedateDistanceTolerance, double intermediateAngleToleranceInDegrees,
 			Transform2d... robotToTags) {
@@ -190,6 +227,27 @@ public class CommandComposer {
 			if (closestTagPose == null)
 				return m_driveSubsystem.getPose();
 			return m_poseEstimationSubsystem.odometryCentricPose(closestTagPose.plus(r));
+		})).toList();
+	}
+
+	/**
+	 * Creates a list of {@code Pose2d}s to automatically align the robot to the
+	 * target {@code AprilTag}.
+	 *
+	 * @param tagID the ID of the target {@code AprilTag}
+	 * @param robotToTags the {@code Tranform2d} representing the pose of the
+	 *        target {@code AprilTag} relative to the robot when the robot is
+	 *        aligned
+	 * @return a list of {@code Pose2d}s to automatically align the robot to the
+	 *         target {@code AprilTag}
+	 */
+	public static List<Supplier<Pose2d>> posesToTag(int tagID,
+			Transform2d... robotToTags) {
+		return Arrays.stream(robotToTags).map(r -> (Supplier<Pose2d>) (() -> {
+			Pose2d pose = pose(tagID);
+			if (pose == null)
+				return m_driveSubsystem.getPose();
+			return m_poseEstimationSubsystem.odometryCentricPose(pose.plus(r));
 		})).toList();
 	}
 
@@ -362,4 +420,5 @@ public class CommandComposer {
 		}
 		return sequence(commands.toArray(new Command[0]));
 	}
+
 }

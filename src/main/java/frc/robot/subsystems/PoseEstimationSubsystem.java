@@ -120,12 +120,12 @@ public class PoseEstimationSubsystem extends SubsystemBase {
 	 */
 	@Override
 	public void periodic() {
-		boolean firstCamera = true;
 		for (var e : m_cameras.entrySet()) {
 			var camera = e.getKey();
 			var poseEstimator = e.getValue();
 			for (var r : camera.getAllUnreadResults()) { // for every result r
-				if (firstCamera || r.getTargets().size() > 1) {
+				var t = r.getBestTarget();
+				if (t != null && t.poseAmbiguity < 0.15) {
 					Optional<EstimatedRobotPose> p = poseEstimator.update(r);
 					if (p.isPresent()) { // if successful
 						EstimatedRobotPose v = p.get(); // get successfully estimated pose
@@ -134,7 +134,6 @@ public class PoseEstimationSubsystem extends SubsystemBase {
 					}
 				}
 			}
-			firstCamera = false;
 		}
 		m_poseEstimator.update(m_driveSubsystem.getHeading(), m_driveSubsystem.getModulePositions());
 		m_estimatedPosePublisher.set(m_poseEstimator.getEstimatedPosition());
@@ -263,6 +262,15 @@ public class PoseEstimationSubsystem extends SubsystemBase {
 	 */
 	public static Translation2d translation(double x, double y) {
 		return new Translation2d(x, y);
+	}
+
+	/**
+	 * Returns the pose of the specified {@code AprilTag}.
+	 * 
+	 * @param tagID the ID of the {@code AprilTag}
+	 */
+	public static Pose2d pose(int tagID) {
+		return kFieldLayout.getTagPose(tagID).get().toPose2d();
 	}
 
 	/**

@@ -56,6 +56,7 @@ import frc.robot.subsystems.WristSubsystem;
 
 public class Robot extends TimedRobot {
 	private Command m_autonomousCommand;
+	private final SendableChooser<Command> m_autoSelector = new SendableChooser<Command>();
 	private final SendableChooser<Command> m_testingChooser = new SendableChooser<>();
 	private final Mechanism2d m_mechanism = new Mechanism2d(Units.inchesToMeters(35), Units.inchesToMeters(100));
 	private final AlgaeGrabberSubsystem m_algaeGrabberSubsystem = new AlgaeGrabberSubsystem();
@@ -70,7 +71,7 @@ public class Robot extends TimedRobot {
 	private final CommandPS5Controller m_operatorController = new CommandPS5Controller(kOperatorControllerPort);
 	private final PowerDistribution m_pdh = new PowerDistribution();
 	private final VisionSimulator m_visionSimulator = new VisionSimulator(m_driveSubsystem,
-			pose(kFieldLayout.getFieldLength() / 2 + 3.5, 1.91 + .3, 180), 0.01);
+			pose(kFieldLayout.getFieldLength() / 2 - 1.5, 1.91 + .3, 180), 0.01);
 	SimCameraProperties cameraProp = new SimCameraProperties() {
 		{
 			setCalibration(640, 480, Rotation2d.fromDegrees(100));
@@ -117,6 +118,7 @@ public class Robot extends TimedRobot {
 						kClimberMotorPort, "Climber Motor", kWristMotorPort, "Wrist Motor", kFlywheelMotorPort,
 						"Algae Flywheel Motor", kGrabberAnglePort, "Algae Pivot Motor"));
 		DriverStation.startDataLog(DataLogManager.getLog());
+		addAutoCommands();
 		addTestingCommands();
 		addProgrammingCommands();
 		bindClimberControls();
@@ -125,9 +127,16 @@ public class Robot extends TimedRobot {
 		bindWristControls();
 		bindAlgaeControls();
 		bindCheeseStickControls();
+		SmartDashboard.putData("Auto Selector", m_autoSelector);
 		SmartDashboard.putData("Testing Chooser", m_testingChooser);
 		m_driverController.options().and(m_driverController.create()).and(() -> !DriverStation.isFMSAttached())
 				.onTrue(Commands.deferredProxy(m_testingChooser::getSelected));
+	}
+
+	public void addAutoCommands() {
+		m_autoSelector
+				.addOption(
+						"3 Score South", CommandComposer.get3ScoreSouth());
 	}
 
 	public void addTestingCommands() {
@@ -254,8 +263,11 @@ public class Robot extends TimedRobot {
 
 		m_driverController.options().onTrue(m_driveSubsystem.resetHeading());
 
-		m_driverController.square().whileTrue(CommandComposer.scoreLevelTwoWithLeftAlignment());
-		m_driverController.cross().whileTrue(CommandComposer.scoreLevelTwoWithRightAlignment());
+		m_driverController.square()
+				.whileTrue(
+						CommandComposer.scoreLevelTwo(CommandComposer.toClosestTag(kRobotToTagsLeft)));
+		m_driverController.cross()
+				.whileTrue(CommandComposer.scoreLevelTwo(CommandComposer.toClosestTag(kRobotToTagsRight)));
 
 		// m_operatorController.povLeft().whileTrue(
 		// CommandComposer.driveWithLeftAlignment(
@@ -337,8 +349,7 @@ public class Robot extends TimedRobot {
 
 	@Override
 	public void autonomousInit() {
-		m_autonomousCommand = null;
-
+		m_autonomousCommand = m_autoSelector.getSelected();
 		if (m_autonomousCommand != null) {
 			m_autonomousCommand.schedule();
 		}
