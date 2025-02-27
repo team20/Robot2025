@@ -80,13 +80,42 @@ public class CommandComposer {
 				scoreLevelFour(align3));
 	}
 
-	private static Command pickup(int tagID) {
-		return sequence(toTag(tagID, kRobotToTags));
+	public static Command scoreLevelFour(Command align) {
+		return scoreWithAlignment(kLevelFourHeight, kGrabberAngleLevelFour, align);
 	}
 
-	private static boolean redAlliance() {
-		return DriverStation.getAlliance().isPresent()
-				&& DriverStation.getAlliance().get().equals(DriverStation.Alliance.Red);
+	public static Command scoreLevelThree(Command align) {
+		return scoreWithAlignment(kLevelThreeHeight, kGrabberAngleOthers, align);
+	}
+
+	public static Command scoreLevelTwo(Command align) {
+		return scoreWithAlignment(kLevelTwoHeight, kGrabberAngleOthers, align);
+	}
+
+	private static Command scoreWithAlignment(double level, double angle, Command align) {
+		return sequence(
+				parallel(
+						m_elevatorSubsystem.goToLevel(level),
+						m_wristSubsystem.goToAngle(angle),
+						align),
+				m_elevatorSubsystem.lowerToScore(),
+				m_cheeseStickSubsystem.release(),
+				new WaitCommand(0.1));
+		// m_elevatorSubsystem.goToLevel(level + 0.1),
+		// parallel(
+		// m_cheeseStickSubsystem.grab(),
+		// m_elevatorSubsystem.goToBaseHeight(),
+		// moveStraight(-.5, 0.32, 32)),
+		// )
+	}
+
+	private static Command pickup(int tagID) {
+		return sequence(
+				parallel(
+						m_wristSubsystem.goToAngle(0), toTag(tagID, kRobotToTags),
+						m_elevatorSubsystem.goToCoralStationHeight()),
+				m_elevatorSubsystem.lowerToScore(),
+				m_cheeseStickSubsystem.grab(), new WaitCommand(0.1));
 	}
 
 	private static Command scoreLevel(Supplier<Command> levelCommand) {
@@ -115,34 +144,6 @@ public class CommandComposer {
 
 	public static Command scoreLevelOne() {
 		return scoreLevel(m_elevatorSubsystem::goToLevelOneHeight);
-	}
-
-	public static Command scoreLevelFour(Command align) {
-		return scoreWithAlignment(kLevelFourHeight, kGrabberAngleLevelFour, align);
-	}
-
-	public static Command scoreLevelThree(Command align) {
-		return scoreWithAlignment(kLevelThreeHeight, kGrabberAngleOthers, align);
-	}
-
-	public static Command scoreLevelTwo(Command align) {
-		return scoreWithAlignment(kLevelTwoHeight, kGrabberAngleOthers, align);
-	}
-
-	private static Command scoreWithAlignment(double level, double angle, Command align) {
-		return sequence(
-				parallel(
-						m_elevatorSubsystem.goToLevel(level),
-						m_wristSubsystem.goToAngle(angle),
-						align),
-				m_elevatorSubsystem.lowerToScore(),
-				m_cheeseStickSubsystem.release(),
-				new WaitCommand(1),
-				m_elevatorSubsystem.goToLevel(level + 0.1),
-				parallel(
-						m_cheeseStickSubsystem.grab(),
-						m_wristSubsystem.goToAngle(0), moveStraight(-.5, 0.01, 1),
-						m_elevatorSubsystem.goToBaseHeight()));
 	}
 
 	public static Command prepareForCoralPickup() {
@@ -187,7 +188,7 @@ public class CommandComposer {
 	 */
 	public static Command toTag(int tagID, Transform2d... robotToTags) {
 		return new PathDriveCommand(m_driveSubsystem, 0.01, 1,
-				0.08, 8,
+				0.16, 16,
 				posesToTag(tagID, robotToTags));
 	}
 

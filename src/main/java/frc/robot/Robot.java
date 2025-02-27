@@ -70,14 +70,17 @@ public class Robot extends TimedRobot {
 	private final CommandPS5Controller m_driverController = new CommandPS5Controller(kDriverControllerPort);
 	private final CommandPS5Controller m_operatorController = new CommandPS5Controller(kOperatorControllerPort);
 	private final PowerDistribution m_pdh = new PowerDistribution();
+	// private final VisionSimulator m_visionSimulator = new
+	// VisionSimulator(m_driveSubsystem,
+	// pose(kFieldLayout.getFieldLength() / 2 - 1.5, 1.91 + .3, 180), 0.01);
 	private final VisionSimulator m_visionSimulator = new VisionSimulator(m_driveSubsystem,
-			pose(kFieldLayout.getFieldLength() / 2 - 1.5, 1.91 + .3, 180), 0.01);
+			pose(kFieldLayout.getFieldLength() / 2 + 1.5, 1.91 + .3, 0), 0.01);
 	SimCameraProperties cameraProp = new SimCameraProperties() {
 		{
 			setCalibration(640, 480, Rotation2d.fromDegrees(100));
 			// Approximate detection noise with average and standard deviation error in
 			// pixels.
-			setCalibError(0.15, 0.08);
+			setCalibError(0.1, 0.05);
 			// Set the camera image capture framerate (Note: this is limited by robot loop
 			// rate).
 			setFPS(20);
