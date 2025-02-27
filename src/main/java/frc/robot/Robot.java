@@ -70,13 +70,13 @@ public class Robot extends TimedRobot {
 	private final CommandPS5Controller m_operatorController = new CommandPS5Controller(kOperatorControllerPort);
 	private final PowerDistribution m_pdh = new PowerDistribution();
 	private final VisionSimulator m_visionSimulator = new VisionSimulator(m_driveSubsystem,
-			pose(kFieldLayout.getFieldLength() / 2 + 2.5, 1.91 + .3, 180), 0.01);
+			pose(kFieldLayout.getFieldLength() / 2 + 3.5, 1.91 + .3, 180), 0.01);
 	SimCameraProperties cameraProp = new SimCameraProperties() {
 		{
 			setCalibration(640, 480, Rotation2d.fromDegrees(100));
 			// Approximate detection noise with average and standard deviation error in
 			// pixels.
-			setCalibError(0.25, 0.08);
+			setCalibError(0.15, 0.08);
 			// Set the camera image capture framerate (Note: this is limited by robot loop
 			// rate).
 			setFPS(20);
@@ -254,8 +254,8 @@ public class Robot extends TimedRobot {
 
 		m_driverController.options().onTrue(m_driveSubsystem.resetHeading());
 
-		m_driverController.square().whileTrue(CommandComposer.scoreLevelFourWithLeftAlignment());
-		m_driverController.cross().whileTrue(CommandComposer.scoreLevelFourWithRightAlignment());
+		m_driverController.square().whileTrue(CommandComposer.scoreLevelTwoWithLeftAlignment());
+		m_driverController.cross().whileTrue(CommandComposer.scoreLevelTwoWithRightAlignment());
 
 		// m_operatorController.povLeft().whileTrue(
 		// CommandComposer.driveWithLeftAlignment(

@@ -3,6 +3,8 @@ package frc.robot;
 import static edu.wpi.first.math.util.Units.*;
 import static edu.wpi.first.wpilibj2.command.Commands.*;
 import static frc.robot.Constants.*;
+import static frc.robot.Constants.ElevatorConstants.*;
+import static frc.robot.Constants.WristConstants.*;
 import static frc.robot.subsystems.PoseEstimationSubsystem.*;
 
 import java.util.Arrays;
@@ -80,43 +82,43 @@ public class CommandComposer {
 	}
 
 	public static Command scoreLevelFourWithLeftAlignment() {
-		return scoreLevel(m_elevatorSubsystem::goToLevelFourHeight)
-				.alongWith(toClosestTag(kRobotToTagsLeft));
+		return scoreWithAlignment(kLevelFourHeight, kGrabberAngleLevelFour, kRobotToTagsLeft);
 	}
 
 	public static Command scoreLevelThreeWithLeftAlignment() {
-		return scoreLevel(m_elevatorSubsystem::goToLevelThreeHeight)
-				.alongWith(toClosestTag(kRobotToTagsLeft));
+		return scoreWithAlignment(kLevelThreeHeight, kGrabberAngleOthers, kRobotToTagsLeft);
 	}
 
 	public static Command scoreLevelTwoWithLeftAlignment() {
-		return scoreLevel(m_elevatorSubsystem::goToLevelTwoHeight)
-				.alongWith(toClosestTag(kRobotToTagsLeft));
-	}
-
-	public static Command scoreLevelOneWithLeftAlignment() {
-		return scoreLevel(m_elevatorSubsystem::goToLevelOneHeight)
-				.alongWith(toClosestTag(kRobotToTagsLeft));
+		return scoreWithAlignment(kLevelTwoHeight, kGrabberAngleOthers, kRobotToTagsLeft);
 	}
 
 	public static Command scoreLevelFourWithRightAlignment() {
-		return scoreLevel(m_elevatorSubsystem::goToLevelFourHeight)
-				.alongWith(toClosestTag(kRobotToTagsRight));
+		return scoreWithAlignment(kLevelFourHeight, kGrabberAngleLevelFour, kRobotToTagsRight);
 	}
 
 	public static Command scoreLevelThreeWithRightAlignment() {
-		return scoreLevel(m_elevatorSubsystem::goToLevelThreeHeight)
-				.alongWith(toClosestTag(kRobotToTagsRight));
+		return scoreWithAlignment(kLevelThreeHeight, kGrabberAngleOthers, kRobotToTagsRight);
 	}
 
-	public static Command scoreLevelTwoWithARightlignment() {
-		return scoreLevel(m_elevatorSubsystem::goToLevelTwoHeight)
-				.alongWith(toClosestTag(kRobotToTagsRight));
+	public static Command scoreLevelTwoWithRightAlignment() {
+		return scoreWithAlignment(kLevelTwoHeight, kGrabberAngleOthers, kRobotToTagsRight);
 	}
 
-	public static Command scoreLevelOneWithRightAlignment() {
-		return scoreLevel(m_elevatorSubsystem::goToLevelOneHeight)
-				.alongWith(toClosestTag(kRobotToTagsRight));
+	private static Command scoreWithAlignment(double level, double angle,
+			Transform2d[] robotToTags) {
+		return sequence(
+				parallel(
+						m_elevatorSubsystem.goToLevel(level), m_wristSubsystem.goToAngle(angle),
+						toClosestTag(robotToTags)),
+				m_elevatorSubsystem.lowerToScore(),
+				m_cheeseStickSubsystem.release(),
+				new WaitCommand(1),
+				m_elevatorSubsystem.goToLevel(level + 0.1),
+				parallel(
+						m_cheeseStickSubsystem.grab(),
+						m_wristSubsystem.goToAngle(0), moveStraight(-.5, 0.01, 1),
+						m_elevatorSubsystem.goToBaseHeight()));
 	}
 
 	public static Command prepareForCoralPickup() {

@@ -175,13 +175,13 @@ public class Constants {
 		public static final double kMaxAccel = 1; // 2
 		public static final double kTolerance = 0.2;
 		// TODO: During testing make sure these are right
-		public static final double kLevelOneHeight = Units.inchesToMeters(41 - 24);
+		public static final double kLevelOneHeight = Units.inchesToMeters(49 - 24);
 		public static final double kLevelTwoHeight = kLevelOneHeight; // same as level 1
-		public static final double kLevelThreeHeight = Units.inchesToMeters(60 - 24);
+		public static final double kLevelThreeHeight = Units.inchesToMeters(70 - 24);
 		public static final double kLevelFourHeight = Units.inchesToMeters(60 - 24);
 		public static final double kMaxExtension = 1.243 - 0.05; // 1.243 meters is the max, taking off 5 cm for safety
 		// TODO: The amount that the elevator decreases in order to score
-		public static final double kToScoreHeightDecrease = 0;
+		public static final double kToScoreHeightDecrease = Units.inchesToMeters(5);
 		public static final double kCoralStationHeight = 0; // TODO: Change
 	}
 
@@ -190,7 +190,7 @@ public class Constants {
 		public static final int kSmartCurrentLimit = 20;
 		public static final int kSecondaryCurrentLimit = 20;
 		public static final int kGrabberAngleLevelFour = -55;
-		public static final int kGrabberAngleOthers = -35;
+		public static final int kGrabberAngleOthers = 45;
 
 		// TODO: Make sure these are tuned (can do with SysId)
 		public static final double kP = 0.1;

@@ -193,12 +193,22 @@ public class ElevatorSubsystem extends SubsystemBase {
 	}
 
 	/**
-	 * Using Trapezoid Profile to set the position of the elevator
+	 * Returns a {@code Command} that sets the position of the elevator
 	 * 
-	 * @param level A function that returns the level we want to go to
-	 * @return the command
+	 * @param level the target level
+	 * @return a {@code Command} that sets the position of the elevator
 	 */
-	private Command goToLevel(DoubleSupplier level) {
+	public Command goToLevel(double level) {
+		return goToLevel(() -> level);
+	}
+
+	/**
+	 * Returns a {@code Command} that sets the position of the elevator
+	 * 
+	 * @param level a {@code DoubleSupplier} to provide the target level
+	 * @return a {@code Command} that sets the position of the elevator
+	 */
+	public Command goToLevel(DoubleSupplier level) {
 		var initial = new TrapezoidProfile.State();
 		var finalState = new TrapezoidProfile.State();
 		return startRun(() -> {
@@ -330,7 +340,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 				}).until(() -> getPosition() > 0.2), // checking setSpeed(double)
 				runOnce(() -> setSpeed(0.0)), new WaitCommand(duration),
 				goToLevelOneHeight(), // checking goToLevel(DoubleSupplier)
-				goToBaseHeight(), goToLevelThreeHeight(),
+				goToBaseHeight(), goToLevelThreeHeight(), new WaitCommand(duration),
 				goToLevelTwoHeight(), new WaitCommand(duration), // checking if the elevator can stay at level 2
 				goToLevelFourHeight(),
 				goToBaseHeight());
