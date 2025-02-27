@@ -63,11 +63,13 @@ public class WristSubsystem extends SubsystemBase {
 		config.closedLoop
 				.feedbackSensor(FeedbackSensor.kAbsoluteEncoder)
 				.pid(kP, kI, kD);
+		config.softLimit.forwardSoftLimit(90.0 / 360).forwardSoftLimitEnabled(true);
+		config.softLimit.reverseSoftLimit(-10.0 / 360).reverseSoftLimitEnabled(true);
 		m_wristMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 		if (RobotBase.isSimulation()) {
 			m_wristSim = new SparkMaxSim(m_wristMotor, DCMotor.getNEO(1));
 			m_absoluteEncoderSim = new SparkAbsoluteEncoderSim(m_wristMotor);
-			m_wristModel = new SingleJointedArmSim(DCMotor.getNEO(1), 5, .1, 0.1, 0,
+			m_wristModel = new SingleJointedArmSim(DCMotor.getNEO(1), 5, 1e-3, 0.1, -Math.PI / 4,
 					Math.PI, false, 0);
 		} else {
 			m_wristSim = null;
@@ -216,8 +218,8 @@ public class WristSubsystem extends SubsystemBase {
 		return sequence(
 				runOnce(() -> setSpeed(.1)).until(() -> getAngle() > 15), // checking setSpeed(double)
 				runOnce(() -> setSpeed(0)), new WaitCommand(duration), goToAngle(0), new WaitCommand(duration),
-				goToAngle(45), new WaitCommand(duration), goToAngle(0), new WaitCommand(duration),
-				goToAngle(45), goToAngle(0));
+				goToAngle(45), new WaitCommand(duration), goToAngle(0),
+				goToAngle(45), goToAngle(0), goToAngle(45), goToAngle(0));
 	}
 
 }

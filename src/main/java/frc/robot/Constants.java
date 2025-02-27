@@ -193,9 +193,9 @@ public class Constants {
 		public static final int kGrabberAngleOthers = 45;
 
 		// TODO: Make sure these are tuned (can do with SysId)
-		public static final double kP = 0.1;
+		public static final double kP = 0.2;
 		public static final double kI = 0.0;
-		public static final double kD = 0.1;
+		public static final double kD = 0.01;
 		public static final double kS = 0;
 		public static final double kG = 0;
 		public static final double kV = 0.11;
