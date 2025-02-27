@@ -10,6 +10,7 @@ import static frc.robot.subsystems.PoseEstimationSubsystem.*;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
@@ -17,8 +18,10 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.SelectCommand;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.commands.DriveCommand;
 import frc.robot.commands.PathDriveCommand;
@@ -55,23 +58,26 @@ public class CommandComposer {
 	}
 
 	public static Command get3ScoreSouth() {
-		return redAlliance() ? get3ScoreSouthRed() : get3ScoreSouthBlue();
+		return new SelectCommand<Alliance>(Map
+				.of(Alliance.Red, get3ScoreSouthRed(), Alliance.Blue, get3ScoreSouthBlue()),
+				() -> DriverStation.getAlliance().get());
 	}
 
 	private static Command get3ScoreSouthBlue() {
-		return get3Score(22, 12, 17);
+		return get3Score(toTag(22, kRobotToTagsLeft), 12, toTag(17, kRobotToTagsLeft), toTag(17, kRobotToTagsRight));
 	}
 
 	private static Command get3ScoreSouthRed() {
-		return get3Score(11, 1, 6);
+		return get3Score(toTag(11, kRobotToTagsRight), 1, toTag(6, kRobotToTagsRight), toTag(6, kRobotToTagsLeft));
 	}
 
-	private static Command get3Score(int score1TagID, int pickupTagID, int score23TagID) {
+	private static Command get3Score(Command align1, int pickupTagID, Command align2, Command align3) {
 		return sequence(
-				scoreLevelFour(toTag(score1TagID, kRobotToTagsRight)), pickup(pickupTagID),
-				scoreLevelFour(toTag(score23TagID, kRobotToTagsLeft)),
+				scoreLevelFour(align1),
 				pickup(pickupTagID),
-				scoreLevelFour(toTag(score23TagID, kRobotToTagsLeft)));
+				scoreLevelFour(align2),
+				pickup(pickupTagID),
+				scoreLevelFour(align3));
 	}
 
 	private static Command pickup(int tagID) {
@@ -80,7 +86,7 @@ public class CommandComposer {
 
 	private static boolean redAlliance() {
 		return DriverStation.getAlliance().isPresent()
-				&& DriverStation.getAlliance().get() == DriverStation.Alliance.Red;
+				&& DriverStation.getAlliance().get().equals(DriverStation.Alliance.Red);
 	}
 
 	private static Command scoreLevel(Supplier<Command> levelCommand) {
