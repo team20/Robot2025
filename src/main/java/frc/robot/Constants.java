@@ -33,6 +33,9 @@ public class Constants {
 		public static final double kP = 0.5; // TODO: Tune
 		public static final double kI = 0.0;
 		public static final double kD = 0;
+
+		public static final double kAlgaePivotForwardSoftLimit = 0;
+		public static final double kAlgaePivotReverseSoftLimit = 0;
 	}
 
 	public static final class CheeseStickConstants {
@@ -77,7 +80,7 @@ public class Constants {
 		public static final int kBackLeftCANCoderPort = 32;
 
 		// TODO: Make sure these are tuned (can do with SysId)
-		public static final double kP = 0.04;
+		public static final double kP = 0.09;
 		public static final double kI = 0.0;
 		public static final double kD = 0;
 		public static final double kS = 0;
@@ -149,13 +152,15 @@ public class Constants {
 		public static final int kElevatorMotorPort = 26;
 		public static final int kSmartCurrentLimit = 60; // TODO: 45
 		public static final int kSecondaryCurrentLimit = 70;
+		// TODO: Added Sysid Constants, test elevator
+		// TODO: Tune kP manually - scale down because kV is higher
 		public static final double kP = 1.1; // 1.3, 1
 		public static final double kI = 0;
 		public static final double kD = 0;
-		public static final double kS = 0;
-		public static final double kG = 0;
-		public static final double kV = 0; // 2
-		public static final double kA = 0;
+		public static final double kS = 0.05631; // 0
+		public static final double kG = 0.22876; // 0
+		public static final double kV = 5.3794; // 2
+		public static final double kA = 0.74041; // 0
 		public static final double kGearRatio = 10;
 		/**
 		 * 24 teeth, 5 mm pitch, one rotation moves 120 mm, 2 stage cascading elevator
@@ -171,18 +176,17 @@ public class Constants {
 		 */
 		public static final double kMetersPerMotorRotation = (1 / kGearRatio)
 				* kMetersPerPulleyRotation;
-		public static final double kMaxVelocity = 1.5;
-		public static final double kMaxAccel = 1; // 2
+		public static final double kMaxVelocity = 2.1;
+		public static final double kMaxAccel = 2; // 2
 		public static final double kTolerance = 0.2;
 		// TODO: During testing make sure these are right
-		public static final double kLevelOneHeight = Units.inchesToMeters(49 - 24);
+		public static final double kLevelOneHeight = Units.inchesToMeters(41 - 24);
 		public static final double kLevelTwoHeight = kLevelOneHeight; // same as level 1
-		public static final double kLevelThreeHeight = Units.inchesToMeters(70 - 24);
-		// public static final double kLevelFourHeight = Units.inchesToMeters(75 - 24);
-		public static final double kLevelFourHeight = 1.243 - 0.1;
+		public static final double kLevelThreeHeight = Units.inchesToMeters(60 - 24);
+		public static final double kLevelFourHeight = Units.inchesToMeters(60 - 24);
 		public static final double kMaxExtension = 1.243 - 0.05; // 1.243 meters is the max, taking off 5 cm for safety
 		// TODO: The amount that the elevator decreases in order to score
-		public static final double kToScoreHeightDecrease = Units.inchesToMeters(5);
+		public static final double kToScoreHeightDecrease = 0;
 		public static final double kCoralStationHeight = 0; // TODO: Change
 	}
 
@@ -190,19 +194,24 @@ public class Constants {
 		public static final int kWristMotorPort = 27;
 		public static final int kSmartCurrentLimit = 20;
 		public static final int kSecondaryCurrentLimit = 20;
-		public static final int kGrabberAngleLevelFour = 55;
-		public static final int kGrabberAngleOthers = 45;
+		public static final int kGrabberAngleLevelFour = -55;
+		public static final int kGrabberAngleOthers = -35;
+		// TODO: Check soft limits, and are they caused goToAngle issues?
+		public static final double kWristForwardSoftLimit = 1;
+		public static final double kWristReverseSoftLimit = 0;
+		// public static final double kSoftLimit = 0;
+		// public static final double kSlowDownZone = 10;
 
 		// TODO: Make sure these are tuned (can do with SysId)
-		public static final double kP = 0.2;
+		public static final double kP = 0.09;
 		public static final double kI = 0.0;
-		public static final double kD = 0.01;
+		public static final double kD = 0;
 		public static final double kS = 0;
 		public static final double kG = 0;
 		public static final double kV = 0.11;
 		public static final double kA = 0.009;
 
-		public static final double kTolerance = 3; // 1 degree TODO: Change this
+		public static final double kTolerance = 3; // TODO: Change this
 	}
 
 	/**

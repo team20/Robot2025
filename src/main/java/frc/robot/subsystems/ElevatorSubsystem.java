@@ -215,6 +215,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 			m_timer.restart();
 			initial.position = getPosition();
 			finalState.position = level.getAsDouble();
+			SmartDashboard.putNumber("Elevator Position (Target)", finalState.position);
 		}, () -> {
 			double time = m_timer.get();
 			double currentVelocity = m_profile.calculate(time, initial, finalState).velocity;
@@ -336,14 +337,16 @@ public class ElevatorSubsystem extends SubsystemBase {
 	 */
 	public Command testCommand(double duration) {
 		return sequence(
-				startRun(() -> setSpeed(0.2), () -> {
-				}).until(() -> getPosition() > 0.2), // checking setSpeed(double)
-				runOnce(() -> setSpeed(0.0)), new WaitCommand(duration),
-				manualMove(() -> 0.5).withTimeout(1), // checking manualMove(DoubleSupplier)
-				runOnce(() -> setSpeed(0.0)), new WaitCommand(duration),
+				startRun(() -> setSpeed(0.2), () -> {// checking setSpeed(double)
+				}).until(() -> getPosition() > 0.2), // should stop when level is > 0.2
+				runOnce(() -> setSpeed(0.0)), new WaitCommand(duration), // should go down due to gravity
+				manualMove(() -> 0.5) // checking manualMove(DoubleSupplier)
+						.until(() -> getPosition() > 0.2), // should stop when level is > 0.2
+				runOnce(() -> setSpeed(0.0)), new WaitCommand(duration), // should go down due to gravity
 				goToLevelOneHeight(), // checking goToLevel(DoubleSupplier)
-				goToBaseHeight(), goToLevelThreeHeight(), new WaitCommand(duration),
-				goToLevelTwoHeight(), new WaitCommand(duration), // checking if the elevator can stay at level 2
+				goToBaseHeight(),
+				goToLevelThreeHeight(), new WaitCommand(duration), // should stay at level 3
+				goToLevelTwoHeight(), new WaitCommand(duration), // should stay at level 2
 				goToLevelFourHeight(),
 				goToBaseHeight());
 	}
