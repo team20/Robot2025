@@ -62,7 +62,11 @@ public class WristSubsystem extends SubsystemBase {
 		config.closedLoop
 				.feedbackSensor(FeedbackSensor.kAbsoluteEncoder)
 				.pid(kP, kI, kD);
+		config.softLimit.forwardSoftLimit(kWristForwardSoftLimit).forwardSoftLimitEnabled(true);
+		config.softLimit.reverseSoftLimit(kWristReverseSoftLimit).reverseSoftLimitEnabled(true);
+		config.absoluteEncoder.setSparkMaxDataPortConfig();
 		m_wristMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+		m_absoluteEncoder.getPosition();
 		if (RobotBase.isSimulation()) {
 			m_wristSim = new SparkMaxSim(m_wristMotor, DCMotor.getNEO(1));
 			m_absoluteEncoderSim = new SparkAbsoluteEncoderSim(m_wristMotor);
@@ -185,13 +189,17 @@ public class WristSubsystem extends SubsystemBase {
 
 	/**
 	 * Sets the angle of the motors
-	 * 
+	 *
 	 * @param position angle (in degrees) to set the wrist to
 	 */
 	public Command goToAngle(double angle) {
 		return runOnce(() -> {
 			m_targetAngle = angle / 360;
-			m_wristClosedLoopController.setReference(m_targetAngle, ControlType.kPosition);
+			// TODO: Test this, because it doesn't work properly
+			// Only moves in small increments, not to specified angle
+			m_wristClosedLoopController.setReference(
+					m_targetAngle,
+					ControlType.kPosition);
 		}).withName("Wrist go to angle");
 	}
 
