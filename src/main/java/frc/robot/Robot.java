@@ -108,6 +108,14 @@ public class Robot extends TimedRobot {
 				.addOption("SysId Elevator Dynamic Forward", m_elevatorSubsystem.sysidDynamic(Direction.kForward));
 		m_testingChooser
 				.addOption("SysId Elevator Dynamic Reverse", m_elevatorSubsystem.sysidDynamic(Direction.kReverse));
+		m_testingChooser.addOption(
+				"Drive Test", sequence(
+						m_driveSubsystem.run(() -> m_driveSubsystem.drive(0.5, 0, 0, false)).withTimeout(4),
+						m_driveSubsystem.run(() -> m_driveSubsystem.drive(-0.5, 0, 0, false)).withTimeout(4),
+						m_driveSubsystem.run(() -> m_driveSubsystem.drive(0, 0.5, 0, false)).withTimeout(4),
+						m_driveSubsystem.run(() -> m_driveSubsystem.drive(0, -0.5, 0, false)).withTimeout(4),
+						m_driveSubsystem.run(() -> m_driveSubsystem.drive(0, 0, 0.5, false)).withTimeout(4),
+						m_driveSubsystem.run(() -> m_driveSubsystem.drive(0, 0, -0.5, false)).withTimeout(4)));
 	}
 
 	public void bindDriveControls() {
@@ -227,14 +235,6 @@ public class Robot extends TimedRobot {
 	@Override
 	public void testInit() {
 		CommandScheduler.getInstance().cancelAll();
-		sequence(
-				m_driveSubsystem.run(() -> m_driveSubsystem.drive(0.5, 0, 0, false)).withTimeout(4),
-				m_driveSubsystem.run(() -> m_driveSubsystem.drive(-0.5, 0, 0, false)).withTimeout(4),
-				m_driveSubsystem.run(() -> m_driveSubsystem.drive(0, 0.5, 0, false)).withTimeout(4),
-				m_driveSubsystem.run(() -> m_driveSubsystem.drive(0, -0.5, 0, false)).withTimeout(4),
-				m_driveSubsystem.run(() -> m_driveSubsystem.drive(0, 0, 0.5, false)).withTimeout(4),
-				m_driveSubsystem.run(() -> m_driveSubsystem.drive(0, 0, -0.5, false)).withTimeout(4)).schedule();
-
 	}
 
 	@Override
