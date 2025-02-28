@@ -158,9 +158,7 @@ public class Robot extends TimedRobot {
 
 	public void bindWristControls() {
 		m_wristSubsystem.setDefaultCommand(m_wristSubsystem.manualMove(() -> m_operatorController.getRightY()));
-		// TODO: Wrist square command did not work properly, moved in slight increments
-		// Implement the absolute encoder in the goToAngle command
-		m_driverController.square().onTrue(m_wristSubsystem.goToAngle(-35));
+		m_driverController.square().onTrue(m_wristSubsystem.goToAngle(180));
 	}
 
 	public void bindCheeseStickControls() {
