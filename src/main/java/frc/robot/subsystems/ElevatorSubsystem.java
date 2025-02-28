@@ -50,7 +50,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 	// Adjust ramp rate, step voltage, and timeout to make sure elevator doesn't
 	// break
 	private final SysIdRoutine m_sysidRoutine = new SysIdRoutine(
-			new SysIdRoutine.Config(Volts.of(2.5).div(Seconds.of(1)), Volts.of(3), Seconds.of(3)),
+			new SysIdRoutine.Config(Volts.of(1.5).div(Seconds.of(1)), Volts.of(2), Seconds.of(2)),
 			new SysIdRoutine.Mechanism(m_elevatorMotor::setVoltage, null, this));
 	private double m_setPosition = 0;
 
@@ -207,6 +207,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 	private Command goToLevel(DoubleSupplier level) {
 		var initial = new TrapezoidProfile.State();
 		var finalState = new TrapezoidProfile.State();
+
 		return startRun(() -> {
 			m_timer.restart();
 			initial.position = getPosition();
