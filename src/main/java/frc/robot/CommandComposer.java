@@ -57,10 +57,24 @@ public class CommandComposer {
 		m_poseEstimationSubsystem = poseEstimationSubsystem;
 	}
 
+	public static Command get3ScoreNorth() {
+		return new SelectCommand<Alliance>(Map
+				.of(Alliance.Red, get3ScoreNorthRed(), Alliance.Blue, get3ScoreNorthBlue()),
+				() -> DriverStation.getAlliance().get());
+	}
+
 	public static Command get3ScoreSouth() {
 		return new SelectCommand<Alliance>(Map
 				.of(Alliance.Red, get3ScoreSouthRed(), Alliance.Blue, get3ScoreSouthBlue()),
 				() -> DriverStation.getAlliance().get());
+	}
+
+	private static Command get3ScoreNorthBlue() {
+		return get3Score(toTag(20, kRobotToTagsRight), 13, toTag(19, kRobotToTagsRight), toTag(19, kRobotToTagsLeft));
+	}
+
+	private static Command get3ScoreNorthRed() {
+		return get3Score(toTag(9, kRobotToTagsLeft), 2, toTag(8, kRobotToTagsLeft), toTag(8, kRobotToTagsRight));
 	}
 
 	private static Command get3ScoreSouthBlue() {

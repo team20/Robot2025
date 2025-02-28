@@ -183,7 +183,10 @@ public class WristSubsystem extends SubsystemBase {
 	 * @param position angle (in degrees) to set the wrist to
 	 */
 	public Command goToAngle(double angle) {
-		return startRun(() -> m_wristClosedLoopController.setReference(angle / 360, ControlType.kPosition), () -> {
+		return startRun(() -> {
+			m_wristClosedLoopController.setReference(angle / 360, ControlType.kPosition);
+			SmartDashboard.putNumber("Wrist Angle (Target)", angle);
+		}, () -> {
 		}).withName("Wrist go to angle").until(() -> Math.abs(getAngle() - angle) < kTolerance);
 	}
 
@@ -217,9 +220,11 @@ public class WristSubsystem extends SubsystemBase {
 	public Command testCommand(double duration) {
 		return sequence(
 				runOnce(() -> setSpeed(.1)).until(() -> getAngle() > 15), // checking setSpeed(double)
-				runOnce(() -> setSpeed(0)), new WaitCommand(duration), goToAngle(0), new WaitCommand(duration),
-				goToAngle(45), new WaitCommand(duration), goToAngle(0),
-				goToAngle(45), goToAngle(0), goToAngle(45), goToAngle(0));
+				runOnce(() -> setSpeed(0)), new WaitCommand(duration), // should stay at current angle
+				goToAngle(0), new WaitCommand(duration), // should stay at angle 0
+				goToAngle(45), new WaitCommand(duration), // should stay at angle 45
+				goToAngle(0), goToAngle(45),
+				goToAngle(0), goToAngle(45), goToAngle(0));
 	}
 
 }

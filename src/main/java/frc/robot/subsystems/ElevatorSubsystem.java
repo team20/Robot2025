@@ -222,7 +222,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 			TrapezoidProfile.State nextState = m_profile.calculate(time + 0.02, initial, finalState);
 			double ff = m_ff.calculateWithVelocities(currentVelocity, nextState.velocity);
 			setPosition(nextState.position, ff);
-		}).until(() -> Math.abs(getPosition() - level.getAsDouble()) < kTolerance);
+		}).until(() -> Math.abs(getPosition() - finalState.position) < kTolerance);
 	}
 
 	/**

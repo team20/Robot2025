@@ -9,13 +9,12 @@
         "sidebar": {
           "width": 300,
           "expanded": [
-            "/SmartDashboard/Pose",
             "/SmartDashboard/Pose@DriveSubsystem/translation",
             "/SmartDashboard"
           ]
         },
         "tabs": {
-          "selected": 6,
+          "selected": 7,
           "tabs": [
             {
               "type": 0,
@@ -225,19 +224,29 @@
               "type": 1,
               "title": "Line Graph",
               "controller": {
-                "leftSources": [
+                "leftSources": [],
+                "rightSources": [
                   {
                     "type": "stepped",
-                    "logKey": "NT:/SmartDashboard/Angle",
+                    "logKey": "NT:/SmartDashboard/Elevator Position (Target)",
                     "logType": "Number",
                     "visible": true,
                     "options": {
-                      "color": "#2b66a2",
+                      "color": "#e5b31b",
+                      "size": "normal"
+                    }
+                  },
+                  {
+                    "type": "stepped",
+                    "logKey": "NT:/SmartDashboard/Elevator Position",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#af2437",
                       "size": "normal"
                     }
                   }
                 ],
-                "rightSources": [],
                 "discreteSources": [],
                 "leftLockedRange": null,
                 "rightLockedRange": null,
@@ -253,6 +262,51 @@
                 "rightFilter": 0
               },
               "controllerUUID": "p0nnnet4imp6uzuoyk0q8zgb63s0colv",
+              "renderer": null,
+              "controlsHeight": 200
+            },
+            {
+              "type": 1,
+              "title": "Line Graph",
+              "controller": {
+                "leftSources": [],
+                "rightSources": [
+                  {
+                    "type": "stepped",
+                    "logKey": "NT:/SmartDashboard/Wrist Angle (Target)",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#2b66a2",
+                      "size": "normal"
+                    }
+                  },
+                  {
+                    "type": "stepped",
+                    "logKey": "NT:/SmartDashboard/Wrist Angle",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#e5b31b",
+                      "size": "normal"
+                    }
+                  }
+                ],
+                "discreteSources": [],
+                "leftLockedRange": null,
+                "rightLockedRange": null,
+                "leftUnitConversion": {
+                  "type": null,
+                  "factor": 1
+                },
+                "rightUnitConversion": {
+                  "type": null,
+                  "factor": 1
+                },
+                "leftFilter": 0,
+                "rightFilter": 0
+              },
+              "controllerUUID": "3wy5jwomwx05hm6fagjtd5s5po1ajhii",
               "renderer": null,
               "controlsHeight": 200
             }
