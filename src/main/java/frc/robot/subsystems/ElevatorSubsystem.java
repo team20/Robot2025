@@ -32,6 +32,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -79,7 +80,8 @@ public class ElevatorSubsystem extends SubsystemBase {
 				.feedbackSensor(FeedbackSensor.kPrimaryEncoder)
 				.pid(kP, kI, kD);
 		config.softLimit.forwardSoftLimit(kMaxExtension).forwardSoftLimitEnabled(true);
-		config.encoder.positionConversionFactor(kMetersPerMotorRotation);
+		config.encoder.positionConversionFactor(kMetersPerMotorRotation)
+				.velocityConversionFactor(kMetersPerMotorRotation / 60);
 		m_elevatorMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 		resetEncoder();
 		if (RobotBase.isSimulation()) {
@@ -141,16 +143,6 @@ public class ElevatorSubsystem extends SubsystemBase {
 	 */
 	public void resetEncoder() {
 		m_elevatorEncoder.setPosition(0);
-		setPosition(0, 0);
-	}
-
-	/**
-	 * Determine the output current of the motor
-	 * 
-	 * @return The max value that the output current gets to`
-	 */
-	public double getOutputCurrent() {
-		return Math.abs(m_elevatorMotor.getOutputCurrent());
 	}
 
 	@Override
@@ -212,13 +204,18 @@ public class ElevatorSubsystem extends SubsystemBase {
 			m_timer.restart();
 			initial.position = getPosition();
 			finalState.position = level.getAsDouble();
+			SmartDashboard.putNumber("Elevator/Goal", level.getAsDouble());
 		}, () -> {
 			double time = m_timer.get();
-			double currentVelocity = m_profile.calculate(time, initial, finalState).velocity;
+			TrapezoidProfile.State currentState = m_profile.calculate(time, initial, finalState);
 			TrapezoidProfile.State nextState = m_profile.calculate(time + 0.02, initial, finalState);
-			double ff = m_ff.calculateWithVelocities(currentVelocity, nextState.velocity);
+			double ff = m_ff.calculateWithVelocities(currentState.velocity, nextState.velocity);
 			setPosition(nextState.position, ff);
-		});
+			SmartDashboard.putNumber("Elevator/Current Target Position", currentState.position);
+			SmartDashboard.putNumber("Elevator/Current Target Velocity", currentState.velocity);
+			SmartDashboard.putNumber("Elevator/Next Target Position", nextState.position);
+			SmartDashboard.putNumber("Elevator/Next Target Velocity", nextState.velocity);
+		}).until(() -> m_profile.isFinished(m_timer.get()));
 	}
 
 	/**
@@ -232,11 +229,8 @@ public class ElevatorSubsystem extends SubsystemBase {
 		return run(() -> {
 			double input = joystick.getAsDouble();
 			double speed = Math.signum(input) * Math.pow(input, 2);
-			// m_elevatorMotor.setVoltage(m_ff.calculate(speed * kMaxVelocity / 2));
 			setSpeed(speed);
-		}).withName("Manual Elevator");
-		// .until(() -> m_elevatorMotor.get() == speed).finallyDo(() -> goToLevel(() ->
-		// getPosition()));
+		}).finallyDo(() -> m_elevatorMotor.setVoltage(kG)).withName("Manual Elevator");
 	}
 
 	/**

@@ -47,15 +47,15 @@ public class WristSubsystem extends SubsystemBase {
 	private final SparkMaxSim m_wristSim;
 	private final SparkAbsoluteEncoderSim m_absoluteEncoderSim;
 	private final SingleJointedArmSim m_wristModel;
-	private final MechanismLigament2d m_wrist = new MechanismLigament2d("wrist", Units.inchesToMeters(9), 90);
+	private final MechanismLigament2d m_wrist = new MechanismLigament2d("wrist", Units.inchesToMeters(9), 0);
 
 	/** Creates a new WristSubsystem. */
 	public WristSubsystem(MechanismLigament2d wristMount) {
 		wristMount.append(m_wrist);
 		var config = new SparkMaxConfig();
 		config
-				.inverted(false)
-				.idleMode(IdleMode.kBrake) // TODO: Soft limits?
+				.inverted(true)
+				.idleMode(IdleMode.kBrake)
 				.smartCurrentLimit(kSmartCurrentLimit)
 				.secondaryCurrentLimit(kSecondaryCurrentLimit)
 				.voltageCompensation(12);
@@ -64,9 +64,8 @@ public class WristSubsystem extends SubsystemBase {
 				.pid(kP, kI, kD);
 		config.softLimit.forwardSoftLimit(kWristForwardSoftLimit).forwardSoftLimitEnabled(true);
 		config.softLimit.reverseSoftLimit(kWristReverseSoftLimit).reverseSoftLimitEnabled(true);
-		config.absoluteEncoder.setSparkMaxDataPortConfig();
+		config.absoluteEncoder.zeroOffset(kWristOffset).positionConversionFactor(360);
 		m_wristMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-		m_absoluteEncoder.getPosition();
 		if (RobotBase.isSimulation()) {
 			m_wristSim = new SparkMaxSim(m_wristMotor, DCMotor.getNEO(1));
 			m_absoluteEncoderSim = new SparkAbsoluteEncoderSim(m_wristMotor);
@@ -92,7 +91,7 @@ public class WristSubsystem extends SubsystemBase {
 	 * @return the angle of the wrist (degrees)
 	 */
 	public double getAngle() {
-		return m_absoluteEncoder.getPosition() * 360;
+		return m_absoluteEncoder.getPosition();
 	}
 
 	/**
@@ -102,15 +101,6 @@ public class WristSubsystem extends SubsystemBase {
 	 */
 	public boolean atAngle() {
 		return (Math.abs(m_targetAngle - getAngle()) <= kTolerance);
-	}
-
-	/**
-	 * Determine the output current of the motor
-	 * 
-	 * @return The max value that the output current gets to
-	 */
-	public double getOutputCurrent() {
-		return Math.abs(m_wristMotor.getOutputCurrent());
 	}
 
 	/**
@@ -135,10 +125,9 @@ public class WristSubsystem extends SubsystemBase {
 
 	@Override
 	public void periodic() {
-		m_wrist.setAngle(-90 + getAngle());
-		SmartDashboard.putNumber("Output current", getOutputCurrent());
-		SmartDashboard.putNumber("Angle", getAngle());
-		SmartDashboard.putNumber("Applied output", m_wristMotor.getAppliedOutput());
+		// Negate to make angle CCW+, subtract 180 to get 0 degrees in the right place
+		m_wrist.setAngle(-getAngle() - 180);
+		SmartDashboard.putNumber("Wrist/Target Angle", m_targetAngle);
 	}
 
 	/**
@@ -151,7 +140,7 @@ public class WristSubsystem extends SubsystemBase {
 	}
 
 	/**
-	 * Reverse the motor by setting the speeed to negative
+	 * Reverse the motor by setting the speed to negative
 	 * 
 	 * @return the command to set the speed
 	 */
@@ -178,12 +167,7 @@ public class WristSubsystem extends SubsystemBase {
 		return run(() -> {
 			double input = joystick.getAsDouble();
 			double speed = Math.signum(input) * Math.pow(input, 2);
-			if (Math.abs(speed) > 0.1) {
-				m_wristMotor.set(speed * 0.5);
-			} else {
-				m_wristMotor.stopMotor();
-			}
-
+			m_wristMotor.set(speed * 0.5);
 		}).withName("Manual Wrist");
 	}
 
@@ -193,14 +177,10 @@ public class WristSubsystem extends SubsystemBase {
 	 * @param position angle (in degrees) to set the wrist to
 	 */
 	public Command goToAngle(double angle) {
-		return runOnce(() -> {
-			m_targetAngle = angle / 360;
-			// TODO: Test this, because it doesn't work properly
-			// Only moves in small increments, not to specified angle
-			m_wristClosedLoopController.setReference(
-					m_targetAngle,
-					ControlType.kPosition);
-		}).withName("Wrist go to angle");
+		return run(() -> {
+			m_targetAngle = angle;
+			m_wristClosedLoopController.setReference(m_targetAngle, ControlType.kPosition);
+		}).until(this::atAngle).withName("Wrist go to angle");
 	}
 
 	/**
