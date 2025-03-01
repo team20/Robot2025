@@ -167,7 +167,7 @@ public class Constants {
 		public static final int kSmartCurrentLimit = 20;
 		public static final int kSecondaryCurrentLimit = 20;
 		public static final int kGrabberAngleLevelFour = 245;
-		public static final int kGrabberAngleOthers = 245; // 5 degrees steeper from previous value (215)
+		public static final int kGrabberAngleOthers = 220; // 5 degrees steeper from previous value (215)
 		public static final double kWristForwardSoftLimit = 274; // Wrist facing down
 		public static final double kWristReverseSoftLimit = 90; // Wrist facing up
 		public static final double kWristOffset = 0.104;
