@@ -109,7 +109,7 @@ public class CommandComposer {
 	private static Command scoreWithAlignment(double level, double angle, Command align) {
 		return sequence(
 				parallel(
-						m_elevatorSubsystem.goToLevel(level),
+						m_elevatorSubsystem.goToLevel(() -> level),
 						m_wristSubsystem.goToAngle(angle),
 						align),
 				m_elevatorSubsystem.lowerToScore(),

@@ -158,6 +158,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 
 	@Override
 	public void periodic() {
+		SmartDashboard.putNumber("Elevator/Position", getPosition());
 		m_elevatorLigament.setLength(Units.inchesToMeters(24) + getPosition());
 	}
 
@@ -198,7 +199,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 	 * @param level A function that returns the level we want to go to
 	 * @return the command
 	 */
-	private Command goToLevel(DoubleSupplier level) {
+	public Command goToLevel(DoubleSupplier level) {
 		var initial = new TrapezoidProfile.State();
 		var finalState = new TrapezoidProfile.State();
 
@@ -217,7 +218,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 			SmartDashboard.putNumber("Elevator/Current Target Velocity", currentState.velocity);
 			SmartDashboard.putNumber("Elevator/Next Target Position", nextState.position);
 			SmartDashboard.putNumber("Elevator/Next Target Velocity", nextState.velocity);
-		}).until(() -> m_profile.isFinished(m_timer.get()));
+		}).until(() -> Math.abs(getPosition() - finalState.position) < kTolerance);
 	}
 
 	/**
