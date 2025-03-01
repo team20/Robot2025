@@ -119,9 +119,9 @@ public class WristSubsystem extends SubsystemBase {
 		m_wristModel.update(0.02);
 		var velocityRPM = m_wristModel.getVelocityRadPerSec() / (2 * Math.PI) / 60;
 		m_wristSim.iterate(velocityRPM, 12, 0.02);
-		m_wristSim.setPosition(m_wristModel.getAngleRads() / (2 * Math.PI));
+		m_wristSim.setPosition(Math.toDegrees(m_wristModel.getAngleRads()));
 		m_absoluteEncoderSim.iterate(velocityRPM, 0.02);
-		m_absoluteEncoderSim.setPosition(m_wristModel.getAngleRads() / (2 * Math.PI));
+		m_absoluteEncoderSim.setPosition(Math.toDegrees(m_wristModel.getAngleRads()));
 	}
 
 	@Override
