@@ -159,7 +159,7 @@ public class Constants {
 		public static final double kMaxExtension = 1.243 - 0.05; // 1.243 meters is the max, taking off 5 cm for safety
 		// TODO: The amount that the elevator decreases in order to score
 		public static final double kToScoreHeightDecrease = 0;
-		public static final double kCoralStationHeight = kLevelTwoHeight; // TODO: Change
+		public static final double kCoralStationHeight = Units.inchesToMeters(45 - 24); // TODO: Change
 	}
 
 	public static final class WristConstants {
