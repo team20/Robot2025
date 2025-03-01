@@ -50,10 +50,12 @@ public class WristSubsystem extends SubsystemBase {
 	private final SparkAbsoluteEncoderSim m_absoluteEncoderSim;
 	private final SingleJointedArmSim m_wristModel;
 	private final MechanismLigament2d m_wrist = new MechanismLigament2d("wrist", Units.inchesToMeters(9), 0);
+	private final ElevatorSubsystem m_elevatorSubsystem;
 
 	/** Creates a new WristSubsystem. */
-	public WristSubsystem(MechanismLigament2d wristMount) {
-		wristMount.append(m_wrist);
+	public WristSubsystem(ElevatorSubsystem elevatorSubsystem) {
+		m_elevatorSubsystem = elevatorSubsystem;
+		m_elevatorSubsystem.getWristMount().append(m_wrist);
 		var config = new SparkMaxConfig();
 		config
 				.inverted(true)
@@ -64,15 +66,18 @@ public class WristSubsystem extends SubsystemBase {
 		config.closedLoop
 				.feedbackSensor(FeedbackSensor.kAbsoluteEncoder)
 				.pid(kP, kI, kD);
-		config.softLimit.forwardSoftLimit(kWristForwardSoftLimit).forwardSoftLimitEnabled(true);
-		config.softLimit.reverseSoftLimit(kWristReverseSoftLimit).reverseSoftLimitEnabled(true);
-		config.absoluteEncoder.zeroOffset(kWristOffset).positionConversionFactor(360);
+		// TODO:
+		// config.softLimit.forwardSoftLimit(kWristForwardSoftLimit).forwardSoftLimitEnabled(true);
+		// TODO:
+		// config.softLimit.reverseSoftLimit(kWristReverseSoftLimit).reverseSoftLimitEnabled(true);
+		// TODO:
+		// config.absoluteEncoder.zeroOffset(kWristOffset).positionConversionFactor(360);
 		m_wristMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 		if (RobotBase.isSimulation()) {
 			m_wristSim = new SparkMaxSim(m_wristMotor, DCMotor.getNEO(1));
 			m_absoluteEncoderSim = new SparkAbsoluteEncoderSim(m_wristMotor);
-			m_wristModel = new SingleJointedArmSim(DCMotor.getNEO(1), 5, 2, 0.1, 0,
-					Math.PI, false, 0);
+			m_wristModel = new SingleJointedArmSim(DCMotor.getNEO(1), 5, 1e-3, 0.1, -Math.PI / 4,
+					Math.PI * 3 / 2, false, Math.PI * 3 / 2);
 		} else {
 			m_wristSim = null;
 			m_absoluteEncoderSim = null;
@@ -93,7 +98,8 @@ public class WristSubsystem extends SubsystemBase {
 	 * @return the angle of the wrist (degrees)
 	 */
 	public double getAngle() {
-		return m_absoluteEncoder.getPosition();
+		// TODO: return m_absoluteEncoder.getPosition();
+		return m_absoluteEncoder.getPosition() * 360;
 	}
 
 	/**
@@ -130,6 +136,7 @@ public class WristSubsystem extends SubsystemBase {
 		// Negate to make angle CCW+, subtract 180 to get 0 degrees in the right place
 		m_wrist.setAngle(-getAngle() - 180);
 		SmartDashboard.putNumber("Wrist/Target Angle", m_targetAngle);
+		SmartDashboard.putNumber("Wrist/Angle", getAngle());
 	}
 
 	/**
@@ -142,11 +149,7 @@ public class WristSubsystem extends SubsystemBase {
 	}
 
 	/**
-	 * <<<<<<< HEAD
-	 * Reverse the motor by setting the speeed to negative
-	 * =======
 	 * Reverse the motor by setting the speed to negative
-	 * >>>>>>> origin/main
 	 * 
 	 * @return the command to set the speed
 	 */
@@ -171,10 +174,16 @@ public class WristSubsystem extends SubsystemBase {
 	 */
 	public Command manualMove(DoubleSupplier joystick) {
 		return run(() -> {
-			double input = joystick.getAsDouble();
-			double speed = Math.signum(input) * Math.pow(input, 2);
-			m_wristMotor.set(speed * 0.5);
+			if (safeToMove()) {
+				double input = joystick.getAsDouble();
+				double speed = Math.signum(input) * Math.pow(input, 2);
+				m_wristMotor.set(speed * 0.5);
+			}
 		}).withName("Manual Wrist");
+	}
+
+	private boolean safeToMove() {
+		return m_elevatorSubsystem.getPosition() > 0.2;
 	}
 
 	/**
@@ -185,7 +194,11 @@ public class WristSubsystem extends SubsystemBase {
 	public Command goToAngle(double angle) {
 		return run(() -> {
 			m_targetAngle = angle;
-			m_wristClosedLoopController.setReference(m_targetAngle, ControlType.kPosition);
+			// TODO: m_wristClosedLoopController.setReference(m_targetAngle,
+			// ControlType.kPosition);
+			if (safeToMove()) {
+				m_wristClosedLoopController.setReference(m_targetAngle / 360, ControlType.kPosition);
+			}
 		}).until(this::atAngle).withName("Wrist go to angle");
 	}
 
@@ -218,12 +231,12 @@ public class WristSubsystem extends SubsystemBase {
 	 */
 	public Command testCommand(double duration) {
 		return sequence(
-				runOnce(() -> setSpeed(.1)).until(() -> getAngle() > 15), // checking setSpeed(double)
+				run(() -> setSpeed(-.1)).until(() -> getAngle() < 270 - 10), // checking setSpeed(double)
 				runOnce(() -> setSpeed(0)), new WaitCommand(duration), // should stay at current angle
-				goToAngle(0), new WaitCommand(duration), // should stay at angle 0
-				goToAngle(45), new WaitCommand(duration), // should stay at angle 45
-				goToAngle(0), goToAngle(45),
-				goToAngle(0), goToAngle(45), goToAngle(0));
+				goToAngle(270), new WaitCommand(duration), // should stay at angle 0
+				goToAngle(270 - 45), new WaitCommand(duration), // should stay at angle 45
+				goToAngle(270), goToAngle(270 - 45),
+				goToAngle(270), goToAngle(270 - 45), goToAngle(270));
 	}
 
 }

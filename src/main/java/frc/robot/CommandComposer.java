@@ -110,7 +110,7 @@ public class CommandComposer {
 		return sequence(
 				parallel(
 						m_elevatorSubsystem.goToLevel(() -> level),
-						m_wristSubsystem.goToAngle(angle),
+						sequence(new WaitCommand(.5), m_wristSubsystem.goToAngle(angle)),
 						align),
 				m_elevatorSubsystem.lowerToScore(),
 				m_cheeseStickSubsystem.release(),
@@ -126,7 +126,7 @@ public class CommandComposer {
 	private static Command pickup(int tagID) {
 		return sequence(
 				parallel(
-						m_wristSubsystem.goToAngle(0), toTag(tagID, kRobotToTags),
+						m_wristSubsystem.goToAngle(270), toTag(tagID, kRobotToTags),
 						m_elevatorSubsystem.goToCoralStationHeight()),
 				m_elevatorSubsystem.lowerToScore(),
 				m_cheeseStickSubsystem.grab(), new WaitCommand(0.1));

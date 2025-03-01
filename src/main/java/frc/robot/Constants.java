@@ -188,16 +188,16 @@ public class Constants {
 		public static final double kLevelFourHeight = Units.inchesToMeters(60 - 24);
 		public static final double kMaxExtension = 1.243 - 0.05; // 1.243 meters is the max, taking off 5 cm for safety
 		// TODO: The amount that the elevator decreases in order to score
-		public static final double kToScoreHeightDecrease = 0;
-		public static final double kCoralStationHeight = 0; // TODO: Change
+		public static final double kToScoreHeightDecrease = 0.05; // TODO: change
+		public static final double kCoralStationHeight = Units.inchesToMeters(20); // TODO: Change
 	}
 
 	public static final class WristConstants {
 		public static final int kWristMotorPort = 27;
 		public static final int kSmartCurrentLimit = 20;
 		public static final int kSecondaryCurrentLimit = 20;
-		public static final int kGrabberAngleLevelFour = -55;
-		public static final int kGrabberAngleOthers = -35;
+		public static final int kGrabberAngleLevelFour = 270 - 30; // 55 -> 30
+		public static final int kGrabberAngleOthers = 270 - 30; // 35 -> 30
 		public static final double kWristForwardSoftLimit = 270; // Wrist facing down
 		public static final double kWristReverseSoftLimit = 90; // Wrist facing up
 		public static final double kWristOffset = 0.104;
@@ -207,7 +207,7 @@ public class Constants {
 		public static final double kI = 0.0;
 		public static final double kD = 0;
 
-		public static final double kTolerance = 4; // TODO: Change this
+		public static final double kTolerance = 1; // TODO: Change this
 	}
 
 	/**
