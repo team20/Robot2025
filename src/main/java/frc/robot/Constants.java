@@ -80,8 +80,8 @@ public class Constants {
 		public static final int kBackLeftCANCoderPort = 32;
 
 		// TODO: Make sure these are tuned (can do with SysId)
-		// public static final double kP = 0.09;
-		public static final double kP = 0.04;
+		// public static final double kP = 0.04; // works in simulation
+		public static final double kP = 0.09;
 		public static final double kI = 0.0;
 		public static final double kD = 0;
 		public static final double kS = 0;
@@ -153,18 +153,16 @@ public class Constants {
 		public static final int kElevatorMotorPort = 26;
 		public static final int kSmartCurrentLimit = 60; // TODO: 45
 		public static final int kSecondaryCurrentLimit = 70;
-		// TODO: Added Sysid Constants, test elevator
-		// TODO: Tune kP manually - scale down because kV is higher
-		public static final double kP = 1.1; // 1.3, 1
+		// public static final double kP = 15; // works in simulation
+		public static final double kP = 1.1;
 		public static final double kI = 0;
+		// public static final double kD = 0.5; // works in simulation
 		public static final double kD = 0;
-		// public static final double kP = 15; // 1.3, 1
-		// public static final double kI = 0;
-		// public static final double kD = 0.5;
-		public static final double kS = 0.05631; // 0
-		public static final double kG = 0.22876; // 0
-		public static final double kV = 5.3794; // 2
-		public static final double kA = 0.74041; // 0
+
+		public static final double kS = 0.05631;
+		public static final double kG = 0.22876;
+		public static final double kV = 5.3794;
+		public static final double kA = 0.74041;
 		public static final double kGearRatio = 10;
 		/**
 		 * 24 teeth, 5 mm pitch, one rotation moves 120 mm, 2 stage cascading elevator
@@ -180,44 +178,36 @@ public class Constants {
 		 */
 		public static final double kMetersPerMotorRotation = (1 / kGearRatio)
 				* kMetersPerPulleyRotation;
-		public static final double kMaxVelocity = 2.1;
-		public static final double kMaxAccel = 2; // 2
-		public static final double kTolerance = 0.01;
+		public static final double kMaxVelocity = 2.75;
+		public static final double kMaxAccel = 2.5;
+		public static final double kTolerance = 1;
 		// TODO: During testing make sure these are right
 		public static final double kLevelOneHeight = Units.inchesToMeters(41 - 24);
 		public static final double kLevelTwoHeight = kLevelOneHeight; // same as level 1
 		public static final double kLevelThreeHeight = Units.inchesToMeters(60 - 24);
-		public static final double kLevelFourHeight = 1.243 - 0.2; // TODO: Change
+		public static final double kLevelFourHeight = Units.inchesToMeters(60 - 24);
 		public static final double kMaxExtension = 1.243 - 0.05; // 1.243 meters is the max, taking off 5 cm for safety
 		// TODO: The amount that the elevator decreases in order to score
-		public static final double kToScoreHeightDecrease = .05; // TODO: Change
-		public static final double kCoralStationHeight = Units.inchesToMeters(10); // TODO: Change
+		public static final double kToScoreHeightDecrease = 0;
+		public static final double kCoralStationHeight = 0; // TODO: Change
 	}
 
 	public static final class WristConstants {
 		public static final int kWristMotorPort = 27;
 		public static final int kSmartCurrentLimit = 20;
 		public static final int kSecondaryCurrentLimit = 20;
-		public static final int kGrabberAngleLevelFour = -55;// TODO: Change
-		public static final int kGrabberAngleOthers = -35;// TODO: Change
-		// public static final int kGrabberAngleLevelFour = 55;
-		// public static final int kGrabberAngleOthers = 35;
-		// TODO: Check soft limits, and are they caused goToAngle issues?
-		public static final double kWristForwardSoftLimit = 1;
-		public static final double kWristReverseSoftLimit = 0;
-		// public static final double kSoftLimit = 0;
-		// public static final double kSlowDownZone = 10;
+		public static final int kGrabberAngleLevelFour = -55;
+		public static final int kGrabberAngleOthers = -35;
+		public static final double kWristForwardSoftLimit = 270; // Wrist facing down
+		public static final double kWristReverseSoftLimit = 90; // Wrist facing up
+		public static final double kWristOffset = 0.104;
 
 		// TODO: Make sure these are tuned (can do with SysId)
-		public static final double kP = 0.09;
+		public static final double kP = 0.3;
 		public static final double kI = 0.0;
 		public static final double kD = 0;
-		public static final double kS = 0;
-		public static final double kG = 0;
-		public static final double kV = 0.11;
-		public static final double kA = 0.009;
 
-		public static final double kTolerance = 1; // TODO: Change this
+		public static final double kTolerance = 4; // TODO: Change this
 	}
 
 	/**

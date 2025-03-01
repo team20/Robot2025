@@ -19,6 +19,7 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.math.filter.Debouncer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
@@ -43,10 +44,12 @@ public class AlgaeGrabberSubsystem extends SubsystemBase {
 		config.closedLoop
 				.feedbackSensor(FeedbackSensor.kAbsoluteEncoder)
 				.pid(kP, kI, kD);
+		// config.softLimit.forwardSoftLimit(kAlgaePivotForwardSoftLimit).forwardSoftLimitEnabled(true);
+		// config.softLimit.reverseSoftLimit(kAlgaePivotReverseSoftLimit).reverseSoftLimitEnabled(true);
 		m_grabberAngleMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 		// Causes Spark Maxes to send this data, allowing URCL to log it
-		m_grabberAngleMotor.getEncoder().getPosition();
 		m_grabberAngleMotor.getAbsoluteEncoder().getPosition();
+		SmartDashboard.putNumber("Algae Encoder", m_grabberAngleMotor.getEncoder().getPosition());
 	}
 
 	@Override

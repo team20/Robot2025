@@ -10,7 +10,11 @@
           "width": 300,
           "expanded": [
             "/SmartDashboard/Pose@DriveSubsystem/translation",
-            "/SmartDashboard"
+            "/SmartDashboard",
+            "/SmartDashboard/Elevator",
+            "/URCL",
+            "/URCL/Raw",
+            "/SmartDashboard/Wrist"
           ]
         },
         "tabs": {
@@ -228,21 +232,21 @@
                 "rightSources": [
                   {
                     "type": "stepped",
-                    "logKey": "NT:/SmartDashboard/Elevator Position (Target)",
+                    "logKey": "NT:/SmartDashboard/Elevator/Goal",
                     "logType": "Number",
                     "visible": true,
                     "options": {
-                      "color": "#e5b31b",
+                      "color": "#2b66a2",
                       "size": "normal"
                     }
                   },
                   {
                     "type": "stepped",
-                    "logKey": "NT:/SmartDashboard/Elevator Position",
+                    "logKey": "NT:/SmartDashboard/Elevator/Position",
                     "logType": "Number",
                     "visible": true,
                     "options": {
-                      "color": "#af2437",
+                      "color": "#e5b31b",
                       "size": "normal"
                     }
                   }
@@ -273,21 +277,21 @@
                 "rightSources": [
                   {
                     "type": "stepped",
-                    "logKey": "NT:/SmartDashboard/Wrist Angle (Target)",
+                    "logKey": "NT:/SmartDashboard/Wrist/Target Angle",
                     "logType": "Number",
                     "visible": true,
                     "options": {
-                      "color": "#2b66a2",
+                      "color": "#af2437",
                       "size": "normal"
                     }
                   },
                   {
                     "type": "stepped",
-                    "logKey": "NT:/SmartDashboard/Wrist Angle",
+                    "logKey": "NT:/SmartDashboard/Wrist/Angle",
                     "logType": "Number",
                     "visible": true,
                     "options": {
-                      "color": "#e5b31b",
+                      "color": "#2b66a2",
                       "size": "normal"
                     }
                   }

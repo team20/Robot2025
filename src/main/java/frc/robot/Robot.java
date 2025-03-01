@@ -35,11 +35,8 @@ import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
-import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.util.Color;
-import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -66,7 +63,7 @@ public class Robot extends TimedRobot {
 	private final ClimberSubsystem m_climberSubsystem = new ClimberSubsystem();
 	private final DriveSubsystem m_driveSubsystem = new DriveSubsystem();
 	private final ElevatorSubsystem m_elevatorSubsystem = new ElevatorSubsystem(
-			m_mechanism.getRoot("anchor", Units.inchesToMeters(23), Units.inchesToMeters(20)));
+			m_mechanism.getRoot("anchor", Units.inchesToMeters(23), 0));
 	private final WristSubsystem m_wristSubsystem = new WristSubsystem(m_elevatorSubsystem.getWristMount());
 	private final CheeseStickSubsystem m_cheeseStickSubsystem = new CheeseStickSubsystem(
 			m_wristSubsystem.getCheeseStickMount());
@@ -107,9 +104,6 @@ public class Robot extends TimedRobot {
 		CommandComposer.setSubsystems(
 				m_driveSubsystem, m_algaeGrabberSubsystem, m_cheeseStickSubsystem, m_climberSubsystem,
 				m_elevatorSubsystem, m_wristSubsystem, m_poseEstimationSubsystem);
-		m_mechanism.getRoot("base", Units.inchesToMeters(23), Units.inchesToMeters(0)).append(
-				new MechanismLigament2d("base", Units.inchesToMeters(36), 90,
-						10, new Color8Bit(Color.kBeige)));
 		// var dropChute = new MechanismLigament2d("bottom", Units.inchesToMeters(5), 0,
 		// 5, new Color8Bit(Color.kBeige));
 		// dropChute.append(new MechanismLigament2d("side", Units.inchesToMeters(12),
@@ -324,8 +318,7 @@ public class Robot extends TimedRobot {
 
 	public void bindWristControls() {
 		m_wristSubsystem.setDefaultCommand(m_wristSubsystem.manualMove(() -> m_operatorController.getRightY()));
-		// m_driverController.circle().onTrue(m_wristSubsystem.reverseMotor());
-		// m_driverController.square().onTrue(m_wristSubsystem.forwardMotor());
+		m_driverController.square().onTrue(m_wristSubsystem.goToAngle(180));
 	}
 
 	public void bindCheeseStickControls() {
