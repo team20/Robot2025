@@ -166,8 +166,8 @@ public class Constants {
 		public static final int kWristMotorPort = 27;
 		public static final int kSmartCurrentLimit = 20;
 		public static final int kSecondaryCurrentLimit = 20;
-		public static final int kGrabberAngleLevelFour = -55;
-		public static final int kGrabberAngleOthers = -35;
+		public static final int kGrabberAngleLevelFour = 235;
+		public static final int kGrabberAngleOthers = 215;
 		public static final double kWristForwardSoftLimit = 270; // Wrist facing down
 		public static final double kWristReverseSoftLimit = 90; // Wrist facing up
 		public static final double kWristOffset = 0.104;
