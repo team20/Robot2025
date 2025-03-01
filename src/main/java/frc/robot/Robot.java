@@ -254,21 +254,22 @@ public class Robot extends TimedRobot {
 	}
 
 	public void bindDriveControls() {
-		m_driveSubsystem.setDefaultCommand(
-				m_driveSubsystem.driveCommand(
-						() -> -m_driverController.getLeftY(),
-						() -> -m_driverController.getLeftX(),
-						// (m_driverController.axisMagnitudeGreaterThan(1, 5) == 0) ?
-						() -> m_driverController.getL2Axis() - m_driverController.getR2Axis(),
-						m_driverController.getHID()::getSquareButton)); // makes the robot robot-oriented
 		// m_driveSubsystem.setDefaultCommand(
 		// m_driveSubsystem.driveCommand(
 		// () -> -m_driverController.getLeftY(),
 		// () -> -m_driverController.getLeftX(),
-		// () -> -m_driverController.getRightY(),
-		// () -> -m_driverController.getRightX(),
+		// // (m_driverController.axisMagnitudeGreaterThan(1, 5) == 0) ?
+		// () -> m_driverController.getL2Axis() - m_driverController.getR2Axis(),
 		// m_driverController.getHID()::getSquareButton)); // makes the robot
 		// robot-oriented
+
+		m_driveSubsystem.setDefaultCommand(
+				m_driveSubsystem.driveCommand(
+						() -> -m_driverController.getLeftY(),
+						() -> -m_driverController.getLeftX(),
+						() -> -m_driverController.getRightY(),
+						() -> -m_driverController.getRightX(),
+						m_driverController.getHID()::getSquareButton)); // makes the robot robot-oriented
 
 		m_driverController.options().onTrue(m_driveSubsystem.resetHeading());
 
