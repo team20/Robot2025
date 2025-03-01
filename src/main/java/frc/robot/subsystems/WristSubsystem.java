@@ -5,6 +5,7 @@
 package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.*;
+import static edu.wpi.first.wpilibj2.command.Commands.*;
 import static frc.robot.Constants.WristConstants.*;
 
 import java.util.function.DoubleSupplier;
@@ -31,6 +32,7 @@ import edu.wpi.first.wpilibj.smartdashboard.MechanismObject2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
 public class WristSubsystem extends SubsystemBase {
@@ -38,7 +40,6 @@ public class WristSubsystem extends SubsystemBase {
 	private final SparkAbsoluteEncoder m_absoluteEncoder = m_wristMotor.getAbsoluteEncoder();
 	private final SparkClosedLoopController m_wristClosedLoopController = m_wristMotor.getClosedLoopController();
 
-	private double m_targetAngle = 0;
 	// Adjust ramp rate, step voltage, and timeout to make sure wrist doesn't break
 	private final SysIdRoutine m_sysidRoutine = new SysIdRoutine(
 			new SysIdRoutine.Config(Volts.of(2.5).div(Seconds.of(1)), Volts.of(3), Seconds.of(3)),
@@ -99,8 +100,8 @@ public class WristSubsystem extends SubsystemBase {
 	 * 
 	 * @return true if at the setpoint
 	 */
-	public boolean atAngle() {
-		return (Math.abs(m_targetAngle - getAngle()) <= kTolerance);
+	public Trigger atAngle(double target) {
+		return new Trigger(() -> Math.abs(target - getAngle()) <= kTolerance);
 	}
 
 	/**
@@ -126,8 +127,9 @@ public class WristSubsystem extends SubsystemBase {
 	@Override
 	public void periodic() {
 		// Negate to make angle CCW+, subtract 180 to get 0 degrees in the right place
-		m_wrist.setAngle(-getAngle() - 180);
-		SmartDashboard.putNumber("Wrist/Target Angle", m_targetAngle);
+		double angle = RobotBase.isReal() ? getAngle() : m_absoluteEncoderSim.getPosition();
+		SmartDashboard.putNumber("Wrist/Current Angle", angle);
+		m_wrist.setAngle(-angle - 180);
 	}
 
 	/**
@@ -178,9 +180,10 @@ public class WristSubsystem extends SubsystemBase {
 	 */
 	public Command goToAngle(double angle) {
 		return run(() -> {
-			m_targetAngle = angle;
-			m_wristClosedLoopController.setReference(m_targetAngle, ControlType.kPosition);
-		}).until(this::atAngle).withName("Wrist go to angle");
+			print("yes").schedule();
+			SmartDashboard.putNumber("Wrist/Target Angle", angle);
+			m_wristClosedLoopController.setReference(angle, ControlType.kPosition);
+		}).until(atAngle(angle)).withName("Wrist go to angle");
 	}
 
 	/**
