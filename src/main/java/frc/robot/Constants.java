@@ -152,10 +152,10 @@ public class Constants {
 		public static final double kMaxAccel = 2.5;
 		public static final double kTolerance = 1;
 		// TODO: During testing make sure these are right
-		public static final double kLevelOneHeight = Units.inchesToMeters(41 - 24);
-		public static final double kLevelTwoHeight = Units.inchesToMeters(41 - 24);; // same as level 1
-		public static final double kLevelThreeHeight = Units.inchesToMeters(60 - 24);
-		public static final double kLevelFourHeight = Units.inchesToMeters(60 - 24);
+		public static final double kLevelOneHeight = Units.inchesToMeters(5);
+		public static final double kLevelTwoHeight = Units.inchesToMeters(5);; // same as level 1
+		public static final double kLevelThreeHeight = Units.inchesToMeters(18);
+		public static final double kLevelFourHeight = Units.inchesToMeters(46);
 		public static final double kMaxExtension = 1.243 - 0.05; // 1.243 meters is the max, taking off 5 cm for safety
 		// TODO: The amount that the elevator decreases in order to score
 		public static final double kToScoreHeightDecrease = 0;
@@ -166,8 +166,8 @@ public class Constants {
 		public static final int kWristMotorPort = 27;
 		public static final int kSmartCurrentLimit = 20;
 		public static final int kSecondaryCurrentLimit = 20;
-		public static final int kGrabberAngleLevelFour = 235;
-		public static final int kGrabberAngleOthers = 215;
+		public static final int kGrabberAngleLevelFour = 245;
+		public static final int kGrabberAngleOthers = 245; // 5 degrees steeper from previous value (215)
 		public static final double kWristForwardSoftLimit = 274; // Wrist facing down
 		public static final double kWristReverseSoftLimit = 90; // Wrist facing up
 		public static final double kWristOffset = 0.104;
