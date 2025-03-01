@@ -57,6 +57,13 @@ public class CommandComposer {
 		m_poseEstimationSubsystem = poseEstimationSubsystem;
 	}
 
+	public static Command testTriangle() {
+		return sequence(
+				m_elevatorSubsystem.goToLevel(() -> 0.3), m_wristSubsystem.goToAngle(270 - 45),
+				m_elevatorSubsystem.goToLevelFourHeight(), m_wristSubsystem.goToAngle(270),
+				m_elevatorSubsystem.goToBaseHeight());
+	}
+
 	public static Command get3ScoreNorth() {
 		return new SelectCommand<Alliance>(Map
 				.of(Alliance.Red, get3ScoreNorthRed(), Alliance.Blue, get3ScoreNorthBlue()),

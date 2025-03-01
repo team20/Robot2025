@@ -153,11 +153,11 @@ public class Constants {
 		public static final int kElevatorMotorPort = 26;
 		public static final int kSmartCurrentLimit = 60; // TODO: 45
 		public static final int kSecondaryCurrentLimit = 70;
-		// public static final double kP = 15; // works in simulation
-		public static final double kP = 1.1;
+		public static final double kP = 15; // works in simulation
+		// public static final double kP = 1.1;
 		public static final double kI = 0;
-		// public static final double kD = 0.5; // works in simulation
-		public static final double kD = 0;
+		public static final double kD = 0.5; // works in simulation
+		// public static final double kD = 0;
 
 		public static final double kS = 0.05631;
 		public static final double kG = 0.22876;

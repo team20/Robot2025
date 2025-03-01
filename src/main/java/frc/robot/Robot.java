@@ -148,6 +148,9 @@ public class Robot extends TimedRobot {
 	public void addTestingCommands() {
 		m_testingChooser
 				.addOption(
+						"Test L4 composer", CommandComposer.testTriangle());
+		m_testingChooser
+				.addOption(
 						"Check All Subsystems",
 						parallel(
 								m_cheeseStickSubsystem.testCommand(2.0), m_wristSubsystem.testCommand(2.0),
