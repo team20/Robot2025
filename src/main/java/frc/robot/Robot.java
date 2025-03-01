@@ -150,7 +150,7 @@ public class Robot extends TimedRobot {
 		m_operatorController.circle().onTrue(
 				m_elevatorSubsystem.goToLevelOneHeight().andThen(m_wristSubsystem.goToAngle(kGrabberAngleOthers)));
 		// m_operatorController.povLeft().onTrue(m_elevatorSubsystem.goToCoralStationHeight());
-		m_operatorController.L1().and(m_operatorController.circle()).onTrue(m_elevatorSubsystem.goToBaseHeight());
+		m_operatorController.L1().and(m_operatorController.circle()).onTrue(CommandComposer.prepareForCoralPickup());
 		m_operatorController.create().onTrue(m_elevatorSubsystem.resetTheEncoder());
 	}
 
