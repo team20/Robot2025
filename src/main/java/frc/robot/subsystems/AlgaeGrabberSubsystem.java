@@ -96,7 +96,7 @@ public class AlgaeGrabberSubsystem extends SubsystemBase {
 	 */
 	public Command grabAlgaeAndHold() {
 		return run(() -> {
-			m_grabberClosedLoopController.setReference(kDeployGrabberRotations, ControlType.kPosition);
+			m_grabberClosedLoopController.setReference(kDeployGrabberPosition, ControlType.kPosition);
 			m_flywheel.set(kFlywheelSpeed);
 		}).until(this::checkCurrentOnFlywheel).finallyDo(() -> {
 			m_flywheel.set(0.01);
