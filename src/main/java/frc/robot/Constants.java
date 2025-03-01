@@ -153,7 +153,7 @@ public class Constants {
 		public static final double kTolerance = 1;
 		// TODO: During testing make sure these are right
 		public static final double kLevelOneHeight = Units.inchesToMeters(41 - 24);
-		public static final double kLevelTwoHeight = kLevelOneHeight; // same as level 1
+		public static final double kLevelTwoHeight = Units.inchesToMeters(41 - 24);; // same as level 1
 		public static final double kLevelThreeHeight = Units.inchesToMeters(60 - 24);
 		public static final double kLevelFourHeight = Units.inchesToMeters(60 - 24);
 		public static final double kMaxExtension = 1.243 - 0.05; // 1.243 meters is the max, taking off 5 cm for safety
