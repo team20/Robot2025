@@ -173,7 +173,7 @@ public class Constants {
 		public static final double kWristOffset = 0.104;
 
 		// TODO: Make sure these are tuned (can do with SysId)
-		public static final double kP = 0.3;
+		public static final double kP = 0.01;
 		public static final double kI = 0.0;
 		public static final double kD = 0;
 

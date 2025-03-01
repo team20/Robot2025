@@ -64,7 +64,7 @@ public class CommandComposer {
 
 	public static Command prepareForCoralPickup() {
 		return sequence(
-				m_wristSubsystem.goToAngle(265),
+				m_wristSubsystem.goToAngle(270),
 				m_elevatorSubsystem.goToCoralStationHeight());
 	}
 

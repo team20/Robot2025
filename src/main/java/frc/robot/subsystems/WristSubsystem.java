@@ -5,7 +5,6 @@
 package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.*;
-import static edu.wpi.first.wpilibj2.command.Commands.*;
 import static frc.robot.Constants.WristConstants.*;
 
 import java.util.function.DoubleSupplier;
@@ -180,7 +179,6 @@ public class WristSubsystem extends SubsystemBase {
 	 */
 	public Command goToAngle(double angle) {
 		return run(() -> {
-			print("yes").schedule();
 			SmartDashboard.putNumber("Wrist/Target Angle", angle);
 			m_wristClosedLoopController.setReference(angle, ControlType.kPosition);
 		}).until(atAngle(angle)).withName("Wrist go to angle");
