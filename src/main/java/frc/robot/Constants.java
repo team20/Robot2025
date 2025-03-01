@@ -18,9 +18,9 @@ public class Constants {
 
 		public static final int kSmartCurrentLimit = 15;
 		public static final double kSecondaryCurrentLimit = 20;
-		public static final double kTimeOverCurrentToStop = .25;
+		public static final double kTimeOverCurrentToStop = .1;
 
-		public static final float kDeployGrabberRotations = 2;
+		public static final double kDeployGrabberPosition = .5;
 		public static final double kFlywheelSpeed = .8;
 
 		public static final double kP = 0.5; // TODO: Tune
