@@ -114,6 +114,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 	 * @return the position of the motor (through the encoder)
 	 */
 	public double getPosition() {
+		SmartDashboard.putNumber("elevator position", m_elevatorEncoder.getPosition());
 		return m_elevatorEncoder.getPosition();
 	}
 

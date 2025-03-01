@@ -165,8 +165,16 @@ public class Robot extends TimedRobot {
 	}
 
 	public void bindWristControls() {
+		// TODO: Work on wrist limit to stop it from moving while in elevator pocket
+		// m_operatorController.axisMagnitudeGreaterThan(PS5Controller.Axis.kRightY.value,
+		// ControllerConstants.kDeadzone)
+		// .and(() -> m_elevatorSubsystem.getPosition() >
+		// Constants.WristConstants.kWristLimitHeight)
+		// .whileTrue(m_wristSubsystem.manualMove(() ->
+		// m_operatorController.getRightY()));
 		m_wristSubsystem.setDefaultCommand(m_wristSubsystem.manualMove(() -> m_operatorController.getRightY()));
-		m_driverController.square().onTrue(m_wristSubsystem.goToAngle(180));
+		m_driverController.square()
+				.onTrue(m_wristSubsystem.goToAngle(180));
 	}
 
 	public void bindCheeseStickControls() {
