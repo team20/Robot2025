@@ -17,6 +17,7 @@ import static frc.robot.subsystems.PoseEstimationSubsystem.*;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
@@ -25,12 +26,18 @@ import org.photonvision.PhotonCamera;
 import org.photonvision.simulation.PhotonCameraSim;
 import org.photonvision.simulation.SimCameraProperties;
 
+import com.ctre.phoenix6.SignalLogger;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.net.WebServer;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.PS5Controller;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.RobotBase;
@@ -100,6 +107,8 @@ public class Robot extends TimedRobot {
 			.addCamera(m_camera2, kRobotToCamera2);
 
 	public Robot() {
+		SignalLogger.start();
+		WebServer.start(5800, Filesystem.getDeployDirectory().getPath());
 		CommandComposer.setSubsystems(
 				m_driveSubsystem, m_algaeGrabberSubsystem, m_cheeseStickSubsystem, m_climberSubsystem,
 				m_elevatorSubsystem, m_wristSubsystem, m_poseEstimationSubsystem);
@@ -125,6 +134,12 @@ public class Robot extends TimedRobot {
 		bindWristControls();
 		bindAlgaeControls();
 		bindCheeseStickControls();
+		bindAlert(
+				new Alert("Driver Joystick Disconnected!", AlertType.kError), () -> !m_driverController.isConnected());
+		bindAlert(
+				new Alert("Operator Joystick Disconnected!", AlertType.kError),
+				() -> !m_operatorController.isConnected());
+		DriverStation.silenceJoystickConnectionWarning(true);
 		SmartDashboard.putData("Testing Chooser", m_testingChooser);
 		m_driverController.options().and(m_driverController.create()).and(() -> !DriverStation.isFMSAttached())
 				.onTrue(Commands.deferredProxy(m_testingChooser::getSelected));
@@ -198,6 +213,10 @@ public class Robot extends TimedRobot {
 								1, 6, 7, 8, 2, 8, 7));
 	}
 
+	public void bindAlert(Alert alert, BooleanSupplier event) {
+		CommandScheduler.getInstance().getActiveButtonLoop().bind(() -> alert.set(event.getAsBoolean()));
+	}
+
 	public void addProgrammingCommands() {
 		m_testingChooser
 				.addOption("SysId Drive Quasistatic Forward", m_driveSubsystem.sysidQuasistatic(Direction.kForward));
@@ -266,11 +285,12 @@ public class Robot extends TimedRobot {
 	}
 
 	public void bindAlgaeControls() {
-		m_algaeGrabberSubsystem
-				.setDefaultCommand(m_algaeGrabberSubsystem.manualMove(() -> m_operatorController.getRightX()));
+		// m_algaeGrabberSubsystem
+		// .setDefaultCommand(m_algaeGrabberSubsystem.manualMove(() ->
+		// m_operatorController.getRightX()));
 		m_operatorController.L2().onTrue(m_algaeGrabberSubsystem.grabAlgaeAndHold());
-		// m_operatorController.R2().onTrue(m_algaeGrabberSubsystem.releaseAlgae());
-		m_operatorController.R2().whileTrue(m_algaeGrabberSubsystem.reverseFlywheelAndStop());
+		m_operatorController.R2().onTrue(m_algaeGrabberSubsystem.releaseAlgae());
+		// m_operatorController.R2().whileTrue(m_algaeGrabberSubsystem.reverseFlywheelAndStop());
 	}
 
 	public void bindWristControls() {

@@ -1,0 +1,158 @@
+{
+  "version": 1.0,
+  "grid_size": 30,
+  "tabs": [
+    {
+      "name": "Drive Team",
+      "grid_layout": {
+        "layouts": [],
+        "containers": [
+          {
+            "title": "Current Angle",
+            "x": 0.0,
+            "y": 0.0,
+            "width": 330.0,
+            "height": 360.0,
+            "type": "Radial Gauge",
+            "properties": {
+              "topic": "/SmartDashboard/Wrist/Current Angle",
+              "period": 0.06,
+              "data_type": "double",
+              "start_angle": -90.0,
+              "end_angle": 270.0,
+              "min_value": 0.0,
+              "max_value": 360.0,
+              "number_of_labels": 8,
+              "wrap_value": false,
+              "show_pointer": true,
+              "show_ticks": true
+            }
+          },
+          {
+            "title": "Elevator Extension",
+            "x": 630.0,
+            "y": 0.0,
+            "width": 900.0,
+            "height": 150.0,
+            "type": "Number Bar",
+            "properties": {
+              "topic": "/SmartDashboard/Elevator/Extension",
+              "period": 0.06,
+              "data_type": "double",
+              "min_value": 0.0,
+              "max_value": 1.25,
+              "divisions": 5,
+              "inverted": false,
+              "orientation": "horizontal"
+            }
+          },
+          {
+            "title": "FMSInfo",
+            "x": 0.0,
+            "y": 360.0,
+            "width": 600.0,
+            "height": 150.0,
+            "type": "FMSInfo",
+            "properties": {
+              "topic": "/FMSInfo",
+              "period": 0.06
+            }
+          },
+          {
+            "title": "Alerts",
+            "x": 330.0,
+            "y": 0.0,
+            "width": 270.0,
+            "height": 360.0,
+            "type": "Alerts",
+            "properties": {
+              "topic": "/SmartDashboard/Alerts",
+              "period": 0.06
+            }
+          },
+          {
+            "title": "photonvision_Port_1181_Input_MJPEG_Server",
+            "x": 630.0,
+            "y": 150.0,
+            "width": 450.0,
+            "height": 420.0,
+            "type": "Camera Stream",
+            "properties": {
+              "topic": "/CameraPublisher/photonvision_Port_1181_Input_MJPEG_Server",
+              "period": 0.06,
+              "rotation_turns": 0,
+              "compression": 10,
+              "resolution": [
+                320.0,
+                240.0
+              ]
+            }
+          },
+          {
+            "title": "photonvision_Port_1183_Input_MJPEG_Server",
+            "x": 1080.0,
+            "y": 150.0,
+            "width": 450.0,
+            "height": 420.0,
+            "type": "Camera Stream",
+            "properties": {
+              "topic": "/CameraPublisher/photonvision_Port_1183_Input_MJPEG_Server",
+              "period": 0.06,
+              "rotation_turns": 0,
+              "compression": 10,
+              "resolution": [
+                320.0,
+                240.0
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Programming",
+      "grid_layout": {
+        "layouts": [],
+        "containers": [
+          {
+            "title": "PowerDistribution[0]",
+            "x": 660.0,
+            "y": 0.0,
+            "width": 390.0,
+            "height": 450.0,
+            "type": "PowerDistribution",
+            "properties": {
+              "topic": "/SmartDashboard/PowerDistribution[0]",
+              "period": 0.06
+            }
+          },
+          {
+            "title": "Testing Chooser",
+            "x": 0.0,
+            "y": 300.0,
+            "width": 360.0,
+            "height": 150.0,
+            "type": "ComboBox Chooser",
+            "properties": {
+              "topic": "/SmartDashboard/Testing Chooser",
+              "period": 0.06,
+              "sort_options": false
+            }
+          },
+          {
+            "title": "Scheduler",
+            "x": 360.0,
+            "y": 0.0,
+            "width": 300.0,
+            "height": 450.0,
+            "type": "Scheduler",
+            "properties": {
+              "topic": "/SmartDashboard/Scheduler",
+              "period": 0.06
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

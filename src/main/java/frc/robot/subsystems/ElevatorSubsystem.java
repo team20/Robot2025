@@ -37,6 +37,7 @@ import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
 public class ElevatorSubsystem extends SubsystemBase {
@@ -66,6 +67,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 			.append(
 					new MechanismLigament2d("wristMount", Units.inchesToMeters(8), 90, 10,
 							new Color8Bit(Color.kBlack)));
+	public final Trigger atWristSafeHeight = new Trigger(() -> getPosition() > kWristSafeHeight);
 
 	/** Creates a new ElevatorSubsystem. */
 	public ElevatorSubsystem(MechanismRoot2d root) {
@@ -157,6 +159,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 	@Override
 	public void periodic() {
 		m_elevatorLigament.setLength(Units.inchesToMeters(24) + getPosition());
+		SmartDashboard.putNumber("Elevator/Extension", getPosition());
 	}
 
 	public Command resetTheEncoder() {
@@ -217,7 +220,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 			SmartDashboard.putNumber("Elevator/Next Target Velocity", nextState.velocity);
 			SmartDashboard.putNumber("Elevator/Profile Time", m_profile.totalTime());
 			SmartDashboard.putNumber("Elevator/Current Time", m_timer.get());
-		}).until(() -> m_profile.isFinished(m_timer.get()));
+		}).until(() -> Math.abs(getPosition() - finalState.position) < kTolerance);
 	}
 
 	/**
@@ -232,7 +235,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 			double input = joystick.getAsDouble();
 			double speed = Math.signum(input) * Math.pow(input, 2);
 			setSpeed(speed);
-		}).finallyDo(() -> m_elevatorMotor.setVoltage(kG)).withName("Manual Elevator");
+		}).finallyDo(() -> setPosition(getPosition(), m_ff.calculate(0))).withName("Manual Elevator");
 	}
 
 	/**
