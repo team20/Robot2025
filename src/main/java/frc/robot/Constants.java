@@ -249,7 +249,9 @@ public class Constants {
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
 		 * {@code AprilTag} to align the robot to the right of that {@code AprilTag}.
 		 */
-		static Transform2d[] kRobotToTagsRight = { transform(1.0, 0.165, 180),
-				transform(0.5, 0.165, 180) };
+		// static Transform2d[] kRobotToTagsRight = { transform(1.0, 0.165, 180),
+		// transform(0.5, 0.165, 180) };
+		static Transform2d[] kRobotToTagsRight = { transform(1.0, 0.215, 180),
+				transform(0.5, 0.215, 180) };
 	}
 }
