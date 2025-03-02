@@ -152,13 +152,14 @@ public class Constants {
 				* kMetersPerPulleyRotation;
 		public static final double kMaxVelocity = 2.75;
 		public static final double kMaxAccel = 2.5;
-		public static final double kTolerance = 1;
+		public static final double kTolerance = 0.01;
 		// TODO: During testing make sure these are right
 		public static final double kLevelOneHeight = Units.inchesToMeters(3);
 		public static final double kLevelTwoHeight = Units.inchesToMeters(8);
 		public static final double kLevelThreeHeight = Units.inchesToMeters(29);
 		public static final double kLevelFourHeight = Units.inchesToMeters(48);
 		public static final double kMaxExtension = 1.243 - 0.025; // 1.243 meters is the max, taking off 5 cm for safety
+		public static final double kWristSafeHeight = Units.inchesToMeters(0);
 		// TODO: The amount that the elevator decreases in order to score
 		public static final double kClearanceHeight = Units.inchesToMeters(3.5);
 		public static final double kToScoreHeightDecrease = Units.inchesToMeters(0);
