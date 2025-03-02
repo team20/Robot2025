@@ -24,12 +24,13 @@ public class ClimberSubsystem extends SubsystemBase {
 
 	public ClimberSubsystem() {
 		var config = new SparkMaxConfig();
-		config.smartCurrentLimit(kSmartCurrentLimit).secondaryCurrentLimit(kSecondaryCurrentLimit);
+		config.smartCurrentLimit(kSmartCurrentLimit);
 		config.closedLoop
 				.feedbackSensor(FeedbackSensor.kPrimaryEncoder)
 				.pid(kP, kI, kD);
 		// config.softLimit.forwardSoftLimit(kClimberForwardSoftLimit).forwardSoftLimitEnabled(true);
 		// config.softLimit.reverseSoftLimit(kClimberForwardSoftLimit).reverseSoftLimitEnabled(true);
+		m_motor.getEncoder().setPosition(0);
 		m_motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 		SmartDashboard.putNumber("Climber Encoder", m_motor.getEncoder().getPosition());
 	}
@@ -49,13 +50,13 @@ public class ClimberSubsystem extends SubsystemBase {
 	}
 
 	public Command goToForwardPosition() {
-		return runOnce(() -> {
+		return run(() -> {
 			m_climberClosedLoopController.setReference(-400, ControlType.kPosition);
 		});
 	}
 
 	public Command goToReversePosition() {
-		return runOnce(() -> {
+		return run(() -> {
 			m_climberClosedLoopController.setReference(0, ControlType.kPosition);
 		});
 	}
