@@ -86,7 +86,7 @@ public class Robot extends TimedRobot {
 			setCalibration(640, 480, Rotation2d.fromDegrees(100));
 			// Approximate detection noise with average and standard deviation error in
 			// pixels.
-			setCalibError(0.1, 0.05);
+			setCalibError(0.35, 0.15);
 			// Set the camera image capture framerate (Note: this is limited by robot loop
 			// rate).
 			setFPS(20);

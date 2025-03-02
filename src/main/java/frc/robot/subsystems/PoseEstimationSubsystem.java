@@ -120,12 +120,13 @@ public class PoseEstimationSubsystem extends SubsystemBase {
 	 */
 	@Override
 	public void periodic() {
+		boolean first = true;
 		for (var e : m_cameras.entrySet()) {
 			var camera = e.getKey();
 			var poseEstimator = e.getValue();
 			for (var r : camera.getAllUnreadResults()) { // for every result r
 				var t = r.getBestTarget();
-				if (t != null && t.poseAmbiguity < 0.15) {
+				if (t != null && t.poseAmbiguity < 0.15 && (first || r.getTargets().size() > 1)) {
 					Optional<EstimatedRobotPose> p = poseEstimator.update(r);
 					if (p.isPresent()) { // if successful
 						EstimatedRobotPose v = p.get(); // get successfully estimated pose
@@ -134,6 +135,7 @@ public class PoseEstimationSubsystem extends SubsystemBase {
 					}
 				}
 			}
+			first = false;
 		}
 		m_poseEstimator.update(m_driveSubsystem.getHeading(), m_driveSubsystem.getModulePositions());
 		m_estimatedPosePublisher.set(m_poseEstimator.getEstimatedPosition());
