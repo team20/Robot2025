@@ -46,6 +46,10 @@ public class Constants {
 		public static final double kClimberForwardSoftLimit = .5;
 		public static final double kClimberReverseSoftLimit = 0;
 		public static final double kSpeed = 0.75;
+		// TODO: fix PID values
+		public static final double kP = 0.5;
+		public static final double kI = 0;
+		public static final double kD = 0;
 
 		// TODO: Check
 		public static final int kSmartCurrentLimit = 50;

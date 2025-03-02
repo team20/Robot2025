@@ -26,7 +26,8 @@ public class ClimberSubsystem extends SubsystemBase {
 		var config = new SparkMaxConfig();
 		config.smartCurrentLimit(kSmartCurrentLimit).secondaryCurrentLimit(kSecondaryCurrentLimit);
 		config.closedLoop
-				.feedbackSensor(FeedbackSensor.kPrimaryEncoder);
+				.feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+				.pid(kP, kI, kD);
 		// config.softLimit.forwardSoftLimit(kClimberForwardSoftLimit).forwardSoftLimitEnabled(true);
 		// config.softLimit.reverseSoftLimit(kClimberForwardSoftLimit).reverseSoftLimitEnabled(true);
 		m_motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
@@ -48,36 +49,36 @@ public class ClimberSubsystem extends SubsystemBase {
 	}
 
 	public Command goToForwardPosition() {
-		return run(() -> {
-			m_climberClosedLoopController.setReference(0, ControlType.kPosition);
+		return runOnce(() -> {
+			m_climberClosedLoopController.setReference(-400, ControlType.kPosition);
 		});
 	}
 
 	public Command goToReversePosition() {
-		return run(() -> {
-			m_climberClosedLoopController.setReference(1, ControlType.kPosition);
+		return runOnce(() -> {
+			m_climberClosedLoopController.setReference(0, ControlType.kPosition);
 		});
 	}
 
-	/**
-	 * Spins the motor forward until changed
-	 * 
-	 * @return forward command
-	 */
-	public Command moveForward() {
-		return runOnce(() -> {
-			m_motor.set(kSpeed);
-		}).withName("Climber Forwards");
-	}
+	// /**
+	// * Spins the motor forward until changed
+	// *
+	// * @return forward command
+	// */
+	// public Command moveForward() {
+	// return runOnce(() -> {
+	// m_motor.set(kSpeed);
+	// }).withName("Climber Forwards");
+	// }
 
-	/**
-	 * Spins the motor backwards until changed
-	 * 
-	 * @return backwards command
-	 */
-	public Command moveBackward() {
-		return run(() -> {
-			m_motor.set(-kSpeed);
-		}).withName("Climber Backwards");
-	}
+	// /**
+	// * Spins the motor backwards until changed
+	// *
+	// * @return backwards command
+	// */
+	// public Command moveBackward() {
+	// return run(() -> {
+	// m_motor.set(-kSpeed);
+	// }).withName("Climber Backwards");
+	// }
 }
