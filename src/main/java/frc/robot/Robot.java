@@ -33,7 +33,6 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
-import frc.robot.Constants.ControllerConstants;
 import frc.robot.subsystems.AlgaeGrabberSubsystem;
 import frc.robot.subsystems.CheeseStickSubsystem;
 import frc.robot.subsystems.ClimberSubsystem;
@@ -139,49 +138,51 @@ public class Robot extends TimedRobot {
 
 	public void bindElevatorControls() {
 		RobotModeTriggers.disabled().onTrue(m_elevatorSubsystem.stopMotor());
-		m_operatorController.axisMagnitudeGreaterThan(PS5Controller.Axis.kLeftY.value, ControllerConstants.kDeadzone)
+		m_operatorController.axisMagnitudeGreaterThan(PS5Controller.Axis.kLeftY.value, kDeadzone)
 				.whileTrue(m_elevatorSubsystem.manualMove(() -> -m_operatorController.getLeftY()));
 		m_operatorController.triangle().onTrue(
 				m_elevatorSubsystem.goToLevelFourHeight().andThen(m_wristSubsystem.goToAngle(kGrabberAngleLevelFour)));
 		m_operatorController.square().onTrue(
-				m_elevatorSubsystem.goToLevelThreeHeight().andThen(m_wristSubsystem.goToAngle(kGrabberAngleOthers)));
+				m_elevatorSubsystem.goToLevelThreeHeight()
+						.andThen(m_wristSubsystem.goToAngle(kGrabberAngleLevelThree)));
 		m_operatorController.cross().onTrue(
-				m_elevatorSubsystem.goToCoralStationHeight().andThen(m_wristSubsystem.goToAngle(kGrabberAngleOthers))
-						.andThen(m_elevatorSubsystem.goToLevelTwoHeight()));
-		m_operatorController.circle().onTrue(
-				m_elevatorSubsystem.goToCoralStationHeight().andThen(m_wristSubsystem.goToAngle(kGrabberAngleOthers))
-						.andThen(m_elevatorSubsystem.goToLevelOneHeight()));
-		// m_operatorController.povLeft().onTrue(m_elevatorSubsystem.goToCoralStationHeight());
+				m_elevatorSubsystem.goToLevelTwoHeight()
+						.andThen(m_wristSubsystem.goToAngle(kGrabberAngleOthers)));
+		m_operatorController.circle().onTrue(CommandComposer.scoreLevelOneInTeleop());
 		m_operatorController.L1().and(m_operatorController.circle()).onTrue(CommandComposer.prepareForCoralPickup());
+		// m_operatorController.L1().and(m_operatorController.cross()).onTrue(CommandComposer.pickupAtCoralStation());
+		m_driverController.square().onTrue(CommandComposer.pickupAtCoralStation());
+		m_operatorController.touchpad().onTrue(m_elevatorSubsystem.stopMotor());
 		m_operatorController.create().onTrue(m_elevatorSubsystem.resetTheEncoder());
 	}
 
 	public void bindAlgaeControls() {
-		// m_algaeGrabberSubsystem
-		// .setDefaultCommand(m_algaeGrabberSubsystem.manualMove(() ->
-		// m_operatorController.getRightY()));
+		m_algaeGrabberSubsystem
+				.setDefaultCommand(m_algaeGrabberSubsystem.manualMove(() -> m_operatorController.getRightX()));
 		m_operatorController.L2().onTrue(m_algaeGrabberSubsystem.grabAlgaeAndHold());
-		m_operatorController.R2().onTrue(m_algaeGrabberSubsystem.releaseAlgae());
-
-		m_operatorController.options().onTrue(m_algaeGrabberSubsystem.reverseFlywheelAndStop());
+		// m_operatorController.R2().onTrue(m_algaeGrabberSubsystem.releaseAlgae());
+		m_operatorController.R2().whileTrue(m_algaeGrabberSubsystem.reverseFlywheelAndStop());
 	}
 
 	public void bindWristControls() {
 		m_wristSubsystem.setDefaultCommand(m_wristSubsystem.manualMove(() -> m_operatorController.getRightY()));
-		m_driverController.square().onTrue(m_wristSubsystem.goToAngle(180));
+		// m_driverController.square().onTrue(m_wristSubsystem.goToAngle(180));
 	}
 
 	public void bindCheeseStickControls() {
 		m_operatorController.R1().whileFalse(m_cheeseStickSubsystem.grab());
 		m_operatorController.R1().whileTrue(m_cheeseStickSubsystem.release());
+
+		m_driverController.circle().whileFalse(m_cheeseStickSubsystem.grab());
+		m_driverController.circle().whileTrue(m_cheeseStickSubsystem.release());
 	}
 
 	public void bindClimberControls() {
 		// m_climberSubsystem.setDefaultCommand(m_climberSubsystem.manualMove(() ->
 		// m_operatorController.getRightY()));
-
-		// m_operatorController.povDown().whileTrue(m_climberSubsystem.moveForward())
-		// .onFalse(m_climberSubsystem.moveBackward());
+		// once sensors are good make driver controller rumble
+		m_driverController.triangle().onTrue(m_climberSubsystem.goToReversePosition());
+		m_driverController.cross().onFalse(m_climberSubsystem.goToForwardPosition());
 	}
 
 	@Override

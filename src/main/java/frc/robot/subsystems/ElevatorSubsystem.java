@@ -286,7 +286,11 @@ public class ElevatorSubsystem extends SubsystemBase {
 	 * @return
 	 */
 	public Command goToBaseHeight() {
-		return goToLevel(() -> 0).withName("Go to Base Height");
+		return runOnce(() -> m_elevatorEncoder.setPosition(0)).withName("Go To Base Height");
+	}
+
+	public Command goToClearanceHeight(double level) {
+		return goToLevel(() -> (level + kClearanceHeight)).withName("Level Height with added Clearance");
 	}
 
 	/**

@@ -43,7 +43,9 @@ public class Constants {
 
 	public static final class ClimberConstants {
 		public static final int kClimberMotorPort = 25;
-		public static final double kSpeed = 0.5;
+		public static final double kClimberForwardSoftLimit = .5;
+		public static final double kClimberReverseSoftLimit = 0;
+		public static final double kSpeed = 0.75;
 
 		// TODO: Check
 		public static final int kSmartCurrentLimit = 50;
@@ -152,22 +154,25 @@ public class Constants {
 		public static final double kMaxAccel = 2.5;
 		public static final double kTolerance = 1;
 		// TODO: During testing make sure these are right
-		public static final double kLevelOneHeight = Units.inchesToMeters(5);
-		public static final double kLevelTwoHeight = Units.inchesToMeters(5);; // same as level 1
-		public static final double kLevelThreeHeight = Units.inchesToMeters(18);
-		public static final double kLevelFourHeight = Units.inchesToMeters(46);
-		public static final double kMaxExtension = 1.243 - 0.05; // 1.243 meters is the max, taking off 5 cm for safety
+		public static final double kLevelOneHeight = Units.inchesToMeters(3);
+		public static final double kLevelTwoHeight = Units.inchesToMeters(8);
+		public static final double kLevelThreeHeight = Units.inchesToMeters(29);
+		public static final double kLevelFourHeight = Units.inchesToMeters(48);
+		public static final double kMaxExtension = 1.243 - 0.025; // 1.243 meters is the max, taking off 5 cm for safety
 		// TODO: The amount that the elevator decreases in order to score
-		public static final double kToScoreHeightDecrease = 0;
-		public static final double kCoralStationHeight = Units.inchesToMeters(45 - 24); // TODO: Change
+		public static final double kClearanceHeight = Units.inchesToMeters(3.5);
+		public static final double kToScoreHeightDecrease = Units.inchesToMeters(0);
+		public static final double kCoralStationHeight = Units.inchesToMeters(17); // TODO: Change
 	}
 
 	public static final class WristConstants {
 		public static final int kWristMotorPort = 27;
 		public static final int kSmartCurrentLimit = 20;
 		public static final int kSecondaryCurrentLimit = 20;
-		public static final int kGrabberAngleLevelFour = 245;
-		public static final int kGrabberAngleOthers = 220; // 5 degrees steeper from previous value (215)
+		public static final int kGrabberAngleLevelFour = 240;
+		public static final int kGrabberAngleOthers = 221; // 5 degrees steeper from previous value (215)
+		public static final int kGrabberAngleLevelThree = 237;
+
 		public static final double kWristForwardSoftLimit = 274; // Wrist facing down
 		public static final double kWristReverseSoftLimit = 90; // Wrist facing up
 		public static final double kWristOffset = 0.104;

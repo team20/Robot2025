@@ -1,6 +1,8 @@
 package frc.robot;
 
 import static edu.wpi.first.wpilibj2.command.Commands.*;
+import static frc.robot.Constants.ElevatorConstants.*;
+import static frc.robot.Constants.WristConstants.*;
 
 import java.util.function.Supplier;
 
@@ -34,7 +36,23 @@ public class CommandComposer {
 		m_wristSubsystem = wristSubsystem;
 	}
 
-	private static Command scoreLevel(Supplier<Command> levelCommand) {
+	private static Command scoreLevelInTeleop(double level, Supplier<Command> levelCommand,
+			double wristAngle) {
+		return sequence(
+				m_elevatorSubsystem.goToClearanceHeight(level),
+				m_wristSubsystem.goToAngle(wristAngle),
+				levelCommand.get());
+	}
+
+	public static Command scoreLevelOneInTeleop() {
+		return scoreLevelInTeleop(kLevelOneHeight, m_elevatorSubsystem::goToLevelOneHeight, kGrabberAngleOthers);
+	}
+
+	public static Command scoreLevelTwoInTeleop() {
+		return scoreLevelInTeleop(kLevelTwoHeight, m_elevatorSubsystem::goToLevelOneHeight, kGrabberAngleOthers);
+	}
+
+	private static Command scoreLevelInAuto(Supplier<Command> levelCommand) {
 		return sequence(
 				levelCommand.get(),
 				m_wristSubsystem.goToAngle(35),
@@ -46,26 +64,32 @@ public class CommandComposer {
 				m_wristSubsystem.goToAngle(-90));
 	}
 
-	public static Command scoreLevelFour() {
-		return scoreLevel(m_elevatorSubsystem::goToLevelFourHeight);
+	public static Command scoreLevelFourInAuto() {
+		return scoreLevelInAuto(m_elevatorSubsystem::goToLevelFourHeight);
 	}
 
-	public static Command scoreLevelThree() {
-		return scoreLevel(m_elevatorSubsystem::goToLevelThreeHeight);
+	public static Command scoreLevelThreeInAuto() {
+		return scoreLevelInAuto(m_elevatorSubsystem::goToLevelThreeHeight);
 	}
 
-	public static Command scoreLevelTwo() {
-		return scoreLevel(m_elevatorSubsystem::goToLevelTwoHeight);
+	public static Command scoreLevelTwoInAuto() {
+		return scoreLevelInAuto(m_elevatorSubsystem::goToLevelTwoHeight);
 	}
 
-	public static Command scoreLevelOne() {
-		return scoreLevel(m_elevatorSubsystem::goToLevelOneHeight);
+	public static Command scoreLevelOneInAuto() {
+		return scoreLevelInAuto(m_elevatorSubsystem::goToLevelOneHeight);
 	}
 
 	public static Command prepareForCoralPickup() {
 		return sequence(
 				m_elevatorSubsystem.goToCoralStationHeight(),
 				m_wristSubsystem.goToAngle(270));
+	}
+
+	public static Command goToBase() {
+		return sequence(
+				m_wristSubsystem.goToAngle(270),
+				m_elevatorSubsystem.goToBaseHeight());
 	}
 
 	public static Command pickupAtCoralStation() {

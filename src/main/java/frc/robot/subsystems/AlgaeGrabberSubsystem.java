@@ -128,4 +128,16 @@ public class AlgaeGrabberSubsystem extends SubsystemBase {
 			m_grabberAngleMotor.set(0);
 		});
 	}
+
+	public Command reversePivot() {
+		return run(() -> {
+			m_grabberClosedLoopController.setReference(0, ControlType.kPosition);
+		});
+	}
+
+	public Command forwardPivot() {
+		return run(() -> {
+			m_grabberClosedLoopController.setReference(1, ControlType.kPosition);
+		});
+	}
 }
