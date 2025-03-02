@@ -7,25 +7,33 @@ package frc.robot;
 import static edu.wpi.first.wpilibj2.command.Commands.*;
 import static frc.robot.CommandComposer.*;
 import static frc.robot.Constants.AlgaeConstants.*;
+import static frc.robot.Constants.AutoAlignConstants.*;
 import static frc.robot.Constants.ClimberConstants.*;
 import static frc.robot.Constants.ControllerConstants.*;
 import static frc.robot.Constants.DriveConstants.*;
 import static frc.robot.Constants.ElevatorConstants.*;
 import static frc.robot.Constants.WristConstants.*;
+import static frc.robot.subsystems.PoseEstimationSubsystem.*;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
 import org.littletonrobotics.urcl.URCL;
+import org.photonvision.PhotonCamera;
+import org.photonvision.simulation.PhotonCameraSim;
+import org.photonvision.simulation.SimCameraProperties;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PS5Controller;
 import edu.wpi.first.wpilibj.PowerDistribution;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
@@ -40,11 +48,13 @@ import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.PathDriveCommand;
+import frc.robot.simulation.VisionSimulator;
 import frc.robot.subsystems.AlgaeGrabberSubsystem;
 import frc.robot.subsystems.CheeseStickSubsystem;
 import frc.robot.subsystems.ClimberSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
+import frc.robot.subsystems.PoseEstimationSubsystem;
 import frc.robot.subsystems.WristSubsystem;
 
 public class Robot extends TimedRobot {
@@ -62,11 +72,37 @@ public class Robot extends TimedRobot {
 	private final CommandPS5Controller m_driverController = new CommandPS5Controller(kDriverControllerPort);
 	private final CommandPS5Controller m_operatorController = new CommandPS5Controller(kOperatorControllerPort);
 	private final PowerDistribution m_pdh = new PowerDistribution();
+	private final VisionSimulator m_visionSimulator = new VisionSimulator(m_driveSubsystem,
+			pose(kFieldLayout.getFieldLength() / 2 + 1.5, 1.91 + .3, 0), 0.01);
+	SimCameraProperties cameraProp = new SimCameraProperties() {
+		{
+			setCalibration(640, 480, Rotation2d.fromDegrees(100));
+			// Approximate detection noise with average and standard deviation error in
+			// pixels.
+			setCalibError(0.1, 0.05);
+			// Set the camera image capture framerate (Note: this is limited by robot loop
+			// rate).
+			setFPS(20);
+			// The average and standard deviation in milliseconds of image data latency.
+			setAvgLatencyMs(35);
+			setLatencyStdDevMs(5);
+
+		}
+	};
+	private final PhotonCamera m_camera1 = RobotBase.isSimulation()
+			? cameraSim("Camera1", kRobotToCamera1, m_visionSimulator, cameraProp)
+			: new PhotonCamera("Cool camera");
+	private final PhotonCamera m_camera2 = RobotBase.isSimulation()
+			? cameraSim("Camera2", kRobotToCamera2, m_visionSimulator, cameraProp)
+			: new PhotonCamera("Cool camera2");
+	private final PoseEstimationSubsystem m_poseEstimationSubsystem = new PoseEstimationSubsystem(m_driveSubsystem)
+			.addCamera(m_camera1, kRobotToCamera1)
+			.addCamera(m_camera2, kRobotToCamera2);
 
 	public Robot() {
 		CommandComposer.setSubsystems(
 				m_driveSubsystem, m_algaeGrabberSubsystem, m_cheeseStickSubsystem, m_climberSubsystem,
-				m_elevatorSubsystem, m_wristSubsystem);
+				m_elevatorSubsystem, m_wristSubsystem, m_poseEstimationSubsystem);
 		var dropChute = new MechanismLigament2d("bottom", Units.inchesToMeters(5), 0, 5, new Color8Bit(Color.kBeige));
 		dropChute.append(new MechanismLigament2d("side", Units.inchesToMeters(12), 90, 5, new Color8Bit(Color.kWhite)));
 		m_mechanism.getRoot("dropChute", Units.inchesToMeters(28), Units.inchesToMeters(9)).append(dropChute);
@@ -137,6 +173,29 @@ public class Robot extends TimedRobot {
 															Rotation2d.fromDegrees(120 * i));
 												}))
 										.toList()));
+		double intermediateDistanceTolerance = 0.08;
+		double intermediateAngleToleranceInDegrees = 8.0;
+		m_testingChooser
+				.addOption(
+						"Quickly Align to AprilTags 12, 13, 17, 18, and 19",
+						CommandComposer.alignToTags(
+								distanceTolerance, angleToleranceInDegrees, intermediateDistanceTolerance,
+								intermediateAngleToleranceInDegrees, Arrays.asList(kRobotToTags), kRobotToTags[0], 18,
+								17, 12, 17, 18, 19, 13, 19, 18));
+		m_testingChooser
+				.addOption(
+						"Quickly Align AprilTags 17, 18, 19, 20, 21, and 22",
+						CommandComposer.alignToTags(
+								distanceTolerance, angleToleranceInDegrees, intermediateDistanceTolerance,
+								intermediateAngleToleranceInDegrees, Arrays.asList(kRobotToTagsLeft),
+								kRobotToTagsLeft[0], 17, 18, 19, 20, 21, 22, 17));
+		m_testingChooser
+				.addOption(
+						"Quickly Align to AprilTags 1, 2, 6, 7, and 8",
+						CommandComposer.alignToTags(
+								distanceTolerance, angleToleranceInDegrees, intermediateDistanceTolerance,
+								intermediateAngleToleranceInDegrees, Arrays.asList(kRobotToTags), kRobotToTags[0], 7, 6,
+								1, 6, 7, 8, 2, 8, 7));
 	}
 
 	public void addProgrammingCommands() {
@@ -178,6 +237,11 @@ public class Robot extends TimedRobot {
 		// m_driverController.getHID()::getSquareButton)); // makes the robot
 		// robot-oriented
 
+		/// TODO: button binding needed with the correct button
+		m_driverController.L1().whileTrue(
+				toClosestTag(kRobotToTagsLeft));
+		m_driverController.R1().whileTrue(
+				toClosestTag(kRobotToTagsRight));
 		m_driverController.options().onTrue(m_driveSubsystem.resetHeading());
 	}
 
@@ -294,5 +358,25 @@ public class Robot extends TimedRobot {
 
 	@Override
 	public void testExit() {
+	}
+
+	/**
+	 * Constructs a {@code PhotonCamera} that provides simulation.
+	 * 
+	 * @param cameraName the name of the {@code PhotonCamera}
+	 * @param robotToCamera the {@code Pose2d} of the {@code PhotonCamera} relative
+	 *        to the center of the robot
+	 * @param m_visionSimulator the {@code VisionSimulator} to use
+	 * @param cameraProp the {@code SimCameraProperties} to use
+	 * @return the constructed {@code PhotonCamera}
+	 */
+	PhotonCamera cameraSim(String cameraName, Transform3d robotToCamera, VisionSimulator m_visionSimulator,
+			SimCameraProperties cameraProp) {
+		PhotonCamera camera = new PhotonCamera(cameraName);
+		PhotonCameraSim cameraSim = new PhotonCameraSim(camera, cameraProp);
+		cameraSim.enableProcessedStream(true);
+		cameraSim.enableDrawWireframe(true);
+		m_visionSimulator.addCamera(cameraSim, robotToCamera);
+		return camera;
 	}
 }

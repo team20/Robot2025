@@ -1,11 +1,18 @@
 package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
+import static frc.robot.subsystems.PoseEstimationSubsystem.*;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Distance;
 
@@ -202,5 +209,47 @@ public class Constants {
 		public static final double kD = 0;
 
 		public static final double kTolerance = 4; // TODO: Change this
+	}
+
+	public static final class AutoAlignConstants {
+		/**
+		 * The {@code AprilTagFieldLayout}.
+		 */
+		public static AprilTagFieldLayout kFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
+
+		/**
+		 * The {@code Transform3d} expressing the pose of the first camera relative to
+		 * the pose of the robot.
+		 */
+		public static Transform3d kRobotToCamera1 = new Transform3d(new Translation3d(0.3, 0.0, 0.2),
+				new Rotation3d(0, Units.degreesToRadians(-10), 0));
+
+		/**
+		 * The {@code Transform3d} expressing the pose of the second camera relative to
+		 * the pose of the robot.
+		 */
+		public static Transform3d kRobotToCamera2 = new Transform3d(new Translation3d(-0.5, -0.0, 0.2),
+				new Rotation3d(0, Units.degreesToRadians(-20), Units.degreesToRadians(180)));
+
+		/**
+		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
+		 * {@code AprilTag} to align the robot to that {@code AprilTag}.
+		 */
+		static Transform2d[] kRobotToTags = { transform(1.0, 0.0, 180),
+				transform(0.5, 0.0, 180) };
+
+		/**
+		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
+		 * {@code AprilTag} to align the robot to the left of that {@code AprilTag}.
+		 */
+		static Transform2d[] kRobotToTagsLeft = { transform(1.0, -0.165, 180),
+				transform(0.5, -0.165, 180) };
+
+		/**
+		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
+		 * {@code AprilTag} to align the robot to the right of that {@code AprilTag}.
+		 */
+		static Transform2d[] kRobotToTagsRight = { transform(1.0, 0.165, 180),
+				transform(0.5, 0.165, 180) };
 	}
 }
