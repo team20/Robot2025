@@ -176,11 +176,12 @@ public class Robot extends TimedRobot {
 	}
 
 	public void bindAlgaeControls() {
-		m_algaeGrabberSubsystem
-				.setDefaultCommand(m_algaeGrabberSubsystem.manualMove(() -> m_operatorController.getRightX()));
+		// m_algaeGrabberSubsystem
+		// .setDefaultCommand(m_algaeGrabberSubsystem.manualMove(() ->
+		// m_operatorController.getRightX()));
 		m_operatorController.L2().onTrue(m_algaeGrabberSubsystem.grabAlgaeAndHold());
-		// m_operatorController.R2().onTrue(m_algaeGrabberSubsystem.releaseAlgae());
-		m_operatorController.R2().whileTrue(m_algaeGrabberSubsystem.reverseFlywheelAndStop());
+		m_operatorController.R2().onTrue(m_algaeGrabberSubsystem.releaseAlgae());
+		// m_operatorController.R2().whileTrue(m_algaeGrabberSubsystem.reverseFlywheelAndStop());
 	}
 
 	public void bindWristControls() {
