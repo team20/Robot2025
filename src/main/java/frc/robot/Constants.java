@@ -122,6 +122,25 @@ public class Constants {
 			kDriveConfig.ClosedLoopRamps.VoltageClosedLoopRampPeriod = kRampRate;
 			kDriveConfig.OpenLoopRamps.VoltageOpenLoopRampPeriod = kRampRate;
 		}
+
+		public static final double kTeleopDriveMaxSpeed = 8.0; // 5 meters per second
+		public static final double kTeleopTurnMaxAngularSpeed = Math.toRadians(360); // 1 rotation per second
+
+		public static final double kDriveMaxSpeed = 8.0; // 5 meters per second
+		public static final double kDriveMinSpeed = 0.2; // 0.2 meters per second
+		public static final double kTurnMaxAngularSpeed = Math.toRadians(360); // 1 rotation per second
+		public static final double kTurnMinAngularSpeed = Math.toRadians(0); // 0 degree per second
+
+		// DriveCommand.java Constants
+		public static final double kDriveP = 5;
+		public static final double kDriveI = 0;
+		public static final double kDriveD = 0;
+		public static final double kDriveMaxAcceleration = 2 * kDriveMaxSpeed; // kDriveMaxSpeed in 1.5 sec
+
+		public static final double kTurnP = 5;
+		public static final double kTurnI = 0;
+		public static final double kTurnD = 0.1;
+		public static final double kTurnMaxAcceleration = 2 * kTurnMaxAngularSpeed; // kTurnMaxAngularSpeed in 0.5
 	}
 
 	public static final class ElevatorConstants {

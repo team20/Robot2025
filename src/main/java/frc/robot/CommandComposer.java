@@ -1,12 +1,20 @@
 package frc.robot;
 
+import static edu.wpi.first.math.util.Units.*;
 import static edu.wpi.first.wpilibj2.command.Commands.*;
 import static frc.robot.Constants.ElevatorConstants.*;
 import static frc.robot.Constants.WristConstants.*;
 
+import java.util.function.BooleanSupplier;
+import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
+import frc.robot.commands.DriveCommand;
 import frc.robot.subsystems.AlgaeGrabberSubsystem;
 import frc.robot.subsystems.CheeseStickSubsystem;
 import frc.robot.subsystems.ClimberSubsystem;
@@ -99,4 +107,78 @@ public class CommandComposer {
 				m_cheeseStickSubsystem.grab());
 	}
 
+	public static Command testAbsoluteOrientation(double duration) {
+		DoubleSupplier z = () -> 0;
+		BooleanSupplier f = () -> false;
+		return sequence(
+				m_driveSubsystem.driveCommand(z, z, z, () -> 1, f).withTimeout(duration), // 90 degrees
+				m_driveSubsystem.driveCommand(z, z, () -> -1, z, f).withTimeout(duration), // 180 degrees
+				m_driveSubsystem.driveCommand(z, z, z, () -> -1, f).withTimeout(duration), // 270 degrees
+				m_driveSubsystem.driveCommand(z, z, () -> 1, () -> 1, f).withTimeout(duration), // 45 degrees
+				m_driveSubsystem.driveCommand(z, z, () -> 1, z, f).withTimeout(duration)) // 0 degrees
+		;
+	}
+
+	/**
+	 * Returns a {@code Command} for moving forward and then backward.
+	 * 
+	 * @param distanceInFeet the distance in feet
+	 * @param distanceTolerance the distance error in meters which is tolerable
+	 * @param angleTolerance the angle error in degrees which is tolerable
+	 * 
+	 * @return a {@code Command} for moving forward and then backward.
+	 */
+	public static Command moveForwardBackward(double distanceInFeet, double distanceTolerance,
+			double angleTolerance) {
+		return sequence(
+				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance, Pose2d.kZero),
+				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance,
+						new Pose2d(feetToMeters(distanceInFeet), 0, Rotation2d.kZero)),
+				Commands.waitSeconds(2),
+				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance, Pose2d.kZero),
+				Commands.waitSeconds(1),
+				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance, Pose2d.kZero));
+	}
+
+	/**
+	 * Constructs a new {@code DriveCommand} whose purpose is to move
+	 * the robot forward or backward.
+	 * 
+	 * @param driveSubsystem the {@code DriveSubsystem} to use
+	 * @param displacement the displacement (positive: forward, negative: backward)
+	 *        of the movement
+	 * @param distanceTolerance the distance error in meters which is tolerable
+	 * @param angleToleranceInDegrees the angle error in degrees which is tolerable
+	 */
+	public static Command moveStraight(double displacement, double distanceTolerance,
+			double angleToleranceInDegrees) {
+		return new DriveCommand(m_driveSubsystem, distanceTolerance, angleToleranceInDegrees, () -> {
+			return m_driveSubsystem.getPose().plus(new Transform2d(displacement, 0, Rotation2d.kZero));
+		});
+	}
+
+	/**
+	 * Returns a {@code Command} for moving the robot on a square.
+	 * 
+	 * @param sideLength the side length of the square in meters
+	 * @param distanceTolerance the distance error in meters which is tolerable
+	 * @param angleTolerance the angle error in degrees which is tolerable
+	 * @param timeout the maximum amount of the time given to the {@code Command}
+	 * 
+	 * @return a {@code Command} for moving the robot on a circle
+	 */
+	public static Command moveOnSquare(double sideLength, double distanceTolerance,
+			double angleTolerance, double timeout) {
+		return sequence(
+				new DriveCommand(m_driveSubsystem,
+						distanceTolerance, angleTolerance, Pose2d.kZero),
+				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance,
+						new Pose2d(sideLength, 0, Rotation2d.kCCW_90deg)),
+				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance,
+						new Pose2d(sideLength, sideLength, Rotation2d.k180deg)),
+				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance,
+						new Pose2d(0.0, sideLength, Rotation2d.kCW_90deg)),
+				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance, Pose2d.kZero),
+				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance, Pose2d.kZero));
+	}
 }

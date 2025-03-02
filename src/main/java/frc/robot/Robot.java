@@ -5,16 +5,22 @@
 package frc.robot;
 
 import static edu.wpi.first.wpilibj2.command.Commands.*;
+import static frc.robot.CommandComposer.*;
 import static frc.robot.Constants.AlgaeConstants.*;
 import static frc.robot.Constants.ClimberConstants.*;
 import static frc.robot.Constants.ControllerConstants.*;
+import static frc.robot.Constants.DriveConstants.*;
 import static frc.robot.Constants.ElevatorConstants.*;
 import static frc.robot.Constants.WristConstants.*;
 
 import java.util.Map;
+import java.util.function.Supplier;
+import java.util.stream.IntStream;
 
 import org.littletonrobotics.urcl.URCL;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -33,6 +39,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+import frc.robot.commands.PathDriveCommand;
 import frc.robot.subsystems.AlgaeGrabberSubsystem;
 import frc.robot.subsystems.CheeseStickSubsystem;
 import frc.robot.subsystems.ClimberSubsystem;
@@ -74,6 +81,7 @@ public class Robot extends TimedRobot {
 						kClimberMotorPort, "Climber Motor", kWristMotorPort, "Wrist Motor", kFlywheelMotorPort,
 						"Algae Flywheel Motor", kGrabberAnglePort, "Algae Pivot Motor"));
 		DriverStation.startDataLog(DataLogManager.getLog());
+		addTestingCommands();
 		addProgrammingCommands();
 		bindClimberControls();
 		bindDriveControls();
@@ -84,6 +92,51 @@ public class Robot extends TimedRobot {
 		SmartDashboard.putData("Testing Chooser", m_testingChooser);
 		m_driverController.options().and(m_driverController.create()).and(() -> !DriverStation.isFMSAttached())
 				.onTrue(Commands.deferredProxy(m_testingChooser::getSelected));
+	}
+
+	public void addTestingCommands() {
+		m_testingChooser
+				.addOption(
+						"Check DriveSubsystem (F/B/L/R/LR/RR and F/B while rotating)",
+						m_driveSubsystem.testCommand(0.5, Math.toRadians(45), 1.0));
+		m_testingChooser
+				.addOption(
+						"Test Absolute Orientation",
+						testAbsoluteOrientation(2));
+		double distanceTolerance = 0.01;
+		double angleToleranceInDegrees = 1;
+		m_testingChooser
+				.addOption(
+						"Check PID Constants for Driving (5'x5' Square)",
+						CommandComposer
+								.moveOnSquare(Units.feetToMeters(5), distanceTolerance, angleToleranceInDegrees, 16));
+		m_testingChooser
+				.addOption(
+						"Check kDriveGearRatio and kWheelDiameter (F/B 6 feet)",
+						CommandComposer.moveForwardBackward(6, distanceTolerance, angleToleranceInDegrees));
+		m_testingChooser
+				.addOption(
+						"Slowest Movement Test (F/B/L/R/LR/RR and F/B while rotating)",
+						m_driveSubsystem.testCommand(kDriveMinSpeed, kTurnMinAngularSpeed, 1.0));
+		m_testingChooser
+				.addOption(
+						"Fastest Forward/Backward Movement Test (5m)",
+						sequence(
+								CommandComposer.moveStraight(5, 0.1, 10),
+								CommandComposer.moveStraight(-5, 0.1, 10)));
+		m_testingChooser
+				.addOption(
+						"Fastest Rotation Test (5 rotations)",
+						new PathDriveCommand(m_driveSubsystem, 1, 10,
+								1, 100,
+								IntStream.range(1, 1 + 3 * 5)
+										.mapToObj(
+												i -> (Supplier<Pose2d>) (() -> {
+													var pose = m_driveSubsystem.getPose();
+													return new Pose2d(pose.getX(), pose.getY(),
+															Rotation2d.fromDegrees(120 * i));
+												}))
+										.toList()));
 	}
 
 	public void addProgrammingCommands() {
@@ -107,14 +160,6 @@ public class Robot extends TimedRobot {
 				.addOption("SysId Elevator Dynamic Forward", m_elevatorSubsystem.sysidDynamic(Direction.kForward));
 		m_testingChooser
 				.addOption("SysId Elevator Dynamic Reverse", m_elevatorSubsystem.sysidDynamic(Direction.kReverse));
-		m_testingChooser.addOption(
-				"Drive Test", sequence(
-						m_driveSubsystem.run(() -> m_driveSubsystem.drive(0.5, 0, 0, false)).withTimeout(4),
-						m_driveSubsystem.run(() -> m_driveSubsystem.drive(-0.5, 0, 0, false)).withTimeout(4),
-						m_driveSubsystem.run(() -> m_driveSubsystem.drive(0, 0.5, 0, false)).withTimeout(4),
-						m_driveSubsystem.run(() -> m_driveSubsystem.drive(0, -0.5, 0, false)).withTimeout(4),
-						m_driveSubsystem.run(() -> m_driveSubsystem.drive(0, 0, 0.5, false)).withTimeout(4),
-						m_driveSubsystem.run(() -> m_driveSubsystem.drive(0, 0, -0.5, false)).withTimeout(4)));
 	}
 
 	public void bindDriveControls() {
@@ -238,6 +283,9 @@ public class Robot extends TimedRobot {
 	@Override
 	public void testInit() {
 		CommandScheduler.getInstance().cancelAll();
+		var testCommand = m_testingChooser.getSelected();
+		if (testCommand != null)
+			testCommand.schedule();
 	}
 
 	@Override
