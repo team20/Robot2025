@@ -12,12 +12,19 @@ import static frc.robot.Constants.ElevatorConstants.*;
 import static frc.robot.Constants.WristConstants.*;
 
 import java.util.Map;
+import java.util.function.BooleanSupplier;
 
 import org.littletonrobotics.urcl.URCL;
 
+import com.ctre.phoenix6.SignalLogger;
+
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.net.WebServer;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.PS5Controller;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.TimedRobot;
@@ -57,6 +64,8 @@ public class Robot extends TimedRobot {
 	private final PowerDistribution m_pdh = new PowerDistribution();
 
 	public Robot() {
+		SignalLogger.start();
+		WebServer.start(5800, Filesystem.getDeployDirectory().getPath());
 		CommandComposer.setSubsystems(
 				m_driveSubsystem, m_algaeGrabberSubsystem, m_cheeseStickSubsystem, m_climberSubsystem,
 				m_elevatorSubsystem, m_wristSubsystem);
@@ -81,9 +90,19 @@ public class Robot extends TimedRobot {
 		bindWristControls();
 		bindAlgaeControls();
 		bindCheeseStickControls();
+		bindAlert(
+				new Alert("Driver Joystick Disconnected!", AlertType.kError), () -> !m_driverController.isConnected());
+		bindAlert(
+				new Alert("Operator Joystick Disconnected!", AlertType.kError),
+				() -> !m_operatorController.isConnected());
+		DriverStation.silenceJoystickConnectionWarning(true);
 		SmartDashboard.putData("Testing Chooser", m_testingChooser);
 		m_driverController.options().and(m_driverController.create()).and(() -> !DriverStation.isFMSAttached())
 				.onTrue(Commands.deferredProxy(m_testingChooser::getSelected));
+	}
+
+	public void bindAlert(Alert alert, BooleanSupplier event) {
+		CommandScheduler.getInstance().getActiveButtonLoop().bind(() -> alert.set(event.getAsBoolean()));
 	}
 
 	public void addProgrammingCommands() {

@@ -69,8 +69,8 @@ public class WristSubsystem extends SubsystemBase {
 		if (RobotBase.isSimulation()) {
 			m_wristSim = new SparkMaxSim(m_wristMotor, DCMotor.getNEO(1));
 			m_absoluteEncoderSim = new SparkAbsoluteEncoderSim(m_wristMotor);
-			m_wristModel = new SingleJointedArmSim(DCMotor.getNEO(1), 5, 2, 0.1, 0,
-					Math.PI, false, 0);
+			m_wristModel = new SingleJointedArmSim(DCMotor.getNEO(1), 5, 1, 0.1, Math.PI / 2,
+					3 * Math.PI / 2, false, 0);
 		} else {
 			m_wristSim = null;
 			m_absoluteEncoderSim = null;
@@ -126,7 +126,7 @@ public class WristSubsystem extends SubsystemBase {
 	@Override
 	public void periodic() {
 		// Negate to make angle CCW+, subtract 180 to get 0 degrees in the right place
-		double angle = RobotBase.isReal() ? getAngle() : m_absoluteEncoderSim.getPosition();
+		double angle = getAngle();
 		SmartDashboard.putNumber("Wrist/Current Angle", angle);
 		m_wrist.setAngle(-angle - 180);
 	}
@@ -169,7 +169,7 @@ public class WristSubsystem extends SubsystemBase {
 			double input = joystick.getAsDouble();
 			double speed = Math.signum(input) * Math.pow(input, 2);
 			m_wristMotor.set(speed * 0.5);
-		}).withName("Manual Wrist");
+		}).finallyDo(() -> m_wristMotor.set(0)).withName("Manual Wrist");
 	}
 
 	/**
