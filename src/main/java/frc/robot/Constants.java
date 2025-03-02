@@ -82,7 +82,7 @@ public class Constants {
 		public static final int kBackLeftCANCoderPort = 32;
 
 		// TODO: Make sure these are tuned (can do with SysId)
-		public static final double kP = 0.09;
+		public static final double kP = 0.04;
 		public static final double kI = 0.0;
 		public static final double kD = 0;
 		public static final double kS = 0;
