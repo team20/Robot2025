@@ -37,7 +37,6 @@ import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
 public class ElevatorSubsystem extends SubsystemBase {
@@ -67,7 +66,6 @@ public class ElevatorSubsystem extends SubsystemBase {
 			.append(
 					new MechanismLigament2d("wristMount", Units.inchesToMeters(8), 90, 10,
 							new Color8Bit(Color.kBlack)));
-	public final Trigger atWristSafeHeight = new Trigger(() -> getPosition() > kWristSafeHeight);
 
 	/** Creates a new ElevatorSubsystem. */
 	public ElevatorSubsystem(MechanismRoot2d root) {
@@ -220,7 +218,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 			SmartDashboard.putNumber("Elevator/Next Target Velocity", nextState.velocity);
 			SmartDashboard.putNumber("Elevator/Profile Time", m_profile.totalTime());
 			SmartDashboard.putNumber("Elevator/Current Time", m_timer.get());
-		}).until(() -> Math.abs(getPosition() - finalState.position) < kTolerance);
+		}).until(() -> m_profile.isFinished(m_timer.get()));
 	}
 
 	/**
@@ -235,7 +233,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 			double input = joystick.getAsDouble();
 			double speed = Math.signum(input) * Math.pow(input, 2);
 			setSpeed(speed);
-		}).finallyDo(() -> setPosition(getPosition(), m_ff.calculate(0))).withName("Manual Elevator");
+		}).finallyDo(() -> m_elevatorMotor.setVoltage(kG)).withName("Manual Elevator");
 	}
 
 	/**
@@ -283,6 +281,14 @@ public class ElevatorSubsystem extends SubsystemBase {
 		return goToLevel(() -> kCoralStationHeight).withName("Elevator to Coral Station");
 	}
 
+	public Command goToAlgaeThreeHeight() {
+		return goToLevel(() -> kAlgaeLevelThreeHeight).withName("Algae Level Three Height");
+	}
+
+	public Command goToAlgaeTwoHeight() {
+		return goToLevel(() -> kAlgaeLevelTwoHeight).withName("Algae Level Three Height");
+	}
+
 	/**
 	 * Moves the elevator to the base height position
 	 * 
@@ -292,8 +298,8 @@ public class ElevatorSubsystem extends SubsystemBase {
 		return runOnce(() -> m_elevatorEncoder.setPosition(0)).withName("Go To Base Height");
 	}
 
-	public Command goToClearanceHeight(double level) {
-		return goToLevel(() -> (level + kClearanceHeight)).withName("Level Height with added Clearance");
+	public Command goToClearanceHeight(double level, double clearanceHeight) {
+		return goToLevel(() -> (level + clearanceHeight)).withName("Level Height with added Clearance");
 	}
 
 	/**

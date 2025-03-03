@@ -277,11 +277,15 @@ public class Robot extends TimedRobot {
 				m_elevatorSubsystem.goToLevelTwoHeight()
 						.andThen(m_wristSubsystem.goToAngle(kGrabberAngleOthers)));
 		m_operatorController.circle().onTrue(CommandComposer.scoreLevelOneInTeleop());
+		m_operatorController.L1().and(m_operatorController.triangle()).onTrue(CommandComposer.removeAlgaeLevelThree());
+		m_operatorController.L1().and(m_operatorController.square()).onTrue(CommandComposer.removeAlgaeLevelTwo());
 		m_operatorController.L1().and(m_operatorController.circle()).onTrue(CommandComposer.prepareForCoralPickup());
-		// m_operatorController.L1().and(m_operatorController.cross()).onTrue(CommandComposer.pickupAtCoralStation());
+		m_operatorController.L1().and(m_operatorController.cross()).onTrue(CommandComposer.pickupAtCoralStation());
 		m_driverController.square().onTrue(CommandComposer.pickupAtCoralStation());
 		m_operatorController.touchpad().onTrue(m_elevatorSubsystem.stopMotor());
 		m_operatorController.create().onTrue(m_elevatorSubsystem.resetTheEncoder());
+
+		m_driverController.square().onTrue(CommandComposer.releaseFlickAndDriveBack());
 	}
 
 	public void bindAlgaeControls() {
@@ -312,6 +316,9 @@ public class Robot extends TimedRobot {
 		// once sensors are good make driver controller rumble
 		m_driverController.triangle().onTrue(m_climberSubsystem.goToReversePosition());
 		m_driverController.cross().onTrue(m_climberSubsystem.goToForwardPosition());
+
+		m_operatorController.povUp().onTrue(m_climberSubsystem.goToForwardPosition());
+		m_operatorController.povDown().onTrue(m_climberSubsystem.goToReversePosition());
 	}
 
 	@Override

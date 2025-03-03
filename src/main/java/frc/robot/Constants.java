@@ -86,7 +86,7 @@ public class Constants {
 		public static final int kBackLeftCANCoderPort = 32;
 
 		// TODO: Make sure these are tuned (can do with SysId)
-		public static final double kP = 0.04;
+		public static final double kP = 0.09;
 		public static final double kI = 0.0;
 		public static final double kD = 0;
 		public static final double kS = 0;
@@ -135,7 +135,7 @@ public class Constants {
 		}
 
 		public static final double kTeleopDriveMaxSpeed = 8.0; // 5 meters per second
-		public static final double kTeleopTurnMaxAngularSpeed = Math.toRadians(360); // 1 rotation per second
+		public static final double kTeleopTurnMaxAngularSpeed = Math.toRadians(360 * 5);
 
 		public static final double kDriveMaxSpeed = 8.0; // 5 meters per second
 		public static final double kDriveMinSpeed = 0.2; // 0.2 meters per second
@@ -182,27 +182,32 @@ public class Constants {
 				* kMetersPerPulleyRotation;
 		public static final double kMaxVelocity = 2.75;
 		public static final double kMaxAccel = 2.5;
-		public static final double kTolerance = 0.01;
+		public static final double kTolerance = 1;
 		// TODO: During testing make sure these are right
 		public static final double kLevelOneHeight = Units.inchesToMeters(3);
 		public static final double kLevelTwoHeight = Units.inchesToMeters(8);
 		public static final double kLevelThreeHeight = Units.inchesToMeters(29);
-		public static final double kLevelFourHeight = Units.inchesToMeters(48);
-		public static final double kMaxExtension = 1.243 - 0.025; // 1.243 meters is the max, taking off 5 cm for safety
-		public static final double kWristSafeHeight = Units.inchesToMeters(0);
+		public static final double kLevelFourHeight = Units.inchesToMeters(50); // TODO: does this uhh do anything...?
+																				// since the max height is well,
+																				// supposedly lower?
+		public static final double kMaxExtension = 1.25 - 0.01; // Likely needs to be upped (safety)
 		// TODO: The amount that the elevator decreases in order to score
 		public static final double kClearanceHeight = Units.inchesToMeters(3.5);
 		public static final double kToScoreHeightDecrease = Units.inchesToMeters(0);
 		public static final double kCoralStationHeight = Units.inchesToMeters(17); // TODO: Change
+
+		public static final double kAlgaeLevelThreeHeight = Units.inchesToMeters(0.25);
+		public static final double kAlgaeLevelTwoHeight = Units.inchesToMeters(16);
 	}
 
 	public static final class WristConstants {
 		public static final int kWristMotorPort = 27;
 		public static final int kSmartCurrentLimit = 20;
 		public static final int kSecondaryCurrentLimit = 20;
-		public static final int kGrabberAngleLevelFour = 240;
+		public static final int kGrabberAngleLevelFour = 220;
 		public static final int kGrabberAngleOthers = 221; // 5 degrees steeper from previous value (215)
 		public static final int kGrabberAngleLevelThree = 237;
+		public static final double kAlgaeWristHeight = 170;
 
 		public static final double kWristForwardSoftLimit = 274; // Wrist facing down
 		public static final double kWristReverseSoftLimit = 90; // Wrist facing up
