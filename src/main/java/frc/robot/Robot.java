@@ -148,6 +148,33 @@ public class Robot extends TimedRobot {
 	public void addTestingCommands() {
 		m_testingChooser
 				.addOption(
+						"Left Align to the Closest Tag",
+						toClosestTag(kRobotToTagsLeft));
+		m_testingChooser
+				.addOption(
+						"Right Align to the Closest Tag",
+						toClosestTag(kRobotToTagsRight));
+		m_testingChooser
+				.addOption(
+						"Left Align to the Closest Tag + Score at Level 2",
+						sequence(toClosestTag(kRobotToTagsLeft), scoreLevelTwoInTeleop()));
+		m_testingChooser
+				.addOption(
+						"Right Align to the Closest Tag + Score at Level 2",
+						sequence(toClosestTag(kRobotToTagsRight), scoreLevelTwoInTeleop()));
+		double distanceTolerance = 0.01;
+		double angleToleranceInDegrees = 1;
+		double intermediateDistanceTolerance = 0.08;
+		double intermediateAngleToleranceInDegrees = 8.0;
+		m_testingChooser
+				.addOption(
+						"Quickly Align AprilTags 18, 19, 20",
+						CommandComposer.alignToTags(
+								distanceTolerance, angleToleranceInDegrees, intermediateDistanceTolerance,
+								intermediateAngleToleranceInDegrees, Arrays.asList(kRobotToTagsLeft),
+								kRobotToTagsLeft[0], 18, 19, 20, 19, 18));
+		m_testingChooser
+				.addOption(
 						"Check All Subsystems",
 						parallel(
 								sequence(
@@ -175,10 +202,6 @@ public class Robot extends TimedRobot {
 				.addOption(
 						"Test Absolute Orientation",
 						testAbsoluteOrientation(2));
-		double distanceTolerance = 0.01;
-		double angleToleranceInDegrees = 1;
-		double intermediateDistanceTolerance = 0.08;
-		double intermediateAngleToleranceInDegrees = 8.0;
 		m_testingChooser
 				.addOption(
 						"Quickly Align AprilTags 17, 18, 19, 20, 21, and 22",
@@ -274,6 +297,15 @@ public class Robot extends TimedRobot {
 		// () -> -m_driverController.getLeftX(),
 		// () -> -m_driverController.getRightY(),
 		// () -> -m_driverController.getRightX(),
+		// m_driverController.getHID()::getSquareButton)); // makes the robot
+		// robot-oriented
+		// m_driveSubsystem.setDefaultCommand(
+		// m_driveSubsystem.driveCommand(
+		// () -> -m_driverController.getLeftY(),
+		// () -> -m_driverController.getLeftX(),
+		// () -> -m_driverController.getRightY(),
+		// () -> -m_driverController.getRightX(),
+		// () -> m_driverController.getL2Axis() - m_driverController.getR2Axis(),
 		// m_driverController.getHID()::getSquareButton)); // makes the robot
 		// robot-oriented
 
