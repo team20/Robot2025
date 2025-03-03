@@ -219,6 +219,8 @@ public class Constants {
 		public static final double kD = 0;
 
 		public static final double kTolerance = 4; // TODO: Change this
+
+		public static final double kMinElevatorExtension = 0.5;
 	}
 
 	public static final class AutoAlignConstants {

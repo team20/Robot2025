@@ -73,7 +73,7 @@ public class Robot extends TimedRobot {
 	private final DriveSubsystem m_driveSubsystem = new DriveSubsystem();
 	private final ElevatorSubsystem m_elevatorSubsystem = new ElevatorSubsystem(
 			m_mechanism.getRoot("anchor", Units.inchesToMeters(23), 0));
-	private final WristSubsystem m_wristSubsystem = new WristSubsystem(m_elevatorSubsystem.getWristMount());
+	private final WristSubsystem m_wristSubsystem = new WristSubsystem(m_elevatorSubsystem);
 	private final CheeseStickSubsystem m_cheeseStickSubsystem = new CheeseStickSubsystem(
 			m_wristSubsystem.getCheeseStickMount());
 	private final CommandPS5Controller m_driverController = new CommandPS5Controller(kDriverControllerPort);
@@ -146,6 +146,27 @@ public class Robot extends TimedRobot {
 	}
 
 	public void addTestingCommands() {
+		m_testingChooser
+				.addOption(
+						"Check All Subsystems",
+						parallel(
+								sequence(
+										m_elevatorSubsystem.testCommand(2.0),
+										parallel(
+												m_cheeseStickSubsystem.testCommand(2.0),
+												m_wristSubsystem.testCommand(2.0))),
+								m_driveSubsystem.testCommand(0.5, Math.toRadians(45), 1.0)));
+		m_testingChooser
+				.addOption(
+						"Check CheeseStickSubsystem",
+						m_cheeseStickSubsystem.testCommand(2.0));
+		m_testingChooser
+				.addOption(
+						"Check WristSubsystem", m_wristSubsystem.testCommand(2.0));
+		m_testingChooser
+				.addOption(
+						"Check ElevatorSubsystem (Levels 0, 1, 0, 3, 2, 4, and 0)",
+						m_elevatorSubsystem.testCommand(2.0));
 		m_testingChooser
 				.addOption(
 						"Check DriveSubsystem (F/B/L/R/LR/RR and F/B while rotating)",

@@ -5,6 +5,7 @@
 package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.*;
+import static edu.wpi.first.wpilibj2.command.Commands.*;
 import static frc.robot.Constants.ElevatorConstants.*;
 
 import java.util.function.DoubleSupplier;
@@ -37,6 +38,7 @@ import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
 public class ElevatorSubsystem extends SubsystemBase {
@@ -330,5 +332,28 @@ public class ElevatorSubsystem extends SubsystemBase {
 	 */
 	public Command sysidDynamic(SysIdRoutine.Direction direction) {
 		return m_sysidRoutine.dynamic(direction);
+	}
+
+	/**
+	 * Creates a {@code Command} for testing this {@code ElevatorSubsystem}
+	 * (Levels 0, 1, 0, 3, 2, 4, and 0).
+	 * 
+	 * @param duration the duration of each movement in seconds
+	 * 
+	 * @return a {@code Command} for testing this {@code ElevatorSubsystem}
+	 */
+	public Command testCommand(double duration) {
+		return sequence(
+				startRun(() -> setSpeed(0.2), () -> {// checking setSpeed(double)
+				}).until(() -> getPosition() > 0.2), // should stop when level is > 0.2
+				runOnce(() -> setSpeed(0.0)), new WaitCommand(duration), // should go down due to gravity
+				manualMove(() -> 0.5) // checking manualMove(DoubleSupplier)
+						.until(() -> getPosition() > 0.2), // should stop when level is > 0.2
+				runOnce(() -> setSpeed(0.0)), new WaitCommand(duration), // should go down due to gravity
+				goToLevelOneHeight(), // checking goToLevel(DoubleSupplier)
+				goToLevelThreeHeight(), new WaitCommand(duration), // should stay at level 3
+				goToLevelTwoHeight(), new WaitCommand(duration), // should stay at level 2
+				goToLevelFourHeight(),
+				goToBaseHeight());
 	}
 }
