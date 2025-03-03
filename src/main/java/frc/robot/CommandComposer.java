@@ -89,7 +89,8 @@ public class CommandComposer {
 				m_cheeseStickSubsystem.release(),
 				parallel(
 						m_wristSubsystem.goToAngle(kGrabberAngleLevelFour - 20),
-						moveStraight(-0.3, 0.01, 1)));
+						moveStraight(-0.3, 0.01, 1),
+						m_cheeseStickSubsystem.grab()));
 	}
 
 	private static Command scoreLevelInAuto(Supplier<Command> levelCommand) {
