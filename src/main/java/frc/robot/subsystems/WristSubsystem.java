@@ -173,7 +173,7 @@ public class WristSubsystem extends SubsystemBase {
 		return run(() -> {
 			double input = joystick.getAsDouble();
 			double speed = Math.signum(input) * Math.pow(input, 2);
-			if (m_elevatorSubsystem.getPosition() > kMinElevatorExtension)
+			if (m_elevatorSubsystem.getPosition() >= kMinElevatorExtension)
 				m_wristMotor.set(speed * 0.5);
 		}).withName("Manual Wrist");
 	}
@@ -186,7 +186,7 @@ public class WristSubsystem extends SubsystemBase {
 	public Command goToAngle(double angle) {
 		return run(() -> {
 			SmartDashboard.putNumber("Wrist/Target Angle", angle);
-			if (m_elevatorSubsystem.getPosition() > kMinElevatorExtension)
+			if (m_elevatorSubsystem.getPosition() >= kMinElevatorExtension)
 				m_wristClosedLoopController.setReference(angle, ControlType.kPosition);
 		}).until(atAngle(angle)).withName("Wrist go to angle");
 	}

@@ -86,7 +86,7 @@ public class Constants {
 		public static final int kBackLeftCANCoderPort = 32;
 
 		// TODO: Make sure these are tuned (can do with SysId)
-		public static final double kP = 0.09;
+		public static final double kP = 0.04;
 		public static final double kI = 0.0;
 		public static final double kD = 0;
 		public static final double kS = 0;
@@ -134,10 +134,10 @@ public class Constants {
 			kDriveConfig.OpenLoopRamps.VoltageOpenLoopRampPeriod = kRampRate;
 		}
 
-		public static final double kTeleopDriveMaxSpeed = 8.0; // 5 meters per second
+		public static final double kTeleopDriveMaxSpeed = 12.0; // 5 meters per second
 		public static final double kTeleopTurnMaxAngularSpeed = Math.toRadians(360 * 5);
 
-		public static final double kDriveMaxSpeed = 8.0; // 5 meters per second
+		public static final double kDriveMaxSpeed = 12.0; // 5 meters per second
 		public static final double kDriveMinSpeed = 0.2; // 0.2 meters per second
 		public static final double kTurnMaxAngularSpeed = Math.toRadians(360); // 1 rotation per second
 		public static final double kTurnMinAngularSpeed = Math.toRadians(0); // 0 degree per second
@@ -206,7 +206,7 @@ public class Constants {
 		public static final int kSecondaryCurrentLimit = 20;
 		public static final int kGrabberAngleLevelFour = 220;
 		public static final int kGrabberAngleOthers = 221; // 5 degrees steeper from previous value (215)
-		public static final int kGrabberAngleLevelThree = 237;
+		public static final int kGrabberAngleLevelThree = 240;
 		public static final double kAlgaeWristHeight = 170;
 
 		public static final double kWristForwardSoftLimit = 274; // Wrist facing down
@@ -220,7 +220,7 @@ public class Constants {
 
 		public static final double kTolerance = 4; // TODO: Change this
 
-		public static final double kMinElevatorExtension = 0.5;
+		public static final double kMinElevatorExtension = 0.0;
 	}
 
 	public static final class AutoAlignConstants {
@@ -248,14 +248,14 @@ public class Constants {
 		 * {@code AprilTag} to align the robot to that {@code AprilTag}.
 		 */
 		static Transform2d[] kRobotToTags = { transform(1.1, 0.0, 180),
-				transform(0.5, 0.0, 180) };
+				transform(0.46, 0.0, 180) };
 
 		/**
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
 		 * {@code AprilTag} to align the robot to the left of that {@code AprilTag}.
 		 */
 		static Transform2d[] kRobotToTagsLeft = { transform(1.1, 0, 180),
-				transform(0.5, -0.165, 180) };
+				transform(0.46, -0.165, 180) };
 
 		/**
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
@@ -264,6 +264,6 @@ public class Constants {
 		// static Transform2d[] kRobotToTagsRight = { transform(1.0, 0.165, 180),
 		// transform(0.5, 0.165, 180) };
 		static Transform2d[] kRobotToTagsRight = { transform(1.1, 0, 180),
-				transform(0.5, 0.215, 180) };
+				transform(0.46, 0.215, 180) };
 	}
 }

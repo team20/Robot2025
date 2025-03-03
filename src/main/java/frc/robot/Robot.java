@@ -168,6 +168,13 @@ public class Robot extends TimedRobot {
 		double intermediateAngleToleranceInDegrees = 8.0;
 		m_testingChooser
 				.addOption(
+						"Quickly Align AprilTags 7, 8, 9",
+						CommandComposer.alignToTags(
+								distanceTolerance, angleToleranceInDegrees, intermediateDistanceTolerance,
+								intermediateAngleToleranceInDegrees, Arrays.asList(kRobotToTagsLeft),
+								kRobotToTagsLeft[0], 7, 8, 9, 8, 7));
+		m_testingChooser
+				.addOption(
 						"Quickly Align AprilTags 18, 19, 20",
 						CommandComposer.alignToTags(
 								distanceTolerance, angleToleranceInDegrees, intermediateDistanceTolerance,
@@ -285,18 +292,11 @@ public class Robot extends TimedRobot {
 	}
 
 	public void bindDriveControls() {
-		m_driveSubsystem.setDefaultCommand(
-				m_driveSubsystem.driveCommand(
-						() -> -m_driverController.getLeftY(),
-						() -> -m_driverController.getLeftX(),
-						() -> m_driverController.getL2Axis() - m_driverController.getR2Axis(),
-						m_driverController.getHID()::getSquareButton)); // makes the robot robot-oriented
 		// m_driveSubsystem.setDefaultCommand(
 		// m_driveSubsystem.driveCommand(
 		// () -> -m_driverController.getLeftY(),
 		// () -> -m_driverController.getLeftX(),
-		// () -> -m_driverController.getRightY(),
-		// () -> -m_driverController.getRightX(),
+		// () -> m_driverController.getL2Axis() - m_driverController.getR2Axis(),
 		// m_driverController.getHID()::getSquareButton)); // makes the robot
 		// robot-oriented
 		// m_driveSubsystem.setDefaultCommand(
@@ -305,8 +305,16 @@ public class Robot extends TimedRobot {
 		// () -> -m_driverController.getLeftX(),
 		// () -> -m_driverController.getRightY(),
 		// () -> -m_driverController.getRightX(),
-		// () -> m_driverController.getL2Axis() - m_driverController.getR2Axis(),
 		// m_driverController.getHID()::getSquareButton)); // makes the robot
+		// robot-oriented
+		m_driveSubsystem.setDefaultCommand(
+				m_driveSubsystem.driveCommand(
+						() -> -m_driverController.getLeftY(),
+						() -> -m_driverController.getLeftX(),
+						() -> -m_driverController.getRightY(),
+						() -> -m_driverController.getRightX(),
+						() -> m_driverController.getL2Axis() - m_driverController.getR2Axis(),
+						m_driverController.getHID()::getSquareButton)); // makes the robot
 		// robot-oriented
 
 		/// TODO: button binding needed with the correct button

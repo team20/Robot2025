@@ -63,11 +63,11 @@ public class CommandComposer {
 	}
 
 	public static Command scoreLevelOneInTeleop() {
-		return scoreLevelInTeleop(kLevelOneHeight, 4.25, m_elevatorSubsystem::goToLevelOneHeight, kGrabberAngleOthers);
+		return scoreLevelInTeleop(kLevelOneHeight, 0.55, m_elevatorSubsystem::goToLevelOneHeight, kGrabberAngleOthers);
 	}
 
 	public static Command scoreLevelTwoInTeleop() {
-		return scoreLevelInTeleop(kLevelTwoHeight, 4, m_elevatorSubsystem::goToLevelTwoHeight, kGrabberAngleOthers);
+		return scoreLevelInTeleop(kLevelTwoHeight, 0.05, m_elevatorSubsystem::goToLevelTwoHeight, kGrabberAngleOthers);
 	}
 
 	public static Command removeAlgaeLevelThree() {
