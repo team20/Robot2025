@@ -126,7 +126,7 @@ public class WristSubsystem extends SubsystemBase {
 	@Override
 	public void periodic() {
 		// Negate to make angle CCW+, subtract 180 to get 0 degrees in the right place
-		double angle = getAngle();
+		double angle = RobotBase.isReal() ? getAngle() : m_absoluteEncoderSim.getPosition();
 		SmartDashboard.putNumber("Wrist/Current Angle", angle);
 		m_wrist.setAngle(-angle - 180);
 	}
@@ -169,7 +169,7 @@ public class WristSubsystem extends SubsystemBase {
 			double input = joystick.getAsDouble();
 			double speed = Math.signum(input) * Math.pow(input, 2);
 			m_wristMotor.set(speed * 0.5);
-		}).finallyDo(() -> m_wristMotor.set(0)).withName("Manual Wrist");
+		}).withName("Manual Wrist");
 	}
 
 	/**

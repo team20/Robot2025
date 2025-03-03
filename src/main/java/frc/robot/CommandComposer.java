@@ -54,20 +54,43 @@ public class CommandComposer {
 		m_poseEstimationSubsystem = poseEstimationSubsystem;
 	}
 
-	private static Command scoreLevelInTeleop(double level, Supplier<Command> levelCommand,
+	private static Command scoreLevelInTeleop(double level, double clearanceHeight, Supplier<Command> levelCommand,
 			double wristAngle) {
 		return sequence(
-				m_elevatorSubsystem.goToClearanceHeight(level),
+				m_elevatorSubsystem.goToClearanceHeight(level, clearanceHeight),
 				m_wristSubsystem.goToAngle(wristAngle),
 				levelCommand.get());
 	}
 
 	public static Command scoreLevelOneInTeleop() {
-		return scoreLevelInTeleop(kLevelOneHeight, m_elevatorSubsystem::goToLevelOneHeight, kGrabberAngleOthers);
+		return scoreLevelInTeleop(kLevelOneHeight, 4.25, m_elevatorSubsystem::goToLevelOneHeight, kGrabberAngleOthers);
 	}
 
 	public static Command scoreLevelTwoInTeleop() {
-		return scoreLevelInTeleop(kLevelTwoHeight, m_elevatorSubsystem::goToLevelOneHeight, kGrabberAngleOthers);
+		return scoreLevelInTeleop(kLevelTwoHeight, 4, m_elevatorSubsystem::goToLevelTwoHeight, kGrabberAngleOthers);
+	}
+
+	public static Command removeAlgaeLevelThree() {
+		return sequence(
+				m_elevatorSubsystem.goToLevelTwoHeight(),
+				m_wristSubsystem.goToAngle(kAlgaeWristHeight),
+				m_elevatorSubsystem.goToAlgaeThreeHeight());
+	}
+
+	public static Command removeAlgaeLevelTwo() {
+		return sequence(
+				m_elevatorSubsystem.goToCoralStationHeight(),
+				m_wristSubsystem.goToAngle(kAlgaeWristHeight),
+				m_elevatorSubsystem.goToAlgaeTwoHeight());
+	}
+
+	public static Command releaseFlickAndDriveBack() {
+		return sequence(
+				m_cheeseStickSubsystem.release(),
+				parallel(
+						m_wristSubsystem.goToAngle(kGrabberAngleLevelFour - 20),
+						moveStraight(-0.3, 0.01, 1),
+						m_cheeseStickSubsystem.grab()));
 	}
 
 	private static Command scoreLevelInAuto(Supplier<Command> levelCommand) {
