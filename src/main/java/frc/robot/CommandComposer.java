@@ -163,6 +163,7 @@ public class CommandComposer {
 	public static Command moveForwardBackward(double distanceInFeet, double distanceTolerance,
 			double angleTolerance) {
 		return sequence(
+				m_driveSubsystem.resetOdometry(Pose2d.kZero),
 				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance, Pose2d.kZero),
 				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance,
 						new Pose2d(feetToMeters(distanceInFeet), 0, Rotation2d.kZero)),
@@ -202,6 +203,7 @@ public class CommandComposer {
 	public static Command moveOnSquare(double sideLength, double distanceTolerance,
 			double angleTolerance, double timeout) {
 		return sequence(
+				m_driveSubsystem.resetOdometry(Pose2d.kZero),
 				new DriveCommand(m_driveSubsystem,
 						distanceTolerance, angleTolerance, Pose2d.kZero),
 				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance,

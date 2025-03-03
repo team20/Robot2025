@@ -156,6 +156,29 @@ public class Robot extends TimedRobot {
 						testAbsoluteOrientation(2));
 		double distanceTolerance = 0.01;
 		double angleToleranceInDegrees = 1;
+		double intermediateDistanceTolerance = 0.08;
+		double intermediateAngleToleranceInDegrees = 8.0;
+		m_testingChooser
+				.addOption(
+						"Quickly Align AprilTags 17, 18, 19, 20, 21, and 22",
+						CommandComposer.alignToTags(
+								distanceTolerance, angleToleranceInDegrees, intermediateDistanceTolerance,
+								intermediateAngleToleranceInDegrees, Arrays.asList(kRobotToTagsLeft),
+								kRobotToTagsLeft[0], 17, 18, 19, 20, 21, 22, 17));
+		m_testingChooser
+				.addOption(
+						"Quickly Align to AprilTags 12, 13, 17, 18, and 19",
+						CommandComposer.alignToTags(
+								distanceTolerance, angleToleranceInDegrees, intermediateDistanceTolerance,
+								intermediateAngleToleranceInDegrees, Arrays.asList(kRobotToTags), kRobotToTags[0], 18,
+								17, 12, 17, 18, 19, 13, 19, 18));
+		m_testingChooser
+				.addOption(
+						"Quickly Align to AprilTags 1, 2, 6, 7, and 8",
+						CommandComposer.alignToTags(
+								distanceTolerance, angleToleranceInDegrees, intermediateDistanceTolerance,
+								intermediateAngleToleranceInDegrees, Arrays.asList(kRobotToTags), kRobotToTags[0], 7, 6,
+								1, 6, 7, 8, 2, 8, 7));
 		m_testingChooser
 				.addOption(
 						"Check PID Constants for Driving (5'x5' Square)",
@@ -188,29 +211,6 @@ public class Robot extends TimedRobot {
 															Rotation2d.fromDegrees(120 * i));
 												}))
 										.toList()));
-		double intermediateDistanceTolerance = 0.08;
-		double intermediateAngleToleranceInDegrees = 8.0;
-		m_testingChooser
-				.addOption(
-						"Quickly Align to AprilTags 12, 13, 17, 18, and 19",
-						CommandComposer.alignToTags(
-								distanceTolerance, angleToleranceInDegrees, intermediateDistanceTolerance,
-								intermediateAngleToleranceInDegrees, Arrays.asList(kRobotToTags), kRobotToTags[0], 18,
-								17, 12, 17, 18, 19, 13, 19, 18));
-		m_testingChooser
-				.addOption(
-						"Quickly Align AprilTags 17, 18, 19, 20, 21, and 22",
-						CommandComposer.alignToTags(
-								distanceTolerance, angleToleranceInDegrees, intermediateDistanceTolerance,
-								intermediateAngleToleranceInDegrees, Arrays.asList(kRobotToTagsLeft),
-								kRobotToTagsLeft[0], 17, 18, 19, 20, 21, 22, 17));
-		m_testingChooser
-				.addOption(
-						"Quickly Align to AprilTags 1, 2, 6, 7, and 8",
-						CommandComposer.alignToTags(
-								distanceTolerance, angleToleranceInDegrees, intermediateDistanceTolerance,
-								intermediateAngleToleranceInDegrees, Arrays.asList(kRobotToTags), kRobotToTags[0], 7, 6,
-								1, 6, 7, 8, 2, 8, 7));
 	}
 
 	public void bindAlert(Alert alert, BooleanSupplier event) {

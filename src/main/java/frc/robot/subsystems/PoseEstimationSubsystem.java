@@ -11,7 +11,9 @@ import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.PhotonPoseEstimator.PoseStrategy;
+import org.photonvision.targeting.PhotonPipelineResult;
 
+import edu.wpi.first.math.MathSharedStore;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
@@ -49,7 +51,7 @@ public class PoseEstimationSubsystem extends SubsystemBase {
 	 * The standard deviations of model states (smaller values will cause the Kalman
 	 * filter to more trust the estimates).
 	 */
-	private static final Vector<N3> stateStdDevs = VecBuilder.fill(0.05, 0.05, Units.degreesToRadians(5));
+	private static final Vector<N3> stateStdDevs = VecBuilder.fill(0.1, 0.1, Units.degreesToRadians(5));
 
 	/**
 	 * The standard deviations of the vision measurements (smaller values will cause
@@ -77,6 +79,17 @@ public class PoseEstimationSubsystem extends SubsystemBase {
 	private final StructPublisher<Pose2d> m_estimatedPosePublisher;
 
 	/**
+	 * The {@code StructPublisher} for reporting the {@code Pose2d} of the closest
+	 * {@code AprilTag}.
+	 */
+	private final StructPublisher<Pose2d> m_closestPosePublisher;
+
+	/**
+	 * The timestamp of the most recent detected {@code Pose2d}.
+	 */
+	private Double m_mostRecentTimestamp = null;
+
+	/**
 	 * Constructs a {@code PoseEstimationSubsystem}.
 	 * 
 	 * @param driveSubsystem {@code DriveSubsystem} to be used by the
@@ -96,6 +109,9 @@ public class PoseEstimationSubsystem extends SubsystemBase {
 				.publish();
 		m_estimatedPosePublisher = NetworkTableInstance.getDefault()
 				.getStructTopic("/SmartDashboard/Pose@PoseEstimationSubsystem", Pose2d.struct)
+				.publish();
+		m_closestPosePublisher = NetworkTableInstance.getDefault()
+				.getStructTopic("/SmartDashboard/Closest AprilTag Pose (within 3m)", Pose2d.struct)
 				.publish();
 	}
 
@@ -120,13 +136,13 @@ public class PoseEstimationSubsystem extends SubsystemBase {
 	 */
 	@Override
 	public void periodic() {
-		boolean first = true;
+		boolean firstCamera = true;
 		for (var e : m_cameras.entrySet()) {
 			var camera = e.getKey();
 			var poseEstimator = e.getValue();
-			for (var r : camera.getAllUnreadResults()) { // for every result r
-				var t = r.getBestTarget();
-				if (t != null && t.poseAmbiguity < 0.15 && (first || r.getTargets().size() > 1)) {
+			for (var r : camera.getAllUnreadResults()) // for every result r
+				if (useful(r, 0.2, 2.5, firstCamera)) {
+					m_mostRecentTimestamp = r.getTimestampSeconds();
 					Optional<EstimatedRobotPose> p = poseEstimator.update(r);
 					if (p.isPresent()) { // if successful
 						EstimatedRobotPose v = p.get(); // get successfully estimated pose
@@ -134,13 +150,41 @@ public class PoseEstimationSubsystem extends SubsystemBase {
 						m_detectedPosePublisher.set(v.estimatedPose.toPose2d());
 					}
 				}
-			}
-			first = false;
+			firstCamera = false;
 		}
 		m_poseEstimator.update(m_driveSubsystem.getHeading(), m_driveSubsystem.getModulePositions());
 		m_estimatedPosePublisher.set(m_poseEstimator.getEstimatedPosition());
 		var closest = closestTagID(getEstimatedPose(), 180, 3);
-		SmartDashboard.putString("Closest AprilTag (within 3m)", closest == null ? "" : ("" + closest));
+		SmartDashboard.putString("Closest AprilTag ID (within 3m)", closest == null ? "" : ("" + closest));
+		m_closestPosePublisher.set(closest == null ? null : kFieldLayout.getTagPose(closest).get().toPose2d());
+		SmartDashboard.putNumber(
+				"Pose Estimation Confidence",
+				m_mostRecentTimestamp == null ? 0 : 3 / (MathSharedStore.getTimestamp() - m_mostRecentTimestamp + 3));
+	}
+
+	/**
+	 * Determines whether or not the specified {@code PhotonPipelineResult} should
+	 * be incorporated into pose estimation.
+	 * 
+	 * @param r a {@code PhotonPipelineResult}
+	 * @param poseAmbiguityThreshold the maximum pose ambiguity that is considered
+	 *        acceptable
+	 * @param distanceThreshold the maximum distance to any detectd pose that is
+	 *        considered acceptable
+	 * @param firstCamera a value indicating whether or not the
+	 *        {@code PhotonPipelineResult} is the first camera
+	 * @return {@code true} if {@code PhotonPipelineResult} should be incorporated
+	 *         into pose estimation; {@code false} otherwise
+	 */
+	private boolean useful(PhotonPipelineResult r, double poseAmbiguityThreshold, double distanceThreshold,
+			boolean firstCamera) {
+		if ((!r.hasTargets()) || (!firstCamera && r.getTargets().size() <= 1))
+			return false;
+		for (var t : r.getTargets())
+			if (t.poseAmbiguity > poseAmbiguityThreshold
+					|| t.getBestCameraToTarget().getTranslation().getNorm() > distanceThreshold)
+				return false;
+		return true;
 	}
 
 	/**
