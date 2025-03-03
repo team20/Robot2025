@@ -5,8 +5,9 @@
 package frc.robot;
 
 import static edu.wpi.first.wpilibj2.command.Commands.*;
-import static frc.robot.Constants.*;
+import static frc.robot.CommandComposer.*;
 import static frc.robot.Constants.AlgaeConstants.*;
+import static frc.robot.Constants.AutoAlignConstants.*;
 import static frc.robot.Constants.ClimberConstants.*;
 import static frc.robot.Constants.ControllerConstants.*;
 import static frc.robot.Constants.DriveConstants.*;
@@ -273,11 +274,18 @@ public class Robot extends TimedRobot {
 
 		m_driverController.options().onTrue(m_driveSubsystem.resetHeading());
 
+		// m_driverController.square()
+		// .whileTrue(
+		// score(toClosestTag(kRobotToTagsLeft), 2));
+		// m_driverController.cross()
+		// .whileTrue(
+		// score(toClosestTag(kRobotToTagsRight), 2));
 		m_driverController.square()
 				.whileTrue(
-						CommandComposer.scoreLevelTwo(CommandComposer.toClosestTag(kRobotToTagsLeft)));
+						toClosestTag(kRobotToTagsLeft));
 		m_driverController.cross()
-				.whileTrue(CommandComposer.scoreLevelTwo(CommandComposer.toClosestTag(kRobotToTagsRight)));
+				.whileTrue(
+						toClosestTag(kRobotToTagsRight));
 
 		// m_operatorController.povLeft().whileTrue(
 		// CommandComposer.driveWithLeftAlignment(

@@ -2,7 +2,7 @@ package frc.robot;
 
 import static edu.wpi.first.math.util.Units.*;
 import static edu.wpi.first.wpilibj2.command.Commands.*;
-import static frc.robot.Constants.*;
+import static frc.robot.Constants.AutoAlignConstants.*;
 import static frc.robot.Constants.ElevatorConstants.*;
 import static frc.robot.Constants.WristConstants.*;
 import static frc.robot.subsystems.PoseEstimationSubsystem.*;
@@ -47,7 +47,8 @@ public class CommandComposer {
 			CheeseStickSubsystem cheeseStickSubsystem,
 			ClimberSubsystem climberSubsystem,
 			ElevatorSubsystem elevatorSubsystem,
-			WristSubsystem wristSubsystem, PoseEstimationSubsystem poseEstimationSubsystem) {
+			WristSubsystem wristSubsystem, 
+			PoseEstimationSubsystem poseEstimationSubsystem) {
 		m_driveSubsystem = driveSubsystem;
 		m_algaeGrabberSubsystem = algaeGrabberSubsystem;
 		m_cheeseStickSubsystem = cheeseStickSubsystem;
@@ -94,48 +95,58 @@ public class CommandComposer {
 
 	private static Command get3Score(Command align1, int pickupTagID, Command align2, Command align3) {
 		return sequence(
-				scoreLevelFour(align1),
-				pickup(pickupTagID),
-				scoreLevelFour(align2),
-				pickup(pickupTagID),
-				scoreLevelFour(align3));
+				score(align1, 4),
+				toStation(pickupTagID),
+				score(align2, 4, pickup()),
+				toStation(pickupTagID),
+				score(align3, 4, pickup()));
 	}
 
-	public static Command scoreLevelFour(Command align) {
-		return scoreWithAlignment(kLevelFourHeight, kGrabberAngleLevelFour, align);
+	public static Command score(Command align, int level) {
+		return score(align, level, runOnce(() -> {
+		}));
 	}
 
-	public static Command scoreLevelThree(Command align) {
-		return scoreWithAlignment(kLevelThreeHeight, kGrabberAngleOthers, align);
+	public static Command score(Command align, int level, Command pickup) {
+		switch (level) {
+			case 4:
+				return scoreWithAlignment(kLevelFourHeight, kGrabberAngleLevelFour, align, pickup);
+			case 3:
+				return scoreWithAlignment(kLevelThreeHeight, kGrabberAngleOthers, align, pickup);
+			case 2:
+				return scoreWithAlignment(kLevelTwoHeight, kGrabberAngleOthers, align, pickup);
+			case 1:
+				return scoreWithAlignment(kLevelOneHeight, kGrabberAngleOthers, align, pickup);
+		}
+		return runOnce(() -> {
+		});
 	}
 
-	public static Command scoreLevelTwo(Command align) {
-		return scoreWithAlignment(kLevelTwoHeight, kGrabberAngleOthers, align);
-	}
-
-	private static Command scoreWithAlignment(double level, double angle, Command align) {
+	private static Command scoreWithAlignment(double level, double angle, Command align, Command pickup) {
 		return sequence(
 				parallel(
-						m_elevatorSubsystem.goToLevel(() -> level),
-						sequence(new WaitCommand(.5), m_wristSubsystem.goToAngle(angle)),
+						sequence(
+								pickup,
+								parallel(
+										m_elevatorSubsystem.goToLevel(() -> level),
+										sequence(new WaitCommand(.5), m_wristSubsystem.goToAngle(angle)))),
 						align),
 				m_elevatorSubsystem.lowerToScore(),
 				m_cheeseStickSubsystem.release(),
 				new WaitCommand(0.1));
-		// m_elevatorSubsystem.goToLevel(level + 0.1),
-		// parallel(
-		// m_cheeseStickSubsystem.grab(),
-		// m_elevatorSubsystem.goToBaseHeight(),
-		// moveStraight(-.5, 0.32, 32)),
-		// )
 	}
 
-	private static Command pickup(int tagID) {
+	private static Command toStation(int tagID) {
 		return sequence(
 				parallel(
-						m_wristSubsystem.goToAngle(270), toTag(tagID, kRobotToTags),
-						m_elevatorSubsystem.goToCoralStationHeight()),
-				m_elevatorSubsystem.lowerToScore(),
+						m_wristSubsystem.goToAngle(270),
+						toTag(tagID, kRobotToTags),
+						m_elevatorSubsystem.goToCoralStationHeight()));
+	}
+
+	private static Command pickup() {
+		return sequence(
+				m_elevatorSubsystem.lower(0.2),
 				m_cheeseStickSubsystem.grab(), new WaitCommand(0.1));
 	}
 

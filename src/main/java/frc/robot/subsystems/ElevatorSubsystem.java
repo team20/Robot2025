@@ -300,6 +300,10 @@ public class ElevatorSubsystem extends SubsystemBase {
 		return goToLevel(() -> getPosition() - kToScoreHeightDecrease).withName("Lower Elevator to Score");
 	}
 
+	public Command lower(double difference) {
+		return goToLevel(() -> getPosition() - difference).withName("Lower Elevator");
+	}
+
 	/**
 	 * Creates a command to run a SysId quasistatic test.
 	 * 

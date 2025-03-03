@@ -1,6 +1,6 @@
 package frc.robot.subsystems;
 
-import static frc.robot.Constants.*;
+import static frc.robot.Constants.AutoAlignConstants.*;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

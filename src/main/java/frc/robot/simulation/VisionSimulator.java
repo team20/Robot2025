@@ -1,6 +1,6 @@
 package frc.robot.simulation;
 
-import static frc.robot.Constants.*;
+import static frc.robot.Constants.AutoAlignConstants.*;
 
 import java.util.Optional;
 import java.util.Random;

@@ -129,10 +129,10 @@ public class Constants {
 			kDriveConfig.OpenLoopRamps.VoltageOpenLoopRampPeriod = kRampRate;
 		}
 
-		public static final double kTeleopDriveMaxSpeed = 5.0; // 5 meters per second
+		public static final double kTeleopDriveMaxSpeed = 8.0; // 8 meters per second
 		public static final double kTeleopTurnMaxAngularSpeed = Math.toRadians(360); // 1 rotation per second
 
-		public static final double kDriveMaxSpeed = 5.0; // 5 meters per second
+		public static final double kDriveMaxSpeed = 8.0; // 8 meters per second
 		public static final double kDriveMinSpeed = 0.2; // 0.2 meters per second
 		public static final double kTurnMaxAngularSpeed = Math.toRadians(360); // 1 rotation per second
 		public static final double kTurnMinAngularSpeed = Math.toRadians(0); // 0 degree per second
@@ -141,7 +141,7 @@ public class Constants {
 		public static final double kDriveP = 5;
 		public static final double kDriveI = 0;
 		public static final double kDriveD = 0;
-		public static final double kDriveMaxAcceleration = 0.75 * kDriveMaxSpeed; // kDriveMaxSpeed in 1.5 sec
+		public static final double kDriveMaxAcceleration = 2 * kDriveMaxSpeed; // kDriveMaxSpeed in 0.5 sec
 
 		public static final double kTurnP = 5;
 		public static final double kTurnI = 0;
@@ -184,11 +184,11 @@ public class Constants {
 		// TODO: During testing make sure these are right
 		public static final double kLevelOneHeight = Units.inchesToMeters(41 - 24);
 		public static final double kLevelTwoHeight = kLevelOneHeight; // same as level 1
-		public static final double kLevelThreeHeight = Units.inchesToMeters(60 - 24);
-		public static final double kLevelFourHeight = Units.inchesToMeters(60 - 24);
+		public static final double kLevelThreeHeight = Units.inchesToMeters(64 - 24);
+		public static final double kLevelFourHeight = Units.inchesToMeters(64 - 24);
 		public static final double kMaxExtension = 1.243 - 0.05; // 1.243 meters is the max, taking off 5 cm for safety
 		// TODO: The amount that the elevator decreases in order to score
-		public static final double kToScoreHeightDecrease = 0.05; // TODO: change
+		public static final double kToScoreHeightDecrease = 0.03; // TODO: change
 		public static final double kCoralStationHeight = Units.inchesToMeters(20); // TODO: Change
 	}
 
@@ -196,8 +196,8 @@ public class Constants {
 		public static final int kWristMotorPort = 27;
 		public static final int kSmartCurrentLimit = 20;
 		public static final int kSecondaryCurrentLimit = 20;
-		public static final int kGrabberAngleLevelFour = 270 - 30; // 55 -> 30
-		public static final int kGrabberAngleOthers = 270 - 30; // 35 -> 30
+		public static final int kGrabberAngleLevelFour = 270 - 35; // 55 -> 30
+		public static final int kGrabberAngleOthers = 270 - 35; // 35 -> 30
 		public static final double kWristForwardSoftLimit = 270; // Wrist facing down
 		public static final double kWristReverseSoftLimit = 90; // Wrist facing up
 		public static final double kWristOffset = 0.104;
@@ -210,44 +210,46 @@ public class Constants {
 		public static final double kTolerance = 1; // TODO: Change this
 	}
 
-	/**
-	 * The {@code AprilTagFieldLayout}.
-	 */
-	public static AprilTagFieldLayout kFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
+	public static final class AutoAlignConstants {
+		/**
+		 * The {@code AprilTagFieldLayout}.
+		 */
+		public static AprilTagFieldLayout kFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
 
-	/**
-	 * The {@code Transform3d} expressing the pose of the first camera relative to
-	 * the pose of the robot.
-	 */
-	public static Transform3d kRobotToCamera1 = new Transform3d(new Translation3d(0.3, 0.0, 0.2),
-			new Rotation3d(0, Units.degreesToRadians(-10), 0));
+		/**
+		 * The {@code Transform3d} expressing the pose of the first camera relative to
+		 * the pose of the robot.
+		 */
+		public static Transform3d kRobotToCamera1 = new Transform3d(new Translation3d(0.3, 0.0, 0.2),
+				new Rotation3d(0, Units.degreesToRadians(-10), 0));
 
-	/**
-	 * The {@code Transform3d} expressing the pose of the second camera relative to
-	 * the pose of the robot.
-	 */
-	public static Transform3d kRobotToCamera2 = new Transform3d(new Translation3d(-0.5, -0.0, 0.2),
-			new Rotation3d(0, Units.degreesToRadians(-20), Units.degreesToRadians(180)));
+		/**
+		 * The {@code Transform3d} expressing the pose of the second camera relative to
+		 * the pose of the robot.
+		 */
+		public static Transform3d kRobotToCamera2 = new Transform3d(new Translation3d(-0.5, -0.0, 0.2),
+				new Rotation3d(0, Units.degreesToRadians(-20), Units.degreesToRadians(180)));
 
-	/**
-	 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
-	 * {@code AprilTag} to align the robot to that {@code AprilTag}.
-	 */
-	static Transform2d[] kRobotToTags = { transform(1.0, 0.0, 180),
-			transform(0.5, 0.0, 180) };
+		/**
+		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
+		 * {@code AprilTag} to align the robot to that {@code AprilTag}.
+		 */
+		static Transform2d[] kRobotToTags = { transform(1.0, 0.0, 180),
+				transform(0.5, 0.0, 180) };
 
-	/**
-	 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
-	 * {@code AprilTag} to align the robot to the left of that {@code AprilTag}.
-	 */
-	static Transform2d[] kRobotToTagsLeft = { transform(1.0, -0.165, 180),
-			transform(0.5, -0.165, 180) };
+		/**
+		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
+		 * {@code AprilTag} to align the robot to the left of that {@code AprilTag}.
+		 */
+		static Transform2d[] kRobotToTagsLeft = { transform(1.0, -0.165, 180),
+				transform(0.5, -0.165, 180) };
 
-	/**
-	 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
-	 * {@code AprilTag} to align the robot to the right of that {@code AprilTag}.
-	 */
-	static Transform2d[] kRobotToTagsRight = { transform(1.0, 0.165, 180),
-			transform(0.5, 0.165, 180) };
+		/**
+		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
+		 * {@code AprilTag} to align the robot to the right of that {@code AprilTag}.
+		 */
+		static Transform2d[] kRobotToTagsRight = { transform(1.0, 0.165, 180),
+				transform(0.5, 0.165, 180) };
+	}
 
 }

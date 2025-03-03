@@ -1,24 +1,25 @@
 {
   "hubs": [
     {
-      "x": 31,
-      "y": 39,
-      "width": 1161,
-      "height": 698,
+      "x": 155,
+      "y": 37,
+      "width": 1305,
+      "height": 791,
       "state": {
         "sidebar": {
           "width": 300,
           "expanded": [
             "/SmartDashboard/Pose@DriveSubsystem/translation",
             "/SmartDashboard",
-            "/SmartDashboard/Elevator",
             "/URCL",
             "/URCL/Raw",
-            "/SmartDashboard/Wrist"
+            "/SmartDashboard/Wrist",
+            "/SmartDashboard/Closest AprilTag Pose (within 3m)",
+            "/SmartDashboard/Pose"
           ]
         },
         "tabs": {
-          "selected": 7,
+          "selected": 8,
           "tabs": [
             {
               "type": 0,
@@ -39,6 +40,16 @@
                     "logType": "Pose2d",
                     "visible": true,
                     "options": {}
+                  },
+                  {
+                    "type": "vision",
+                    "logKey": "NT:/SmartDashboard/Closest AprilTag Pose (within 3m)",
+                    "logType": "Pose2d",
+                    "visible": true,
+                    "options": {
+                      "color": "#00ff00",
+                      "size": "bold"
+                    }
                   },
                   {
                     "type": "arrow",
@@ -67,7 +78,7 @@
               },
               "controllerUUID": "lwtc9jfruq2jltv0r87wpt9qfroe1ee1",
               "renderer": null,
-              "controlsHeight": 200
+              "controlsHeight": 260
             },
             {
               "type": 9,
@@ -180,7 +191,7 @@
             },
             {
               "type": 1,
-              "title": "Line Graph",
+              "title": "Current/Voltage",
               "controller": {
                 "leftSources": [
                   {
@@ -226,7 +237,7 @@
             },
             {
               "type": 1,
-              "title": "Line Graph",
+              "title": "Elevator",
               "controller": {
                 "leftSources": [],
                 "rightSources": [
@@ -271,7 +282,7 @@
             },
             {
               "type": 1,
-              "title": "Line Graph",
+              "title": "Wrist",
               "controller": {
                 "leftSources": [],
                 "rightSources": [
@@ -311,6 +322,41 @@
                 "rightFilter": 0
               },
               "controllerUUID": "3wy5jwomwx05hm6fagjtd5s5po1ajhii",
+              "renderer": null,
+              "controlsHeight": 200
+            },
+            {
+              "type": 1,
+              "title": "Confidence",
+              "controller": {
+                "leftSources": [
+                  {
+                    "type": "stepped",
+                    "logKey": "NT:/SmartDashboard/Pose Estimation Confidence",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#2b66a2",
+                      "size": "normal"
+                    }
+                  }
+                ],
+                "rightSources": [],
+                "discreteSources": [],
+                "leftLockedRange": null,
+                "rightLockedRange": null,
+                "leftUnitConversion": {
+                  "type": null,
+                  "factor": 1
+                },
+                "rightUnitConversion": {
+                  "type": null,
+                  "factor": 1
+                },
+                "leftFilter": 0,
+                "rightFilter": 0
+              },
+              "controllerUUID": "wvdwk5xc4mx1qhcvs9cvxyic6zx522vo",
               "renderer": null,
               "controlsHeight": 200
             }
