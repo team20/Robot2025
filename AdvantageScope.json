@@ -14,12 +14,11 @@
             "/URCL",
             "/URCL/Raw",
             "/SmartDashboard/Wrist",
-            "/SmartDashboard/Closest AprilTag Pose (within 3m)",
-            "/SmartDashboard/Pose"
+            "/SmartDashboard/Closest AprilTag Pose (within 3m)"
           ]
         },
         "tabs": {
-          "selected": 8,
+          "selected": 1,
           "tabs": [
             {
               "type": 0,
@@ -253,11 +252,11 @@
                   },
                   {
                     "type": "stepped",
-                    "logKey": "NT:/SmartDashboard/Elevator/Position",
+                    "logKey": "NT:/SmartDashboard/Elevator/Extension",
                     "logType": "Number",
                     "visible": true,
                     "options": {
-                      "color": "#e5b31b",
+                      "color": "#af2437",
                       "size": "normal"
                     }
                   }
@@ -298,7 +297,7 @@
                   },
                   {
                     "type": "stepped",
-                    "logKey": "NT:/SmartDashboard/Wrist/Angle",
+                    "logKey": "NT:/SmartDashboard/Wrist/Current Angle",
                     "logType": "Number",
                     "visible": true,
                     "options": {
