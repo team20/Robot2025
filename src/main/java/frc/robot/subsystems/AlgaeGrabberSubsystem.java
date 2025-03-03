@@ -31,6 +31,8 @@ public class AlgaeGrabberSubsystem extends SubsystemBase {
 			.getClosedLoopController();
 	private final Debouncer m_debouncerCurrentLimitStop = new Debouncer(kTimeOverCurrentToStop);
 
+	private boolean m_keepArmUp = true;
+
 	public AlgaeGrabberSubsystem() {
 		SparkMaxConfig config = new SparkMaxConfig();
 		config.inverted(kFlywheelInvert).idleMode(IdleMode.kBrake);
@@ -44,6 +46,7 @@ public class AlgaeGrabberSubsystem extends SubsystemBase {
 		config.closedLoop
 				.feedbackSensor(FeedbackSensor.kAbsoluteEncoder)
 				.pid(kP, kI, kD);
+		config.absoluteEncoder.zeroOffset(0.383);
 		// config.softLimit.forwardSoftLimit(kAlgaePivotForwardSoftLimit).forwardSoftLimitEnabled(true);
 		// config.softLimit.reverseSoftLimit(kAlgaePivotReverseSoftLimit).reverseSoftLimitEnabled(true);
 		m_grabberAngleMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
@@ -54,6 +57,32 @@ public class AlgaeGrabberSubsystem extends SubsystemBase {
 
 	@Override
 	public void periodic() {
+		if (m_keepArmUp) {
+			m_grabberClosedLoopController.setReference(0.25, ControlType.kPosition);
+		}
+	}
+
+	/**
+	 * sets the boolean that controls wheather to keep the arm up with periodic()
+	 * 
+	 * @param newBool the new state of m_keepArmUp
+	 */
+	public void setKeepArmUp(boolean newBool) {
+		m_keepArmUp = newBool;
+	}
+
+	/**
+	 * checks the current draw on the flywheel motor and will check if it's lower or
+	 * higher than kCurrentToStop using a debouncer
+	 *
+	 * @return (boolean) true -> if the current draw is higher or equal than
+	 *         kCurrentToStop
+	 *         <p>
+	 *         (boolean) false -> otherwise
+	 */
+	public boolean checkCurrentOnFlywheel() {
+		return m_debouncerCurrentLimitStop
+				.calculate(m_flywheel.getOutputCurrent() >= kSmartCurrentLimit);
 	}
 
 	/**
@@ -76,26 +105,13 @@ public class AlgaeGrabberSubsystem extends SubsystemBase {
 	}
 
 	/**
-	 * checks the current draw on the flywheel motor and will check if it's lower or
-	 * higher than kCurrentToStop using a debouncer
-	 *
-	 * @return (boolean) true -> if the current draw is higher or equal than
-	 *         kCurrentToStop
-	 *         <p>
-	 *         (boolean) false -> otherwise
-	 */
-	public boolean checkCurrentOnFlywheel() {
-		return m_debouncerCurrentLimitStop
-				.calculate(m_flywheel.getOutputCurrent() >= kSmartCurrentLimit);
-	}
-
-	/**
 	 * Creates a command to grab algae.
 	 * 
 	 * @return The command.
 	 */
 	public Command grabAlgaeAndHold() {
 		return run(() -> {
+			setKeepArmUp(false);
 			m_grabberClosedLoopController.setReference(kDeployGrabberPosition, ControlType.kPosition);
 			m_flywheel.set(kFlywheelSpeed);
 		}).until(this::checkCurrentOnFlywheel).finallyDo(() -> {
@@ -121,11 +137,24 @@ public class AlgaeGrabberSubsystem extends SubsystemBase {
 	 */
 	public Command releaseAlgae() {
 		return run(() -> {
-			m_grabberClosedLoopController.setReference(0, ControlType.kPosition);
+			setKeepArmUp(true);
+			// m_grabberClosedLoopController.setReference(.25, ControlType.kPosition);
 			m_flywheel.set(-kFlywheelSpeed);
 		}).withTimeout(1).finallyDo(() -> {
 			m_flywheel.set(0);
 			m_grabberAngleMotor.set(0);
+		});
+	}
+
+	public Command reversePivot() {
+		return run(() -> {
+			m_grabberClosedLoopController.setReference(.25, ControlType.kPosition);
+		});
+	}
+
+	public Command forwardPivot() {
+		return run(() -> {
+			m_grabberClosedLoopController.setReference(.75, ControlType.kPosition);
 		});
 	}
 }

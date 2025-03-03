@@ -11,10 +11,12 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -47,8 +49,7 @@ public class CommandComposer {
 			CheeseStickSubsystem cheeseStickSubsystem,
 			ClimberSubsystem climberSubsystem,
 			ElevatorSubsystem elevatorSubsystem,
-			WristSubsystem wristSubsystem, 
-			PoseEstimationSubsystem poseEstimationSubsystem) {
+			WristSubsystem wristSubsystem, PoseEstimationSubsystem poseEstimationSubsystem) {
 		m_driveSubsystem = driveSubsystem;
 		m_algaeGrabberSubsystem = algaeGrabberSubsystem;
 		m_cheeseStickSubsystem = cheeseStickSubsystem;
@@ -150,7 +151,46 @@ public class CommandComposer {
 				m_cheeseStickSubsystem.grab(), new WaitCommand(0.1));
 	}
 
-	private static Command scoreLevel(Supplier<Command> levelCommand) {
+	private static Command scoreLevelInTeleop(double level, double clearanceHeight, Supplier<Command> levelCommand,
+			double wristAngle) {
+		return sequence(
+				m_elevatorSubsystem.goToClearanceHeight(level, clearanceHeight),
+				m_wristSubsystem.goToAngle(wristAngle),
+				levelCommand.get());
+	}
+
+	public static Command scoreLevelOneInTeleop() {
+		return scoreLevelInTeleop(kLevelOneHeight, 4.25, m_elevatorSubsystem::goToLevelOneHeight, kGrabberAngleOthers);
+	}
+
+	public static Command scoreLevelTwoInTeleop() {
+		return scoreLevelInTeleop(kLevelTwoHeight, 4, m_elevatorSubsystem::goToLevelTwoHeight, kGrabberAngleOthers);
+	}
+
+	public static Command removeAlgaeLevelThree() {
+		return sequence(
+				m_elevatorSubsystem.goToLevelTwoHeight(),
+				m_wristSubsystem.goToAngle(kAlgaeWristHeight),
+				m_elevatorSubsystem.goToAlgaeThreeHeight());
+	}
+
+	public static Command removeAlgaeLevelTwo() {
+		return sequence(
+				m_elevatorSubsystem.goToCoralStationHeight(),
+				m_wristSubsystem.goToAngle(kAlgaeWristHeight),
+				m_elevatorSubsystem.goToAlgaeTwoHeight());
+	}
+
+	public static Command releaseFlickAndDriveBack() {
+		return sequence(
+				m_cheeseStickSubsystem.release(),
+				parallel(
+						m_wristSubsystem.goToAngle(kGrabberAngleLevelFour - 20),
+						moveStraight(-0.3, 0.01, 1),
+						m_cheeseStickSubsystem.grab()));
+	}
+
+	private static Command scoreLevelInAuto(Supplier<Command> levelCommand) {
 		return sequence(
 				levelCommand.get(),
 				m_wristSubsystem.goToAngle(35),
@@ -162,26 +202,32 @@ public class CommandComposer {
 				m_wristSubsystem.goToAngle(-90));
 	}
 
-	public static Command scoreLevelFour() {
-		return scoreLevel(m_elevatorSubsystem::goToLevelFourHeight);
+	public static Command scoreLevelFourInAuto() {
+		return scoreLevelInAuto(m_elevatorSubsystem::goToLevelFourHeight);
 	}
 
-	public static Command scoreLevelThree() {
-		return scoreLevel(m_elevatorSubsystem::goToLevelThreeHeight);
+	public static Command scoreLevelThreeInAuto() {
+		return scoreLevelInAuto(m_elevatorSubsystem::goToLevelThreeHeight);
 	}
 
-	public static Command scoreLevelTwo() {
-		return scoreLevel(m_elevatorSubsystem::goToLevelTwoHeight);
+	public static Command scoreLevelTwoInAuto() {
+		return scoreLevelInAuto(m_elevatorSubsystem::goToLevelTwoHeight);
 	}
 
-	public static Command scoreLevelOne() {
-		return scoreLevel(m_elevatorSubsystem::goToLevelOneHeight);
+	public static Command scoreLevelOneInAuto() {
+		return scoreLevelInAuto(m_elevatorSubsystem::goToLevelOneHeight);
 	}
 
 	public static Command prepareForCoralPickup() {
 		return sequence(
 				m_elevatorSubsystem.goToCoralStationHeight(),
-				m_wristSubsystem.goToAngle(-90));
+				m_wristSubsystem.goToAngle(270));
+	}
+
+	public static Command goToBase() {
+		return sequence(
+				m_wristSubsystem.goToAngle(270),
+				m_elevatorSubsystem.goToBaseHeight());
 	}
 
 	public static Command pickupAtCoralStation() {
@@ -189,6 +235,125 @@ public class CommandComposer {
 				m_cheeseStickSubsystem.release(),
 				m_elevatorSubsystem.goToCoralStationHeight(),
 				m_cheeseStickSubsystem.grab());
+	}
+
+	public static Command testAbsoluteOrientation(double duration) {
+		DoubleSupplier z = () -> 0;
+		BooleanSupplier f = () -> false;
+		return sequence(
+				m_driveSubsystem.driveCommand(z, z, z, () -> 1, f).withTimeout(duration), // 90 degrees
+				m_driveSubsystem.driveCommand(z, z, () -> -1, z, f).withTimeout(duration), // 180 degrees
+				m_driveSubsystem.driveCommand(z, z, z, () -> -1, f).withTimeout(duration), // 270 degrees
+				m_driveSubsystem.driveCommand(z, z, () -> 1, () -> 1, f).withTimeout(duration), // 45 degrees
+				m_driveSubsystem.driveCommand(z, z, () -> 1, z, f).withTimeout(duration)); // 0 degrees
+	}
+
+	/**
+	 * Returns a {@code Command} for moving forward and then backward.
+	 * 
+	 * @param distanceInFeet the distance in feet
+	 * @param distanceTolerance the distance error in meters which is tolerable
+	 * @param angleTolerance the angle error in degrees which is tolerable
+	 * 
+	 * @return a {@code Command} for moving forward and then backward.
+	 */
+	public static Command moveForwardBackward(double distanceInFeet, double distanceTolerance,
+			double angleTolerance) {
+		return sequence(
+				m_driveSubsystem.resetOdometry(Pose2d.kZero),
+				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance, Pose2d.kZero),
+				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance,
+						new Pose2d(feetToMeters(distanceInFeet), 0, Rotation2d.kZero)),
+				Commands.waitSeconds(2),
+				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance, Pose2d.kZero),
+				Commands.waitSeconds(1),
+				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance, Pose2d.kZero));
+	}
+
+	/**
+	 * Constructs a new {@code DriveCommand} whose purpose is to move
+	 * the robot forward or backward.
+	 * 
+	 * @param driveSubsystem the {@code DriveSubsystem} to use
+	 * @param displacement the displacement (positive: forward, negative: backward)
+	 *        of the movement
+	 * @param distanceTolerance the distance error in meters which is tolerable
+	 * @param angleToleranceInDegrees the angle error in degrees which is tolerable
+	 */
+	public static Command moveStraight(double displacement, double distanceTolerance,
+			double angleToleranceInDegrees) {
+		return new DriveCommand(m_driveSubsystem, distanceTolerance, angleToleranceInDegrees, () -> {
+			return m_driveSubsystem.getPose().plus(new Transform2d(displacement, 0, Rotation2d.kZero));
+		});
+	}
+
+	/**
+	 * Returns a {@code Command} for moving the robot on a square.
+	 * 
+	 * @param sideLength the side length of the square in meters
+	 * @param distanceTolerance the distance error in meters which is tolerable
+	 * @param angleTolerance the angle error in degrees which is tolerable
+	 * @param timeout the maximum amount of the time given to the {@code Command}
+	 * 
+	 * @return a {@code Command} for moving the robot on a circle
+	 */
+	public static Command moveOnSquare(double sideLength, double distanceTolerance,
+			double angleTolerance, double timeout) {
+		return sequence(
+				m_driveSubsystem.resetOdometry(Pose2d.kZero),
+				new DriveCommand(m_driveSubsystem,
+						distanceTolerance, angleTolerance, Pose2d.kZero),
+				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance,
+						new Pose2d(sideLength, 0, Rotation2d.kCCW_90deg)),
+				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance,
+						new Pose2d(sideLength, sideLength, Rotation2d.k180deg)),
+				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance,
+						new Pose2d(0.0, sideLength, Rotation2d.kCW_90deg)),
+				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance, Pose2d.kZero),
+				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance, Pose2d.kZero));
+	}
+
+	/**
+	 * Returns a {@code Command} for aligning the robot to the specified
+	 * {@code AprilTag}s.
+	 * 
+	 * @param distanceTolerance the distance error in meters which is tolerable
+	 * @param angleTolerance the angle error in degrees which is tolerable
+	 * @param intermediateDistanceTolerance the distance error in meters which is
+	 *        tolerable for intermeidate target {@code Pose2d}s
+	 * @param intermediateAngleToleranceInDegrees the angle error in degrees which
+	 *        is tolerable for intermeidate target {@code Pose2d}s
+	 * @param robotToTagTransforms the {@code Pose2d}s of the {@code AprilTag}
+	 *        relative to the center of the robot when the robit is aligned to the
+	 *        ready and alignment poses
+	 * @param robotToTagBackup the {@code Pose2d} of the {@code AprilTag} relative
+	 *        to the center of the robot when the robit is aligned to the backup
+	 *        pose
+	 * @param tagIDs the IDs of the {@code AprilTag}s
+	 * 
+	 * @return a {@code Command} for aligning the robot to the specified
+	 *         {@code AprilTag}s
+	 */
+	public static Command alignToTags(double distanceTolerance, double angleTolerance,
+			double intermediateDistanceTolerance, double intermediateAngleToleranceInDegrees,
+			List<Transform2d> robotToTagTransforms, Transform2d robotToTagBackup, int... tagIDs) {
+		Pose2d previous = null;
+		var commands = new LinkedList<Command>();
+		for (int tagID : tagIDs) {
+			var tagPose = kFieldLayout.getTagPose(tagID).get().toPose2d();
+			var l = new LinkedList<Pose2d>();
+			if (previous != null)
+				l.add(previous);
+			for (var r : robotToTagTransforms)
+				l.add(tagPose.plus(r));
+			previous = tagPose.plus(robotToTagBackup);
+			var command = new PathDriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance,
+					intermediateDistanceTolerance, intermediateAngleToleranceInDegrees, l.stream()
+							.map(p -> (Supplier<Pose2d>) (() -> m_poseEstimationSubsystem.odometryCentricPose(p)))
+							.toList());
+			commands.add(command.andThen(new WaitCommand(.5)));
+		}
+		return sequence(commands.toArray(new Command[0]));
 	}
 
 	/**
@@ -354,110 +519,6 @@ public class CommandComposer {
 			}
 
 		};
-	}
-
-	/**
-	 * Returns a {@code Command} for moving forward and then backward.
-	 * 
-	 * @param distanceInFeet the distance in feet
-	 * @param distanceTolerance the distance error in meters which is tolerable
-	 * @param angleTolerance the angle error in degrees which is tolerable
-	 * 
-	 * @return a {@code Command} for moving forward and then backward.
-	 */
-	public static Command moveForwardBackward(double distanceInFeet, double distanceTolerance,
-			double angleTolerance) {
-		return sequence(
-				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance, pose(0.0, 0, 0)),
-				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance,
-						pose(feetToMeters(distanceInFeet), 0, 0)),
-				Commands.waitSeconds(2),
-				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance, pose(0.0, 0, 0)),
-				Commands.waitSeconds(1),
-				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance, pose(0.0, 0, 0)));
-	}
-
-	/**
-	 * Constructs a new {@code DriveCommand} whose purpose is to move
-	 * the robot forward or backward.
-	 * 
-	 * @param driveSubsystem the {@code DriveSubsystem} to use
-	 * @param displacement the displacement (positive: forward, negative: backward)
-	 *        of the movement
-	 * @param distanceTolerance the distance error in meters which is tolerable
-	 * @param angleToleranceInDegrees the angle error in degrees which is tolerable
-	 */
-	public static Command moveStraight(double displacement, double distanceTolerance,
-			double angleToleranceInDegrees) {
-		return new DriveCommand(m_driveSubsystem, distanceTolerance, angleToleranceInDegrees, () -> {
-			return m_driveSubsystem.getPose().plus(transform(displacement, 0, 0));
-		});
-	}
-
-	/**
-	 * Returns a {@code Command} for moving the robot on a square.
-	 * 
-	 * @param sideLength the side length of the square in meters
-	 * @param distanceTolerance the distance error in meters which is tolerable
-	 * @param angleTolerance the angle error in degrees which is tolerable
-	 * @param timeout the maximum amount of the time given to the {@code Command}
-	 * 
-	 * @return a {@code Command} for moving the robot on a circle
-	 */
-	public static Command moveOnSquare(double sideLength, double distanceTolerance,
-			double angleTolerance, double timeout) {
-		return sequence(
-				new DriveCommand(m_driveSubsystem,
-						distanceTolerance, angleTolerance, pose(0.0, 0, 0)),
-				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance, pose(sideLength, 0, 90)),
-				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance,
-						pose(sideLength, sideLength, 180)),
-				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance, pose(0.0, sideLength, 270)),
-				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance, pose(0.0, 0.0, 0)),
-				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance, pose(0.0, 0, 0)));
-	}
-
-	/**
-	 * Returns a {@code Command} for aligning the robot to the specified
-	 * {@code AprilTag}s.
-	 * 
-	 * @param distanceTolerance the distance error in meters which is tolerable
-	 * @param angleTolerance the angle error in degrees which is tolerable
-	 * @param intermediateDistanceTolerance the distance error in meters which is
-	 *        tolerable for intermeidate target {@code Pose2d}s
-	 * @param intermediateAngleToleranceInDegrees the angle error in degrees which
-	 *        is tolerable for intermeidate target {@code Pose2d}s
-	 * @param robotToTagTransforms the {@code Pose2d}s of the {@code AprilTag}
-	 *        relative to the center of the robot when the robit is aligned to the
-	 *        ready and alignment poses
-	 * @param robotToTagBackup the {@code Pose2d} of the {@code AprilTag} relative
-	 *        to the center of the robot when the robit is aligned to the backup
-	 *        pose
-	 * @param tagIDs the IDs of the {@code AprilTag}s
-	 * 
-	 * @return a {@code Command} for aligning the robot to the specified
-	 *         {@code AprilTag}s
-	 */
-	public static Command alignToTags(double distanceTolerance, double angleTolerance,
-			double intermediateDistanceTolerance, double intermediateAngleToleranceInDegrees,
-			List<Transform2d> robotToTagTransforms, Transform2d robotToTagBackup, int... tagIDs) {
-		Pose2d previous = null;
-		var commands = new LinkedList<Command>();
-		for (int tagID : tagIDs) {
-			var tagPose = kFieldLayout.getTagPose(tagID).get().toPose2d();
-			var l = new LinkedList<Pose2d>();
-			if (previous != null)
-				l.add(previous);
-			for (var r : robotToTagTransforms)
-				l.add(tagPose.plus(r));
-			previous = tagPose.plus(robotToTagBackup);
-			var command = new PathDriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance,
-					intermediateDistanceTolerance, intermediateAngleToleranceInDegrees, l.stream()
-							.map(p -> (Supplier<Pose2d>) (() -> m_poseEstimationSubsystem.odometryCentricPose(p)))
-							.toList());
-			commands.add(command.andThen(new WaitCommand(.5)));
-		}
-		return sequence(commands.toArray(new Command[0]));
 	}
 
 }

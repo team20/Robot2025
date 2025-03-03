@@ -17,6 +17,7 @@ import static frc.robot.subsystems.PoseEstimationSubsystem.*;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
@@ -25,26 +26,34 @@ import org.photonvision.PhotonCamera;
 import org.photonvision.simulation.PhotonCameraSim;
 import org.photonvision.simulation.SimCameraProperties;
 
+import com.ctre.phoenix6.SignalLogger;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.net.WebServer;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.PS5Controller;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
+import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.util.Color;
+import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
-import frc.robot.Constants.ControllerConstants;
 import frc.robot.commands.PathDriveCommand;
 import frc.robot.simulation.VisionSimulator;
 import frc.robot.subsystems.AlgaeGrabberSubsystem;
@@ -81,7 +90,7 @@ public class Robot extends TimedRobot {
 			setCalibration(640, 480, Rotation2d.fromDegrees(100));
 			// Approximate detection noise with average and standard deviation error in
 			// pixels.
-			setCalibError(0.1, 0.05);
+			setCalibError(0.35, 0.15);
 			// Set the camera image capture framerate (Note: this is limited by robot loop
 			// rate).
 			setFPS(20);
@@ -93,24 +102,23 @@ public class Robot extends TimedRobot {
 	};
 	private final PhotonCamera m_camera1 = RobotBase.isSimulation()
 			? cameraSim("Camera1", kRobotToCamera1, m_visionSimulator, cameraProp)
-			: new PhotonCamera("Cool camera");
+			: new PhotonCamera("FrontCamera");
 	private final PhotonCamera m_camera2 = RobotBase.isSimulation()
 			? cameraSim("Camera2", kRobotToCamera2, m_visionSimulator, cameraProp)
-			: new PhotonCamera("Cool camera2");
+			: new PhotonCamera("BackCamera");
 	private final PoseEstimationSubsystem m_poseEstimationSubsystem = new PoseEstimationSubsystem(m_driveSubsystem)
 			.addCamera(m_camera1, kRobotToCamera1)
 			.addCamera(m_camera2, kRobotToCamera2);
 
 	public Robot() {
+		SignalLogger.start();
+		WebServer.start(5800, Filesystem.getDeployDirectory().getPath());
 		CommandComposer.setSubsystems(
 				m_driveSubsystem, m_algaeGrabberSubsystem, m_cheeseStickSubsystem, m_climberSubsystem,
 				m_elevatorSubsystem, m_wristSubsystem, m_poseEstimationSubsystem);
-		// var dropChute = new MechanismLigament2d("bottom", Units.inchesToMeters(5), 0,
-		// 5, new Color8Bit(Color.kBeige));
-		// dropChute.append(new MechanismLigament2d("side", Units.inchesToMeters(12),
-		// 90, 5, new Color8Bit(Color.kWhite)));
-		// m_mechanism.getRoot("dropChute", Units.inchesToMeters(28),
-		// Units.inchesToMeters(9)).append(dropChute);
+		var dropChute = new MechanismLigament2d("bottom", Units.inchesToMeters(5), 0, 5, new Color8Bit(Color.kBeige));
+		dropChute.append(new MechanismLigament2d("side", Units.inchesToMeters(12), 90, 5, new Color8Bit(Color.kWhite)));
+		m_mechanism.getRoot("dropChute", Units.inchesToMeters(28), Units.inchesToMeters(9)).append(dropChute);
 		SmartDashboard.putData("Superstructure", m_mechanism);
 		SmartDashboard.putData(m_pdh);
 		SmartDashboard.putData(CommandScheduler.getInstance());
@@ -132,6 +140,12 @@ public class Robot extends TimedRobot {
 		bindAlgaeControls();
 		bindCheeseStickControls();
 		SmartDashboard.putData("Auto Selector", m_autoSelector);
+		bindAlert(
+				new Alert("Driver Joystick Disconnected!", AlertType.kError), () -> !m_driverController.isConnected());
+		bindAlert(
+				new Alert("Operator Joystick Disconnected!", AlertType.kError),
+				() -> !m_operatorController.isConnected());
+		DriverStation.silenceJoystickConnectionWarning(true);
 		SmartDashboard.putData("Testing Chooser", m_testingChooser);
 		m_driverController.options().and(m_driverController.create()).and(() -> !DriverStation.isFMSAttached())
 				.onTrue(Commands.deferredProxy(m_testingChooser::getSelected));
@@ -173,22 +187,14 @@ public class Robot extends TimedRobot {
 				.addOption(
 						"Check DriveSubsystem (F/B/L/R/LR/RR and F/B while rotating)",
 						m_driveSubsystem.testCommand(0.5, Math.toRadians(45), 1.0));
+		m_testingChooser
+				.addOption(
+						"Test Absolute Orientation",
+						testAbsoluteOrientation(2));
 		double distanceTolerance = 0.01;
 		double angleToleranceInDegrees = 1;
 		double intermediateDistanceTolerance = 0.08;
 		double intermediateAngleToleranceInDegrees = 8.0;
-		m_testingChooser
-				.addOption(
-						"Check PID Constants for Driving (5'x5' Square)",
-						CommandComposer
-								.moveOnSquare(Units.feetToMeters(5), distanceTolerance, angleToleranceInDegrees, 16));
-		m_testingChooser
-				.addOption(
-						"Quickly Align to AprilTags 12, 13, 17, 18, and 19",
-						CommandComposer.alignToTags(
-								distanceTolerance, angleToleranceInDegrees, intermediateDistanceTolerance,
-								intermediateAngleToleranceInDegrees, Arrays.asList(kRobotToTags), kRobotToTags[0], 18,
-								17, 12, 17, 18, 19, 13, 19, 18));
 		m_testingChooser
 				.addOption(
 						"Quickly Align AprilTags 17, 18, 19, 20, 21, and 22",
@@ -198,11 +204,23 @@ public class Robot extends TimedRobot {
 								kRobotToTagsLeft[0], 17, 18, 19, 20, 21, 22, 17));
 		m_testingChooser
 				.addOption(
+						"Quickly Align to AprilTags 12, 13, 17, 18, and 19",
+						CommandComposer.alignToTags(
+								distanceTolerance, angleToleranceInDegrees, intermediateDistanceTolerance,
+								intermediateAngleToleranceInDegrees, Arrays.asList(kRobotToTags), kRobotToTags[0], 18,
+								17, 12, 17, 18, 19, 13, 19, 18));
+		m_testingChooser
+				.addOption(
 						"Quickly Align to AprilTags 1, 2, 6, 7, and 8",
 						CommandComposer.alignToTags(
 								distanceTolerance, angleToleranceInDegrees, intermediateDistanceTolerance,
 								intermediateAngleToleranceInDegrees, Arrays.asList(kRobotToTags), kRobotToTags[0], 7, 6,
 								1, 6, 7, 8, 2, 8, 7));
+		m_testingChooser
+				.addOption(
+						"Check PID Constants for Driving (5'x5' Square)",
+						CommandComposer
+								.moveOnSquare(Units.feetToMeters(5), distanceTolerance, angleToleranceInDegrees, 16));
 		m_testingChooser
 				.addOption(
 						"Check kDriveGearRatio and kWheelDiameter (F/B 6 feet)",
@@ -226,9 +244,14 @@ public class Robot extends TimedRobot {
 										.mapToObj(
 												i -> (Supplier<Pose2d>) (() -> {
 													var pose = m_driveSubsystem.getPose();
-													return pose(pose.getX(), pose.getY(), 120 * i);
+													return new Pose2d(pose.getX(), pose.getY(),
+															Rotation2d.fromDegrees(120 * i));
 												}))
 										.toList()));
+	}
+
+	public void bindAlert(Alert alert, BooleanSupplier event) {
+		CommandScheduler.getInstance().getActiveButtonLoop().bind(() -> alert.set(event.getAsBoolean()));
 	}
 
 	public void addProgrammingCommands() {
@@ -272,6 +295,11 @@ public class Robot extends TimedRobot {
 						() -> -m_driverController.getRightX(),
 						m_driverController.getHID()::getSquareButton)); // makes the robot robot-oriented
 
+		/// TODO: button binding needed with the correct button
+		m_driverController.L1().whileTrue(
+				toClosestTag(kRobotToTagsLeft));
+		m_driverController.R1().whileTrue(
+				toClosestTag(kRobotToTagsRight));
 		m_driverController.options().onTrue(m_driveSubsystem.resetHeading());
 
 		// m_driverController.square()
@@ -303,47 +331,59 @@ public class Robot extends TimedRobot {
 
 	public void bindElevatorControls() {
 		RobotModeTriggers.disabled().onTrue(m_elevatorSubsystem.stopMotor());
-		m_operatorController.axisMagnitudeGreaterThan(PS5Controller.Axis.kLeftY.value, ControllerConstants.kDeadzone)
+		m_operatorController.axisMagnitudeGreaterThan(PS5Controller.Axis.kLeftY.value, kDeadzone)
 				.whileTrue(m_elevatorSubsystem.manualMove(() -> -m_operatorController.getLeftY()));
 		m_operatorController.triangle().onTrue(
 				m_elevatorSubsystem.goToLevelFourHeight().andThen(m_wristSubsystem.goToAngle(kGrabberAngleLevelFour)));
 		m_operatorController.square().onTrue(
-				m_elevatorSubsystem.goToLevelThreeHeight().andThen(m_wristSubsystem.goToAngle(kGrabberAngleOthers)));
+				m_elevatorSubsystem.goToLevelThreeHeight()
+						.andThen(m_wristSubsystem.goToAngle(kGrabberAngleLevelThree)));
 		m_operatorController.cross().onTrue(
-				m_elevatorSubsystem.goToLevelTwoHeight().andThen(m_wristSubsystem.goToAngle(kGrabberAngleOthers)));
-		m_operatorController.circle().onTrue(
-				m_elevatorSubsystem.goToLevelOneHeight().andThen(m_wristSubsystem.goToAngle(kGrabberAngleOthers)));
-		// m_operatorController.povLeft().onTrue(m_elevatorSubsystem.goToCoralStationHeight());
-		m_operatorController.L1().and(m_operatorController.circle()).onTrue(m_elevatorSubsystem.goToBaseHeight());
+				m_elevatorSubsystem.goToLevelTwoHeight()
+						.andThen(m_wristSubsystem.goToAngle(kGrabberAngleOthers)));
+		m_operatorController.circle().onTrue(CommandComposer.scoreLevelOneInTeleop());
+		m_operatorController.L1().and(m_operatorController.triangle()).onTrue(CommandComposer.removeAlgaeLevelThree());
+		m_operatorController.L1().and(m_operatorController.square()).onTrue(CommandComposer.removeAlgaeLevelTwo());
+		m_operatorController.L1().and(m_operatorController.circle()).onTrue(CommandComposer.prepareForCoralPickup());
+		m_operatorController.L1().and(m_operatorController.cross()).onTrue(CommandComposer.pickupAtCoralStation());
+		m_driverController.square().onTrue(CommandComposer.pickupAtCoralStation());
+		m_operatorController.touchpad().onTrue(m_elevatorSubsystem.stopMotor());
 		m_operatorController.create().onTrue(m_elevatorSubsystem.resetTheEncoder());
+
+		m_driverController.square().onTrue(CommandComposer.releaseFlickAndDriveBack());
 	}
 
 	public void bindAlgaeControls() {
 		// m_algaeGrabberSubsystem
 		// .setDefaultCommand(m_algaeGrabberSubsystem.manualMove(() ->
-		// m_operatorController.getRightY()));
+		// m_operatorController.getRightX()));
 		m_operatorController.L2().onTrue(m_algaeGrabberSubsystem.grabAlgaeAndHold());
 		m_operatorController.R2().onTrue(m_algaeGrabberSubsystem.releaseAlgae());
-
-		m_operatorController.options().onTrue(m_algaeGrabberSubsystem.reverseFlywheelAndStop());
+		// m_operatorController.R2().whileTrue(m_algaeGrabberSubsystem.reverseFlywheelAndStop());
 	}
 
 	public void bindWristControls() {
 		m_wristSubsystem.setDefaultCommand(m_wristSubsystem.manualMove(() -> m_operatorController.getRightY()));
-		m_driverController.square().onTrue(m_wristSubsystem.goToAngle(180));
+		// m_driverController.square().onTrue(m_wristSubsystem.goToAngle(180));
 	}
 
 	public void bindCheeseStickControls() {
 		m_operatorController.R1().whileFalse(m_cheeseStickSubsystem.grab());
 		m_operatorController.R1().whileTrue(m_cheeseStickSubsystem.release());
+
+		m_driverController.circle().whileFalse(m_cheeseStickSubsystem.grab());
+		m_driverController.circle().whileTrue(m_cheeseStickSubsystem.release());
 	}
 
 	public void bindClimberControls() {
 		// m_climberSubsystem.setDefaultCommand(m_climberSubsystem.manualMove(() ->
-		// m_operatorController.getRightY()));
+		// m_driverController.getRightY()));
+		// once sensors are good make driver controller rumble
+		m_driverController.triangle().onTrue(m_climberSubsystem.goToReversePosition());
+		m_driverController.cross().onTrue(m_climberSubsystem.goToForwardPosition());
 
-		// m_operatorController.povDown().whileTrue(m_climberSubsystem.moveForward())
-		// .onFalse(m_climberSubsystem.moveBackward());
+		m_operatorController.povUp().onTrue(m_climberSubsystem.goToForwardPosition());
+		m_operatorController.povDown().onTrue(m_climberSubsystem.goToReversePosition());
 	}
 
 	@Override
@@ -430,5 +470,4 @@ public class Robot extends TimedRobot {
 		m_visionSimulator.addCamera(cameraSim, robotToCamera);
 		return camera;
 	}
-
 }

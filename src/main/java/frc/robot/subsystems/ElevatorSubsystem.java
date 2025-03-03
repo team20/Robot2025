@@ -160,6 +160,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 	public void periodic() {
 		SmartDashboard.putNumber("Elevator/Position", getPosition());
 		m_elevatorLigament.setLength(Units.inchesToMeters(24) + getPosition());
+		SmartDashboard.putNumber("Elevator/Extension", getPosition());
 	}
 
 	public Command resetTheEncoder() {
@@ -218,7 +219,9 @@ public class ElevatorSubsystem extends SubsystemBase {
 			SmartDashboard.putNumber("Elevator/Current Target Velocity", currentState.velocity);
 			SmartDashboard.putNumber("Elevator/Next Target Position", nextState.position);
 			SmartDashboard.putNumber("Elevator/Next Target Velocity", nextState.velocity);
-		}).until(() -> Math.abs(getPosition() - finalState.position) < kTolerance);
+			SmartDashboard.putNumber("Elevator/Profile Time", m_profile.totalTime());
+			SmartDashboard.putNumber("Elevator/Current Time", m_timer.get());
+		}).until(() -> m_profile.isFinished(m_timer.get()));
 	}
 
 	/**
@@ -281,13 +284,25 @@ public class ElevatorSubsystem extends SubsystemBase {
 		return goToLevel(() -> kCoralStationHeight).withName("Elevator to Coral Station");
 	}
 
+	public Command goToAlgaeThreeHeight() {
+		return goToLevel(() -> kAlgaeLevelThreeHeight).withName("Algae Level Three Height");
+	}
+
+	public Command goToAlgaeTwoHeight() {
+		return goToLevel(() -> kAlgaeLevelTwoHeight).withName("Algae Level Three Height");
+	}
+
 	/**
 	 * Moves the elevator to the base height position
 	 * 
 	 * @return
 	 */
 	public Command goToBaseHeight() {
-		return goToLevel(() -> 0).withName("Go to Base Height");
+		return runOnce(() -> m_elevatorEncoder.setPosition(0)).withName("Go To Base Height");
+	}
+
+	public Command goToClearanceHeight(double level, double clearanceHeight) {
+		return goToLevel(() -> (level + clearanceHeight)).withName("Level Height with added Clearance");
 	}
 
 	/**
