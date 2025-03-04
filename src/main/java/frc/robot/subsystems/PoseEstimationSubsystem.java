@@ -141,7 +141,7 @@ public class PoseEstimationSubsystem extends SubsystemBase {
 			var camera = e.getKey();
 			var poseEstimator = e.getValue();
 			for (var r : camera.getAllUnreadResults()) // for every result r
-				if (useful(r, 0.2, 2.5, firstCamera)) {
+				if (useful(r, 0.2, 4, firstCamera)) {
 					m_mostRecentTimestamp = r.getTimestampSeconds();
 					Optional<EstimatedRobotPose> p = poseEstimator.update(r);
 					if (p.isPresent()) { // if successful

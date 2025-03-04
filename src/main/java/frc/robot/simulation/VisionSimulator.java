@@ -2,6 +2,8 @@ package frc.robot.simulation;
 
 import static frc.robot.Constants.AutoAlignConstants.*;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 
@@ -52,6 +54,12 @@ public class VisionSimulator extends SubsystemBase {
 	private final StructPublisher<Pose2d> m_posePublisher;
 
 	/**
+	 * The {@code StructPublisher} for reporting the {@code Pose2d} of the
+	 * robot in simulation.
+	 */
+	private final Map<PhotonCameraSim, StructPublisher<Pose3d>> m_cameraPosePublishers = new HashMap<PhotonCameraSim, StructPublisher<Pose3d>>();
+
+	/**
 	 * The {@code Random} instance used by this {@code VisionSimulator}.
 	 */
 	private final Random random = new Random(31);
@@ -63,7 +71,9 @@ public class VisionSimulator extends SubsystemBase {
 	 *        {@code VisionSimulator}
 	 * @param initialPose the initial {@code Pose2d} of the robot in simulation
 	 * @param measurmentErrorRatio the error ratio in measurements for
-	 *        updating the odometry of the robot
+	 *        updating the odometry of the robot (positive: overestimation of
+	 *        movements including rotations, negative: underestimation of movements
+	 *        including rotations)
 	 */
 	public VisionSimulator(DriveSubsystem driveSubsystem, Pose2d initialPose, double measurmentErrorRatio) {
 		m_driveSubsystem = driveSubsystem;
@@ -92,15 +102,28 @@ public class VisionSimulator extends SubsystemBase {
 		m_previousOdometryPose = p;
 		m_visionSimulator.update(pose);
 		m_posePublisher.set(pose);
+		m_visionSimulator.getCameraSims().forEach(c -> m_cameraPosePublishers.get(c).set(getCameraPose(c).get()));
 	}
 
 	/**
-	 * Returns the most recent simulated {@code Pose2d} of the robot on the field.
+	 * Returns the most recent field-centric {@code Pose2d} of the robot in
+	 * simulation.
 	 * 
-	 * @return the most recent simulated {@code Pose2d} of the robot on the field
+	 * @return the most recent field-centric {@code Pose2d} of the robot in
+	 *         simulation
 	 */
-	public Pose2d getSimulatedPose() {
+	public Pose2d getRobotPose() {
 		return m_visionSimulator.getRobotPose().toPose2d();
+	}
+
+	/**
+	 * Sets the field-centric {@code Pose2d} of the robot in
+	 * simulation.
+	 * 
+	 * @param pose a {@code Pose2d}
+	 */
+	public void setRobotPose(Pose2d pose) {
+		m_visionSimulator.update(pose);
 	}
 
 	/**
@@ -112,6 +135,10 @@ public class VisionSimulator extends SubsystemBase {
 	 */
 	public void addCamera(PhotonCameraSim cameraSim, Transform3d robotToCamera) {
 		m_visionSimulator.addCamera(cameraSim, robotToCamera);
+		m_cameraPosePublishers.put(
+				cameraSim, NetworkTableInstance.getDefault()
+						.getStructTopic("/SmartDashboard/Cameras/" + cameraSim.getCamera().getName(), Pose3d.struct)
+						.publish());
 	}
 
 	/**
@@ -132,7 +159,7 @@ public class VisionSimulator extends SubsystemBase {
 	 * @return the resulting value
 	 */
 	private double change(double x, double r) {
-		return x * (1 - r + 2 * r * random.nextDouble());
+		return x / (1.0 + r * random.nextDouble());
 	}
 
 }
