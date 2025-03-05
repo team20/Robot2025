@@ -66,17 +66,14 @@ public class WristSubsystem extends SubsystemBase {
 		config.closedLoop
 				.feedbackSensor(FeedbackSensor.kAbsoluteEncoder)
 				.pid(kP, kI, kD);
-		// TODO:
-		// config.softLimit.forwardSoftLimit(kWristForwardSoftLimit).forwardSoftLimitEnabled(true);
-		// TODO:
-		// config.softLimit.reverseSoftLimit(kWristReverseSoftLimit).reverseSoftLimitEnabled(true);
-		// TODO:
-		// config.absoluteEncoder.zeroOffset(kWristOffset).positionConversionFactor(360);
+		config.softLimit.forwardSoftLimit(kWristForwardSoftLimit).forwardSoftLimitEnabled(true);
+		config.softLimit.reverseSoftLimit(kWristReverseSoftLimit).reverseSoftLimitEnabled(true);
+		config.absoluteEncoder.zeroOffset(kWristOffset).positionConversionFactor(360);
 		m_wristMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 		if (RobotBase.isSimulation()) {
 			m_wristSim = new SparkMaxSim(m_wristMotor, DCMotor.getNEO(1));
 			m_absoluteEncoderSim = new SparkAbsoluteEncoderSim(m_wristMotor);
-			m_wristModel = new SingleJointedArmSim(DCMotor.getNEO(1), 5, 1, 0.1, Math.PI / 2,
+			m_wristModel = new SingleJointedArmSim(DCMotor.getNEO(1), 5, 1e-3, 0.1, Math.PI / 2,
 					3 * Math.PI / 2, false, 3 * Math.PI / 2);
 		} else {
 			m_wristSim = null;
@@ -99,8 +96,7 @@ public class WristSubsystem extends SubsystemBase {
 	 * @return the angle of the wrist (degrees)
 	 */
 	public double getAngle() {
-		// TODO: return m_absoluteEncoder.getPosition();
-		return m_absoluteEncoder.getPosition() * 360;
+		return m_absoluteEncoder.getPosition();
 	}
 
 	/**
@@ -180,10 +176,6 @@ public class WristSubsystem extends SubsystemBase {
 			if (m_elevatorSubsystem.getPosition() >= kMinElevatorExtension)
 				m_wristMotor.set(speed * 0.5);
 		}).withName("Manual Wrist");
-	}
-
-	private boolean safeToMove() {
-		return m_elevatorSubsystem.getPosition() > 0.2;
 	}
 
 	/**

@@ -80,5 +80,5 @@ public class CheeseStickSubsystem extends SubsystemBase {
 				new WaitCommand(duration), grab(),
 				new WaitCommand(duration), release());
 	}
-
+	
 }

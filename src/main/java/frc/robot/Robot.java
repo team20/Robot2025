@@ -89,7 +89,7 @@ public class Robot extends TimedRobot {
 			setCalibration(640, 480, Rotation2d.fromDegrees(100));
 			// Approximate detection noise with average and standard deviation error in
 			// pixels.
-			setCalibError(0.25, 0.15);
+			setCalibError(0.35, 0.15);
 			// Set the camera image capture framerate (Note: this is limited by robot loop
 			// rate).
 			setFPS(20);
@@ -340,12 +340,6 @@ public class Robot extends TimedRobot {
 		// m_driverController.cross()
 		// .whileTrue(
 		// score(toClosestTag(kRobotToTagsRight), 2));
-		m_driverController.square()
-				.whileTrue(
-						toClosestTag(kRobotToTagsLeft));
-		m_driverController.cross()
-				.whileTrue(
-						toClosestTag(kRobotToTagsRight));
 
 		// m_operatorController.povLeft().whileTrue(
 		// CommandComposer.driveWithLeftAlignment(

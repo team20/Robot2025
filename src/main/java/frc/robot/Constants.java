@@ -86,8 +86,7 @@ public class Constants {
 		public static final int kBackLeftCANCoderPort = 32;
 
 		// TODO: Make sure these are tuned (can do with SysId)
-		public static final double kP = 0.04; // works in simulation
-		// public static final double kP = 0.09;
+		public static final double kP = 0.04; // TODO: tune it
 		public static final double kI = 0.0;
 		public static final double kD = 0; // TODO: tune it
 		public static final double kS = 0;
@@ -143,6 +142,7 @@ public class Constants {
 		public static final double kTurnMaxAngularSpeed = Math.toRadians(360); // TODO: 1 rotation per second
 		public static final double kTurnMinAngularSpeed = Math.toRadians(0); // 0 degree per second
 
+		// DriveCommand.java Constants
 		public static final double kDriveP = 5;
 		public static final double kDriveI = 0;
 		public static final double kDriveD = 0;
@@ -158,11 +158,9 @@ public class Constants {
 		public static final int kElevatorMotorPort = 26;
 		public static final int kSmartCurrentLimit = 60; // TODO: 45
 		public static final int kSecondaryCurrentLimit = 70;
-		public static final double kP = 15; // works in simulation
-		// public static final double kP = 1.1;
+		public static final double kP = 1.1;
 		public static final double kI = 0;
-		public static final double kD = 0.5; // works in simulation
-		// public static final double kD = 0;
+		public static final double kD = 0;
 
 		public static final double kS = 0.05631;
 		public static final double kG = 0.22876;
@@ -190,9 +188,9 @@ public class Constants {
 		public static final double kLevelOneHeight = Units.inchesToMeters(3);
 		public static final double kLevelTwoHeight = Units.inchesToMeters(8);
 		public static final double kLevelThreeHeight = Units.inchesToMeters(29);
-		public static final double kLevelFourHeight = Units.inchesToMeters(50); // TODO: does this uhh do anything...?
-																				// since the max height is well,
-																				// supposedly lower?
+		public static final double kLevelFourHeight = Units.inchesToMeters(49);
+		// public static final double kLevelFourHeight = Units.inchesToMeters(50);
+		// TODO: does this uhh do anything...? since the max height is well
 		public static final double kMaxExtension = 1.25 - 0.01; // Likely needs to be upped (safety)
 		// TODO: The amount that the elevator decreases in order to score
 		public static final double kClearanceHeight = Units.inchesToMeters(3.5);
@@ -217,6 +215,7 @@ public class Constants {
 		public static final double kWristOffset = 0.104;
 
 		// TODO: Make sure these are tuned (can do with SysId)
+		// public static final double kP = 0.001; // works in simulation
 		public static final double kP = 0.01;
 		public static final double kI = 0.0;
 		public static final double kD = 0;

@@ -10,23 +10,20 @@ import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 
-public class SimpleElevatorSubsystem extends ElevatorSubsystem {
-	public SimpleElevatorSubsystem(MechanismRoot2d root) {
+public class ElevatorSubsystem3 extends ElevatorSubsystem {
+	public ElevatorSubsystem3(MechanismRoot2d root) {
 		super(root);
 	}
 
-	/**
-	 * Using Trapezoid Profile to set the position of the elevator
-	 * 
-	 * @param level A function that returns the level we want to go to
-	 * @return the command
-	 */
+	public static double kFF = 1.56;
+
 	@Override
 	public Command goToLevel(DoubleSupplier level) {
 		return startRun(() -> {
-			setPosition(level.getAsDouble(), 1);
+			setPosition(level.getAsDouble(), kFF);
 			SmartDashboard.putNumber("Elevator/Goal", m_setPosition);
 		}, () -> {
 		}).until(() -> atSetpoint());
 	}
+
 }

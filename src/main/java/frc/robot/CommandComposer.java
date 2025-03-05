@@ -98,9 +98,9 @@ public class CommandComposer {
 		return sequence(
 				score(align1, 4),
 				toStation(pickupTagID),
-				score(align2, 4, pickup()),
+				score(align2, 4, goToBase()),
 				toStation(pickupTagID),
-				score(align3, 4, pickup()));
+				score(align3, 4, goToBase()));
 	}
 
 	public static Command score(Command align, int level) {
@@ -143,12 +143,6 @@ public class CommandComposer {
 						m_wristSubsystem.goToAngle(270),
 						toTag(tagID, kRobotToTags),
 						m_elevatorSubsystem.goToCoralStationHeight()));
-	}
-
-	private static Command pickup() {
-		return sequence(
-				m_elevatorSubsystem.lower(0.2),
-				m_cheeseStickSubsystem.grab(), new WaitCommand(0.1));
 	}
 
 	private static Command scoreLevelInTeleop(double level, double clearanceHeight, Supplier<Command> levelCommand,

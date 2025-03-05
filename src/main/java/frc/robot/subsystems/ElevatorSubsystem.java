@@ -42,13 +42,13 @@ import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
 public class ElevatorSubsystem extends SubsystemBase {
-	private final SparkMax m_elevatorMotor = new SparkMax(kElevatorMotorPort, MotorType.kBrushless);
+	protected final SparkMax m_elevatorMotor = new SparkMax(kElevatorMotorPort, MotorType.kBrushless);
 	private final RelativeEncoder m_elevatorEncoder = m_elevatorMotor.getEncoder();
 	private final SparkClosedLoopController m_closedLoopController = m_elevatorMotor.getClosedLoopController();
 
-	private final Timer m_timer = new Timer();
-	private final ElevatorFeedforward m_ff = new ElevatorFeedforward(kS, kG, kV, kA);
-	private final TrapezoidProfile m_profile = new TrapezoidProfile(
+	protected final Timer m_timer = new Timer();
+	protected final ElevatorFeedforward m_ff = new ElevatorFeedforward(kS, kG, kV, kA);
+	protected final TrapezoidProfile m_profile = new TrapezoidProfile(
 			new TrapezoidProfile.Constraints(kMaxVelocity, kMaxAccel));
 	// Adjust ramp rate, step voltage, and timeout to make sure elevator doesn't
 	// break
@@ -158,7 +158,6 @@ public class ElevatorSubsystem extends SubsystemBase {
 
 	@Override
 	public void periodic() {
-		SmartDashboard.putNumber("Elevator/Position", getPosition());
 		m_elevatorLigament.setLength(Units.inchesToMeters(24) + getPosition());
 		SmartDashboard.putNumber("Elevator/Extension", getPosition());
 	}
@@ -315,10 +314,6 @@ public class ElevatorSubsystem extends SubsystemBase {
 		return goToLevel(() -> getPosition() - kToScoreHeightDecrease).withName("Lower Elevator to Score");
 	}
 
-	public Command lower(double difference) {
-		return goToLevel(() -> getPosition() - difference).withName("Lower Elevator");
-	}
-
 	/**
 	 * Creates a command to run a SysId quasistatic test.
 	 * 
@@ -356,7 +351,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 						.until(() -> getPosition() > 0.2), // should stop when level is > 0.2
 				runOnce(() -> setSpeed(0.0)), new WaitCommand(duration), // should go down due to gravity
 				goToLevelOneHeight(), // checking goToLevel(DoubleSupplier)
-				goToLevelThreeHeight(), new WaitCommand(duration), // should stay at level 3
+				goToLevelThreeHeight(), goToBaseHeight(), new WaitCommand(duration), // should stay at level 3
 				goToLevelTwoHeight(), new WaitCommand(duration), // should stay at level 2
 				goToLevelFourHeight(), goToLevel(() -> 0));
 	}
