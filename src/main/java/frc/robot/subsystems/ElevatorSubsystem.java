@@ -353,7 +353,6 @@ public class ElevatorSubsystem extends SubsystemBase {
 				goToLevelOneHeight(), // checking goToLevel(DoubleSupplier)
 				goToLevelThreeHeight(), new WaitCommand(duration), // should stay at level 3
 				goToLevelTwoHeight(), new WaitCommand(duration), // should stay at level 2
-				goToLevelFourHeight(),
-				goToBaseHeight());
+				goToLevelFourHeight(), goToLevel(() -> 0));
 	}
 }

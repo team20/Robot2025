@@ -158,8 +158,7 @@ public class Robot extends TimedRobot {
 						toClosestTag(kRobotToTagsRight));
 		m_testingChooser
 				.addOption(
-						"Left Align to the Closest Tag + Score at Level 2",
-						sequence(toClosestTag(kRobotToTagsLeft), scoreLevelTwoInTeleop()));
+						"Score at Level 2", scoreLevelTwoInTeleop());
 		m_testingChooser
 				.addOption(
 						"Right Align to the Closest Tag + Score at Level 2",
@@ -467,21 +466,36 @@ public class Robot extends TimedRobot {
 		return camera;
 	}
 
+	@Override
+	public void simulationInit() {
+		repositionSimulatedRobot(DriverStation.Alliance.Red, 1);
+	}
+
 	/**
 	 * Repositions the robot in simulation according to the alliance station.
 	 */
 	void repositionSimulatedRobot() {
 		var alliance = DriverStation.getAlliance();
-		if (alliance.isPresent()) {
-			var redAlliance = alliance.get() == DriverStation.Alliance.Red;
-			Map<Integer, Double> yCoordinates = Map.of(
-					1, kFieldLayout.getFieldWidth() * 3 / 4, 2, kFieldLayout.getFieldWidth() * 2 / 4, 3,
-					kFieldLayout.getFieldWidth() * 1 / 4);
-			m_visionSimulator.setRobotPose(
-					pose(
-							kFieldLayout.getFieldLength() / 2 + 1.2 * (redAlliance ? 1 : -1),
-							yCoordinates.get(DriverStation.getLocation().getAsInt()), redAlliance ? 0 : 180));
-		}
+		if (alliance.isPresent())
+			repositionSimulatedRobot(alliance.get(), DriverStation.getLocation().getAsInt());
+	}
+
+	/**
+	 * Repositions the robot in simulation according to the specified alliance
+	 * station.
+	 * 
+	 * @param alliance the {@code Alliance}
+	 * @param location the location of the team's driver station
+	 */
+	void repositionSimulatedRobot(DriverStation.Alliance alliance, int location) {
+		var redAlliance = alliance == DriverStation.Alliance.Red;
+		Map<Integer, Double> yCoordinates = Map.of(
+				1, kFieldLayout.getFieldWidth() * 3 / 4, 2, kFieldLayout.getFieldWidth() * 2 / 4, 3,
+				kFieldLayout.getFieldWidth() * 1 / 4);
+		m_visionSimulator.setRobotPose(
+				pose(
+						kFieldLayout.getFieldLength() / 2 + 1.2 * (redAlliance ? 1 : -1),
+						yCoordinates.get(location), redAlliance ? 0 : 180));
 	}
 
 }
