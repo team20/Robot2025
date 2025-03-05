@@ -242,15 +242,18 @@ public class DriveSubsystem extends SubsystemBase {
 	 *        the robot face forward (+X direction).
 	 * @param strafeOrientation Strafe orientation supplier. Positive values make
 	 *        the robot face left (+Y direction).
+	 * @param rotation Rotation supplier. Positive values make
+	 *        the robot rotate left (CCW direction).
 	 * @param isRobotRelative Supplier for determining if driving should be robot
 	 *        relative.
 	 * @return A command to drive the robot.
 	 */
 	public Command driveCommand(DoubleSupplier forwardSpeed, DoubleSupplier strafeSpeed,
-			DoubleSupplier forwardOrientation, DoubleSupplier strafeOrientation, BooleanSupplier isRobotRelative) {
+			DoubleSupplier forwardOrientation, DoubleSupplier strafeOrientation, DoubleSupplier rotation,
+			BooleanSupplier isRobotRelative) {
 		return run(
 				() -> drive(
-						chassisSpeeds(forwardSpeed, strafeSpeed, forwardOrientation, strafeOrientation),
+						chassisSpeeds(forwardSpeed, strafeSpeed, forwardOrientation, strafeOrientation, rotation),
 						!isRobotRelative.getAsBoolean())).withName("DefaultDriveCommand");
 	}
 
@@ -288,12 +291,14 @@ public class DriveSubsystem extends SubsystemBase {
 	 *         input
 	 */
 	public ChassisSpeeds chassisSpeeds(DoubleSupplier forwardSpeed, DoubleSupplier strafeSpeed,
-			DoubleSupplier forwardOrientation, DoubleSupplier strafeOrientation) {
+			DoubleSupplier forwardOrientation, DoubleSupplier strafeOrientation, DoubleSupplier rotation) {
 		var orientation = new Translation2d(forwardOrientation.getAsDouble(), strafeOrientation.getAsDouble());
-		double omegaRadiansPerSecond = 0;
+		double omegaRadiansPerSecond = MathUtil.applyDeadband(rotation.getAsDouble(), ControllerConstants.kDeadzone);
+		omegaRadiansPerSecond = Math.signum(omegaRadiansPerSecond) * Math.pow(omegaRadiansPerSecond, 2)
+				* kTeleopTurnMaxAngularSpeed;
 		if (orientation.getNorm() > 0.05) {
 			var angle = orientation.getAngle();
-			omegaRadiansPerSecond = m_orientationController
+			omegaRadiansPerSecond += m_orientationController
 					.calculate(getHeading().getRadians(), angle.getRadians());
 			m_targetHeadingPublisher.set(angle);
 		}
@@ -369,6 +374,12 @@ public class DriveSubsystem extends SubsystemBase {
 		return runOnce(m_gyro::zeroYaw).withName("ResetHeadingCommand");
 	}
 
+	/**
+	 * Resets the odometry of this {@code DriveSubsystem}.
+	 * 
+	 * @param pose the {@code Pose2d} to which the odometry to set to
+	 * @return a {@code Command} to the odometry of this {@code DriveSubsystem}
+	 */
 	public Command resetOdometry(Pose2d pose) {
 		return runOnce(() -> m_odometry.resetPosition(getHeading(), getModulePositions(), pose))
 				.withName("ResetOdometryCommand");

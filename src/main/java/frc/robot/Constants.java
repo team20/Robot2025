@@ -86,10 +86,10 @@ public class Constants {
 		public static final int kBackLeftCANCoderPort = 32;
 
 		// TODO: Make sure these are tuned (can do with SysId)
-		// public static final double kP = 0.04; // works in simulation
-		public static final double kP = 0.09;
+		public static final double kP = 0.04; // works in simulation
+		// public static final double kP = 0.09;
 		public static final double kI = 0.0;
-		public static final double kD = 0;
+		public static final double kD = 0; // TODO: tune it
 		public static final double kS = 0;
 		public static final double kV = 0.11;
 		public static final double kA = 0.009;
@@ -135,24 +135,23 @@ public class Constants {
 			kDriveConfig.OpenLoopRamps.VoltageOpenLoopRampPeriod = kRampRate;
 		}
 
-		public static final double kTeleopDriveMaxSpeed = 8.0; // 8 meters per second
-		public static final double kTeleopTurnMaxAngularSpeed = Math.toRadians(360 * 5);
+		public static final double kTeleopDriveMaxSpeed = 12.0; // TODO: 12 meters per second
+		public static final double kTeleopTurnMaxAngularSpeed = Math.toRadians(360 * 5);// TODO: 5 rotations per second
 
-		// DriveCommand.java Constants
-		public static final double kDriveMaxSpeed = 8.0; // 8 meters per second
-		public static final double kDriveMinSpeed = 0.2; // 0.2 meters per second
-		public static final double kTurnMaxAngularSpeed = Math.toRadians(360); // 1 rotation per second
+		public static final double kDriveMaxSpeed = 12.0; // TODO: 12 meters per second
+		public static final double kDriveMinSpeed = 0.2; // TODO: 0.2 meters per second
+		public static final double kTurnMaxAngularSpeed = Math.toRadians(360); // TODO: 1 rotation per second
 		public static final double kTurnMinAngularSpeed = Math.toRadians(0); // 0 degree per second
 
 		public static final double kDriveP = 5;
 		public static final double kDriveI = 0;
 		public static final double kDriveD = 0;
-		public static final double kDriveMaxAcceleration = 2 * kDriveMaxSpeed; // kDriveMaxSpeed in 0.5 sec
+		public static final double kDriveMaxAcceleration = 2 * kDriveMaxSpeed; // TODO: kDriveMaxSpeed in 0.5 sec
 
 		public static final double kTurnP = 5;
 		public static final double kTurnI = 0;
 		public static final double kTurnD = 0.1;
-		public static final double kTurnMaxAcceleration = 2 * kTurnMaxAngularSpeed; // kTurnMaxAngularSpeed in 0.5
+		public static final double kTurnMaxAcceleration = 2 * kTurnMaxAngularSpeed; // TODO: kTurnMaxAngularSpeed in 0.5
 	}
 
 	public static final class ElevatorConstants {
@@ -210,7 +209,7 @@ public class Constants {
 		public static final int kSecondaryCurrentLimit = 20;
 		public static final int kGrabberAngleLevelFour = 220;
 		public static final int kGrabberAngleOthers = 221; // 5 degrees steeper from previous value (215)
-		public static final int kGrabberAngleLevelThree = 237;
+		public static final int kGrabberAngleLevelThree = 240;
 		public static final double kAlgaeWristHeight = 170;
 
 		public static final double kWristForwardSoftLimit = 274; // Wrist facing down
@@ -223,6 +222,9 @@ public class Constants {
 		public static final double kD = 0;
 
 		public static final double kTolerance = 1; // TODO: Change this
+		// public static final double kTolerance = 4; // TODO: Change this
+
+		public static final double kMinElevatorExtension = 0.0;
 	}
 
 	public static final class AutoAlignConstants {
@@ -249,15 +251,15 @@ public class Constants {
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
 		 * {@code AprilTag} to align the robot to that {@code AprilTag}.
 		 */
-		static Transform2d[] kRobotToTags = { transform(1.0, 0.0, 180),
-				transform(0.5, 0.0, 180) };
+		static Transform2d[] kRobotToTags = { transform(1.1, 0.0, 180),
+				transform(0.46, 0.0, 180) };
 
 		/**
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
 		 * {@code AprilTag} to align the robot to the left of that {@code AprilTag}.
 		 */
-		static Transform2d[] kRobotToTagsLeft = { transform(1.0, -0.165, 180),
-				transform(0.5, -0.165, 180) };
+		static Transform2d[] kRobotToTagsLeft = { transform(1.1, 0, 180),
+				transform(0.46, -0.165, 180) };
 
 		/**
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
@@ -265,7 +267,7 @@ public class Constants {
 		 */
 		// static Transform2d[] kRobotToTagsRight = { transform(1.0, 0.165, 180),
 		// transform(0.5, 0.165, 180) };
-		static Transform2d[] kRobotToTagsRight = { transform(1.0, 0.215, 180),
-				transform(0.5, 0.215, 180) };
+		static Transform2d[] kRobotToTagsRight = { transform(1.1, 0, 180),
+				transform(0.46, 0.215, 180) };
 	}
 }

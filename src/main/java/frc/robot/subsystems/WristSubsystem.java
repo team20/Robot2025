@@ -55,7 +55,7 @@ public class WristSubsystem extends SubsystemBase {
 	/** Creates a new WristSubsystem. */
 	public WristSubsystem(ElevatorSubsystem elevatorSubsystem) {
 		m_elevatorSubsystem = elevatorSubsystem;
-		m_elevatorSubsystem.getWristMount().append(m_wrist);
+		elevatorSubsystem.getWristMount().append(m_wrist);
 		var config = new SparkMaxConfig();
 		config
 				.inverted(true)
@@ -77,7 +77,7 @@ public class WristSubsystem extends SubsystemBase {
 			m_wristSim = new SparkMaxSim(m_wristMotor, DCMotor.getNEO(1));
 			m_absoluteEncoderSim = new SparkAbsoluteEncoderSim(m_wristMotor);
 			m_wristModel = new SingleJointedArmSim(DCMotor.getNEO(1), 5, 1, 0.1, Math.PI / 2,
-					3 * Math.PI / 2, false, 0);
+					3 * Math.PI / 2, false, 3 * Math.PI / 2);
 		} else {
 			m_wristSim = null;
 			m_absoluteEncoderSim = null;
@@ -91,7 +91,8 @@ public class WristSubsystem extends SubsystemBase {
 	 * @param speed the speed you want to set it to
 	 */
 	public void setSpeed(double speed) {
-		m_wristMotor.set(speed);
+		if (m_elevatorSubsystem.getPosition() > kMinElevatorExtension)
+			m_wristMotor.set(speed);
 	}
 
 	/**
@@ -174,11 +175,10 @@ public class WristSubsystem extends SubsystemBase {
 	 */
 	public Command manualMove(DoubleSupplier joystick) {
 		return run(() -> {
-			if (safeToMove()) {
-				double input = joystick.getAsDouble();
-				double speed = Math.signum(input) * Math.pow(input, 2);
+			double input = joystick.getAsDouble();
+			double speed = Math.signum(input) * Math.pow(input, 2);
+			if (m_elevatorSubsystem.getPosition() >= kMinElevatorExtension)
 				m_wristMotor.set(speed * 0.5);
-			}
 		}).withName("Manual Wrist");
 	}
 
@@ -194,7 +194,8 @@ public class WristSubsystem extends SubsystemBase {
 	public Command goToAngle(double angle) {
 		return run(() -> {
 			SmartDashboard.putNumber("Wrist/Target Angle", angle);
-			m_wristClosedLoopController.setReference(angle, ControlType.kPosition);
+			if (m_elevatorSubsystem.getPosition() >= kMinElevatorExtension)
+				m_wristClosedLoopController.setReference(angle, ControlType.kPosition);
 		}).until(atAngle(angle)).withName("Wrist go to angle");
 	}
 
@@ -227,12 +228,13 @@ public class WristSubsystem extends SubsystemBase {
 	 */
 	public Command testCommand(double duration) {
 		return sequence(
-				run(() -> setSpeed(-.1)).until(() -> getAngle() < 270 - 10), // checking setSpeed(double)
+				m_elevatorSubsystem.goToLevelThreeHeight(),
+				run(() -> setSpeed(-.1)).until(() -> getAngle() < 270 - 10), // checking
 				runOnce(() -> setSpeed(0)), new WaitCommand(duration), // should stay at current angle
 				goToAngle(270), new WaitCommand(duration), // should stay at angle 0
 				goToAngle(270 - 45), new WaitCommand(duration), // should stay at angle 45
 				goToAngle(270), goToAngle(270 - 45),
-				goToAngle(270), goToAngle(270 - 45), goToAngle(270));
+				goToAngle(270), goToAngle(270 - 45), goToAngle(270),
+				m_elevatorSubsystem.goToLevelOneHeight());
 	}
-
 }

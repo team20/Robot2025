@@ -19,8 +19,8 @@ import edu.wpi.first.wpilibj2.command.WaitCommand;
 public class CheeseStickSubsystem extends SubsystemBase {
 	private final Servo m_servo = new Servo(kServoPort);
 	private final PWMSim m_sim;
-	private final MechanismLigament2d m_ligament = new MechanismLigament2d("Cheeese Stick", 0, 90, 10,
-			new Color8Bit(Color.kDarkGreen));
+	private final MechanismLigament2d m_ligament = new MechanismLigament2d("Cheeese Stick", 0, 90, 5,
+			new Color8Bit(Color.kRed));
 
 	public CheeseStickSubsystem(MechanismObject2d attachment) {
 		// https://docs.revrobotics.com/rev-crossover-products/servo/srs#electrical-specifications

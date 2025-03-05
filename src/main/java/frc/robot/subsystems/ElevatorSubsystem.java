@@ -356,7 +356,6 @@ public class ElevatorSubsystem extends SubsystemBase {
 						.until(() -> getPosition() > 0.2), // should stop when level is > 0.2
 				runOnce(() -> setSpeed(0.0)), new WaitCommand(duration), // should go down due to gravity
 				goToLevelOneHeight(), // checking goToLevel(DoubleSupplier)
-				goToBaseHeight(),
 				goToLevelThreeHeight(), new WaitCommand(duration), // should stay at level 3
 				goToLevelTwoHeight(), new WaitCommand(duration), // should stay at level 2
 				goToLevelFourHeight(), goToLevel(() -> 0));
