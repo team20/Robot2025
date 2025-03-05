@@ -55,7 +55,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 	private final SysIdRoutine m_sysidRoutine = new SysIdRoutine(
 			new SysIdRoutine.Config(Volts.of(1.5).div(Seconds.of(1)), Volts.of(2), Seconds.of(2)),
 			new SysIdRoutine.Mechanism(m_elevatorMotor::setVoltage, null, this));
-	private double m_setPosition = 0;
+	protected double m_setPosition = 0;
 
 	private final SparkMaxSim m_elevatorMotorSim;
 	private final ElevatorSim m_elevatorModel;
@@ -359,8 +359,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 				goToBaseHeight(),
 				goToLevelThreeHeight(), new WaitCommand(duration), // should stay at level 3
 				goToLevelTwoHeight(), new WaitCommand(duration), // should stay at level 2
-				goToLevelFourHeight(),
-				goToBaseHeight());
+				goToLevelFourHeight(), goToLevel(() -> 0));
 	}
 
 }
