@@ -314,11 +314,11 @@ public class Robot extends TimedRobot {
 		// m_climberSubsystem.setDefaultCommand(m_climberSubsystem.manualMove(() ->
 		// m_driverController.getRightY()));
 		// once sensors are good make driver controller rumble
-		m_driverController.triangle().onTrue(m_climberSubsystem.goToReversePosition());
-		m_driverController.cross().onTrue(m_climberSubsystem.goToForwardPosition());
+		m_driverController.triangle().onTrue(m_climberSubsystem.deploy());
+		m_driverController.cross().onTrue(m_climberSubsystem.retract());
 
-		m_operatorController.povUp().onTrue(m_climberSubsystem.goToForwardPosition());
-		m_operatorController.povDown().onTrue(m_climberSubsystem.goToReversePosition());
+		m_operatorController.povUp().onTrue(m_climberSubsystem.retract());
+		m_operatorController.povDown().onTrue(m_climberSubsystem.deploy());
 	}
 
 	@Override

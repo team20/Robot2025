@@ -11,9 +11,9 @@ import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
@@ -24,7 +24,7 @@ public class ClimberSubsystem extends SubsystemBase {
 
 	public ClimberSubsystem() {
 		var config = new SparkMaxConfig();
-		config.smartCurrentLimit(kSmartCurrentLimit);
+		config.smartCurrentLimit(kSmartCurrentLimit).idleMode(IdleMode.kBrake);
 		config.closedLoop
 				.feedbackSensor(FeedbackSensor.kPrimaryEncoder)
 				.pid(kP, kI, kD);
@@ -32,7 +32,6 @@ public class ClimberSubsystem extends SubsystemBase {
 		// config.softLimit.reverseSoftLimit(kClimberForwardSoftLimit).reverseSoftLimitEnabled(true);
 		m_motor.getEncoder().setPosition(0);
 		m_motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-		SmartDashboard.putNumber("Climber Encoder", m_motor.getEncoder().getPosition());
 	}
 
 	/**
@@ -49,37 +48,15 @@ public class ClimberSubsystem extends SubsystemBase {
 		}).withName("Manual Climber");
 	}
 
-	public Command goToForwardPosition() {
-		return run(() -> {
-			m_climberClosedLoopController.setReference(-400, ControlType.kPosition);
-		});
-	}
-
-	public Command goToReversePosition() {
+	public Command retract() {
 		return run(() -> {
 			m_climberClosedLoopController.setReference(0, ControlType.kPosition);
 		});
 	}
 
-	// /**
-	// * Spins the motor forward until changed
-	// *
-	// * @return forward command
-	// */
-	// public Command moveForward() {
-	// return runOnce(() -> {
-	// m_motor.set(kSpeed);
-	// }).withName("Climber Forwards");
-	// }
-
-	// /**
-	// * Spins the motor backwards until changed
-	// *
-	// * @return backwards command
-	// */
-	// public Command moveBackward() {
-	// return run(() -> {
-	// m_motor.set(-kSpeed);
-	// }).withName("Climber Backwards");
-	// }
+	public Command deploy() {
+		return run(() -> {
+			m_climberClosedLoopController.setReference(-400, ControlType.kPosition);
+		});
+	}
 }
