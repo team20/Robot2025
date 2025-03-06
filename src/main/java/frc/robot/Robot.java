@@ -162,6 +162,18 @@ public class Robot extends TimedRobot {
 	public void addTestingCommands() {
 		m_testingChooser
 				.addOption(
+						"Elevator to Position 10",
+						sequence(
+								m_elevatorSubsystem.goToLevel(() -> Units.inchesToMeters(10)),
+								m_elevatorSubsystem.goToLevel(() -> Units.inchesToMeters(0))));
+		m_testingChooser
+				.addOption(
+						"Elevator to Position 40",
+						sequence(
+								m_elevatorSubsystem.goToLevel(() -> Units.inchesToMeters(40)),
+								m_elevatorSubsystem.goToLevel(() -> Units.inchesToMeters(0))));
+		m_testingChooser
+				.addOption(
 						"Left Align to the Closest Tag",
 						toClosestTag(kRobotToTagsLeft));
 		m_testingChooser

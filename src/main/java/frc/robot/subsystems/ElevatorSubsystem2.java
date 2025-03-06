@@ -15,26 +15,13 @@ public class ElevatorSubsystem2 extends ElevatorSubsystem {
 		super(root);
 	}
 
-	double voltage = 0.1;
-	Double average = null;
-	Double previousPosition = null;
-
 	@Override
 	public Command goToLevel(DoubleSupplier level) {
 		return startRun(() -> {
-			m_setPosition = level.getAsDouble();
+			// setPosition(level.getAsDouble(), 1.56);
+			setPosition(level.getAsDouble(), m_ff.calculate(0));
+			SmartDashboard.putNumber("Elevator/Goal", m_setPosition);
 		}, () -> {
-			m_elevatorMotor.setVoltage(voltage);
-			var p = getPosition();
-			if (previousPosition != null)
-				if (p < m_setPosition && p <= previousPosition)
-					voltage *= 1.03;
-			if (p > m_setPosition && (p >= previousPosition))
-				voltage *= 0.97;
-			average = average == null ? voltage : average * 0.99 + voltage * 0.01;
-			if (average != null)
-				SmartDashboard.putNumber("Elevator/Voltage", average);
-			previousPosition = getPosition();
-		});
+		}).until(() -> atSetpoint());
 	}
 }
