@@ -189,12 +189,12 @@ public class Constants {
 		public static final double kTolerance = 0.01;
 		// TODO: During testing make sure these are right
 		public static final double kLevelOneHeight = Units.inchesToMeters(3);
-		public static final double kLevelTwoHeight = Units.inchesToMeters(8);
-		public static final double kLevelThreeHeight = Units.inchesToMeters(29);
+		public static final double kLevelTwoHeight = Units.inchesToMeters(8); // TODO: 31.88 from carpet
+		public static final double kLevelThreeHeight = Units.inchesToMeters(29); // TODO: 47.63 from carpet (5.5 off?)
 		// TODO: does this uhh do anything...? since the max height is supposedly lower?
 		// public static final double kLevelFourHeight = Units.inchesToMeters(50);
-		public static final double kLevelFourHeight = Units.inchesToMeters(48);
-		public static final double kMaxExtension = Units.inchesToMeters(49.5); // Likely needs to be upped (safety)
+		public static final double kLevelFourHeight = Units.inchesToMeters(48); // TODO: 72 from carpet
+		public static final double kMaxExtension = Units.inchesToMeters(49.5); // TODO: Likely needs to be upped: safety
 		// TODO: The amount that the elevator decreases in order to score
 		public static final double kClearanceHeight = Units.inchesToMeters(3.5);
 		public static final double kToScoreHeightDecrease = Units.inchesToMeters(0);
