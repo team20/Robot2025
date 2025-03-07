@@ -79,8 +79,10 @@ public class Robot extends TimedRobot {
 	private final CommandPS5Controller m_driverController = new CommandPS5Controller(kDriverControllerPort);
 	private final CommandPS5Controller m_operatorController = new CommandPS5Controller(kOperatorControllerPort);
 	private final PowerDistribution m_pdh = new PowerDistribution();
-	private final VisionSimulator m_visionSimulator = new VisionSimulator(m_driveSubsystem,
-			pose(kFieldLayout.getFieldLength() / 2 + 1.5, 1.91 + .3, 0), 0.01);
+	private final VisionSimulator m_visionSimulator = RobotBase.isReal() ? null
+			: new VisionSimulator(m_driveSubsystem,
+					pose(kFieldLayout.getFieldLength() / 2, kFieldLayout.getFieldWidth() / 2, 0),
+					0.05); // movement overestimation by 5%
 	SimCameraProperties cameraProp = new SimCameraProperties() {
 		{
 			setCalibration(640, 480, Rotation2d.fromDegrees(100));
@@ -97,10 +99,10 @@ public class Robot extends TimedRobot {
 		}
 	};
 	private final PhotonCamera m_camera1 = RobotBase.isSimulation()
-			? cameraSim("Camera1", kRobotToCamera1, m_visionSimulator, cameraProp)
+			? cameraSim("FrontCamera", kRobotToCamera1, m_visionSimulator, cameraProp)
 			: new PhotonCamera("FrontCamera");
 	private final PhotonCamera m_camera2 = RobotBase.isSimulation()
-			? cameraSim("Camera2", kRobotToCamera2, m_visionSimulator, cameraProp)
+			? cameraSim("BackCamera", kRobotToCamera2, m_visionSimulator, cameraProp)
 			: new PhotonCamera("BackCamera");
 	private final PoseEstimationSubsystem m_poseEstimationSubsystem = new PoseEstimationSubsystem(m_driveSubsystem)
 			.addCamera(m_camera1, kRobotToCamera1)
@@ -156,30 +158,11 @@ public class Robot extends TimedRobot {
 						toClosestTag(kRobotToTagsRight));
 		m_testingChooser
 				.addOption(
-						"Left Align to the Closest Tag + Score at Level 2",
-						sequence(toClosestTag(kRobotToTagsLeft), scoreLevelTwoInTeleop()));
+						"Score at Level 2", scoreLevelTwoInTeleop());
 		m_testingChooser
 				.addOption(
 						"Right Align to the Closest Tag + Score at Level 2",
 						sequence(toClosestTag(kRobotToTagsRight), scoreLevelTwoInTeleop()));
-		double distanceTolerance = 0.01;
-		double angleToleranceInDegrees = 1;
-		double intermediateDistanceTolerance = 0.08;
-		double intermediateAngleToleranceInDegrees = 8.0;
-		m_testingChooser
-				.addOption(
-						"Quickly Align AprilTags 7, 8, 9",
-						CommandComposer.alignToTags(
-								distanceTolerance, angleToleranceInDegrees, intermediateDistanceTolerance,
-								intermediateAngleToleranceInDegrees, Arrays.asList(kRobotToTagsLeft),
-								kRobotToTagsLeft[0], 7, 8, 9, 8, 7));
-		m_testingChooser
-				.addOption(
-						"Quickly Align AprilTags 18, 19, 20",
-						CommandComposer.alignToTags(
-								distanceTolerance, angleToleranceInDegrees, intermediateDistanceTolerance,
-								intermediateAngleToleranceInDegrees, Arrays.asList(kRobotToTagsLeft),
-								kRobotToTagsLeft[0], 18, 19, 20, 19, 18));
 		m_testingChooser
 				.addOption(
 						"Check All Subsystems",
@@ -207,25 +190,40 @@ public class Robot extends TimedRobot {
 						m_driveSubsystem.testCommand(0.5, Math.toRadians(45), 1.0));
 		m_testingChooser
 				.addOption(
-						"Test Absolute Orientation",
+						"Check Absolute Orientation",
 						testAbsoluteOrientation(2));
+		double distanceTolerance = 0.01;
+		double angleToleranceInDegrees = 1;
+		double intermediateDistanceTolerance = 0.08;
+		double intermediateAngleToleranceInDegrees = 8.0;
 		m_testingChooser
 				.addOption(
-						"Quickly Align AprilTags 17, 18, 19, 20, 21, and 22",
+						"Reposition the Robot in Simulation",
+						runOnce(() -> repositionSimulatedRobot()));
+		m_testingChooser
+				.addOption(
+						"Align to AprilTags 17, 18, 19, 20, 21, and 22",
 						CommandComposer.alignToTags(
 								distanceTolerance, angleToleranceInDegrees, intermediateDistanceTolerance,
 								intermediateAngleToleranceInDegrees, Arrays.asList(kRobotToTagsLeft),
 								kRobotToTagsLeft[0], 17, 18, 19, 20, 21, 22, 17));
 		m_testingChooser
 				.addOption(
-						"Quickly Align to AprilTags 12, 13, 17, 18, and 19",
+						"Align to AprilTags 6, 7, 8, 9, 10, and 11",
+						CommandComposer.alignToTags(
+								distanceTolerance, angleToleranceInDegrees, intermediateDistanceTolerance,
+								intermediateAngleToleranceInDegrees, Arrays.asList(kRobotToTagsLeft),
+								kRobotToTagsLeft[0], 6, 7, 8, 9, 10, 11, 6));
+		m_testingChooser
+				.addOption(
+						"Align to AprilTags 12, 13, 17, 18, and 19",
 						CommandComposer.alignToTags(
 								distanceTolerance, angleToleranceInDegrees, intermediateDistanceTolerance,
 								intermediateAngleToleranceInDegrees, Arrays.asList(kRobotToTags), kRobotToTags[0], 18,
 								17, 12, 17, 18, 19, 13, 19, 18));
 		m_testingChooser
 				.addOption(
-						"Quickly Align to AprilTags 1, 2, 6, 7, and 8",
+						"Align to AprilTags 1, 2, 6, 7, and 8",
 						CommandComposer.alignToTags(
 								distanceTolerance, angleToleranceInDegrees, intermediateDistanceTolerance,
 								intermediateAngleToleranceInDegrees, Arrays.asList(kRobotToTags), kRobotToTags[0], 7, 6,
@@ -247,8 +245,8 @@ public class Robot extends TimedRobot {
 				.addOption(
 						"Fastest Forward/Backward Movement Test (5m)",
 						sequence(
-								CommandComposer.moveStraight(5, 0.1, 10),
-								CommandComposer.moveStraight(-5, 0.1, 10)));
+								CommandComposer.moveStraight(5, 0.01, 1),
+								CommandComposer.moveStraight(-5, 0.01, 1)));
 		m_testingChooser
 				.addOption(
 						"Fastest Rotation Test (5 rotations)",
@@ -297,14 +295,6 @@ public class Robot extends TimedRobot {
 		// () -> -m_driverController.getLeftY(),
 		// () -> -m_driverController.getLeftX(),
 		// () -> m_driverController.getL2Axis() - m_driverController.getR2Axis(),
-		// m_driverController.getHID()::getSquareButton)); // makes the robot
-		// robot-oriented
-		// m_driveSubsystem.setDefaultCommand(
-		// m_driveSubsystem.driveCommand(
-		// () -> -m_driverController.getLeftY(),
-		// () -> -m_driverController.getLeftX(),
-		// () -> -m_driverController.getRightY(),
-		// () -> -m_driverController.getRightX(),
 		// m_driverController.getHID()::getSquareButton)); // makes the robot
 		// robot-oriented
 		m_driveSubsystem.setDefaultCommand(
@@ -467,4 +457,37 @@ public class Robot extends TimedRobot {
 		m_visionSimulator.addCamera(cameraSim, robotToCamera);
 		return camera;
 	}
+
+	@Override
+	public void simulationInit() {
+		repositionSimulatedRobot(DriverStation.Alliance.Red, 1);
+	}
+
+	/**
+	 * Repositions the robot in simulation according to the alliance station.
+	 */
+	void repositionSimulatedRobot() {
+		var alliance = DriverStation.getAlliance();
+		if (alliance.isPresent())
+			repositionSimulatedRobot(alliance.get(), DriverStation.getLocation().getAsInt());
+	}
+
+	/**
+	 * Repositions the robot in simulation according to the specified alliance
+	 * station.
+	 * 
+	 * @param alliance the {@code Alliance}
+	 * @param location the location of the team's driver station
+	 */
+	void repositionSimulatedRobot(DriverStation.Alliance alliance, int location) {
+		var redAlliance = alliance == DriverStation.Alliance.Red;
+		Map<Integer, Double> yCoordinates = Map.of(
+				1, kFieldLayout.getFieldWidth() * 3 / 4, 2, kFieldLayout.getFieldWidth() * 2 / 4, 3,
+				kFieldLayout.getFieldWidth() * 1 / 4);
+		m_visionSimulator.setRobotPose(
+				pose(
+						kFieldLayout.getFieldLength() / 2 + 1.2 * (redAlliance ? 1 : -1),
+						yCoordinates.get(location), redAlliance ? 0 : 180));
+	}
+
 }

@@ -86,9 +86,9 @@ public class Constants {
 		public static final int kBackLeftCANCoderPort = 32;
 
 		// TODO: Make sure these are tuned (can do with SysId)
-		public static final double kP = 0.04;
+		public static final double kP = 0.04; // TODO: tune it
 		public static final double kI = 0.0;
-		public static final double kD = 0;
+		public static final double kD = 0; // TODO: tune it
 		public static final double kS = 0;
 		public static final double kV = 0.11;
 		public static final double kA = 0.009;
@@ -134,24 +134,24 @@ public class Constants {
 			kDriveConfig.OpenLoopRamps.VoltageOpenLoopRampPeriod = kRampRate;
 		}
 
-		public static final double kTeleopDriveMaxSpeed = 12.0; // 5 meters per second
-		public static final double kTeleopTurnMaxAngularSpeed = Math.toRadians(360 * 5);
+		public static final double kTeleopDriveMaxSpeed = 12.0; // TODO: 12 meters per second
+		public static final double kTeleopTurnMaxAngularSpeed = Math.toRadians(360 * 5);// TODO: 5 rotations per second
 
-		public static final double kDriveMaxSpeed = 12.0; // 5 meters per second
-		public static final double kDriveMinSpeed = 0.2; // 0.2 meters per second
-		public static final double kTurnMaxAngularSpeed = Math.toRadians(360); // 1 rotation per second
+		public static final double kDriveMaxSpeed = 12.0; // TODO: 12 meters per second
+		public static final double kDriveMinSpeed = 0.2; // TODO: 0.2 meters per second
+		public static final double kTurnMaxAngularSpeed = Math.toRadians(360); // TODO: 1 rotation per second
 		public static final double kTurnMinAngularSpeed = Math.toRadians(0); // 0 degree per second
 
 		// DriveCommand.java Constants
 		public static final double kDriveP = 5;
 		public static final double kDriveI = 0;
 		public static final double kDriveD = 0;
-		public static final double kDriveMaxAcceleration = 2 * kDriveMaxSpeed; // kDriveMaxSpeed in 1.5 sec
+		public static final double kDriveMaxAcceleration = 2 * kDriveMaxSpeed; // TODO: kDriveMaxSpeed in 1.5 sec
 
 		public static final double kTurnP = 5;
 		public static final double kTurnI = 0;
 		public static final double kTurnD = 0.1;
-		public static final double kTurnMaxAcceleration = 2 * kTurnMaxAngularSpeed; // kTurnMaxAngularSpeed in 0.5
+		public static final double kTurnMaxAcceleration = 2 * kTurnMaxAngularSpeed; // TODO: kTurnMaxAngularSpeed in 0.5
 	}
 
 	public static final class ElevatorConstants {
@@ -166,6 +166,9 @@ public class Constants {
 		public static final double kV = 5.3794;
 		public static final double kA = 0.74041;
 		public static final double kGearRatio = 10;
+		public static final double kMaxOutput = 0.5;
+		public static final double kMinOutput = -kMaxOutput;
+
 		/**
 		 * 24 teeth, 5 mm pitch, one rotation moves 120 mm, 2 stage cascading elevator
 		 * means total height change is 240 mm.

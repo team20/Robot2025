@@ -242,6 +242,8 @@ public class DriveSubsystem extends SubsystemBase {
 	 *        the robot face forward (+X direction).
 	 * @param strafeOrientation Strafe orientation supplier. Positive values make
 	 *        the robot face left (+Y direction).
+	 * @param rotation Rotation supplier. Positive values make
+	 *        the robot rotate left (CCW direction).
 	 * @param isRobotRelative Supplier for determining if driving should be robot
 	 *        relative.
 	 * @return A command to drive the robot.
@@ -252,29 +254,6 @@ public class DriveSubsystem extends SubsystemBase {
 		return run(
 				() -> drive(
 						chassisSpeeds(forwardSpeed, strafeSpeed, forwardOrientation, strafeOrientation, rotation),
-						!isRobotRelative.getAsBoolean())).withName("DefaultDriveCommand");
-	}
-
-	/**
-	 * Creates a {@code Command} to drive the robot with joystick input.
-	 *
-	 * @param forwardSpeed Forward speed supplier. Positive values make the robot
-	 *        go forward (+X direction).
-	 * @param strafeSpeed Strafe speed supplier. Positive values make the robot
-	 *        go to the left (+Y direction).
-	 * @param forwardOrientation Forward orientation supplier. Positive values make
-	 *        the robot face forward (+X direction).
-	 * @param strafeOrientation Strafe orientation supplier. Positive values make
-	 *        the robot face left (+Y direction).
-	 * @param isRobotRelative Supplier for determining if driving should be robot
-	 *        relative.
-	 * @return A command to drive the robot.
-	 */
-	public Command driveCommand(DoubleSupplier forwardSpeed, DoubleSupplier strafeSpeed,
-			DoubleSupplier forwardOrientation, DoubleSupplier strafeOrientation, BooleanSupplier isRobotRelative) {
-		return run(
-				() -> drive(
-						chassisSpeeds(forwardSpeed, strafeSpeed, forwardOrientation, strafeOrientation),
 						!isRobotRelative.getAsBoolean())).withName("DefaultDriveCommand");
 	}
 
@@ -320,34 +299,6 @@ public class DriveSubsystem extends SubsystemBase {
 		if (orientation.getNorm() > 0.05) {
 			var angle = orientation.getAngle();
 			omegaRadiansPerSecond += m_orientationController
-					.calculate(getHeading().getRadians(), angle.getRadians());
-			m_targetHeadingPublisher.set(angle);
-		}
-		return chassisSpeeds(forwardSpeed, strafeSpeed, omegaRadiansPerSecond);
-	}
-
-	/**
-	 * Creates a {@code ChassisSpeeds} instance to drive the robot with joystick
-	 * input.
-	 *
-	 * @param forwardSpeed Forward speed supplier. Positive values make the robot
-	 *        go forward (+X direction).
-	 * @param strafeSpeed Strafe speed supplier. Positive values make the robot
-	 *        go to the left (+Y direction).
-	 * @param forwardOrientation Forward orientation supplier. Positive values make
-	 *        the robot face forward (+X direction).
-	 * @param strafeOrientation Strafe orientation supplier. Positive values make
-	 *        the robot face left (+Y direction).
-	 * @return a {@code ChassisSpeeds} instance to drive the robot with joystick
-	 *         input
-	 */
-	public ChassisSpeeds chassisSpeeds(DoubleSupplier forwardSpeed, DoubleSupplier strafeSpeed,
-			DoubleSupplier forwardOrientation, DoubleSupplier strafeOrientation) {
-		var orientation = new Translation2d(forwardOrientation.getAsDouble(), strafeOrientation.getAsDouble());
-		double omegaRadiansPerSecond = 0;
-		if (orientation.getNorm() > 0.05) {
-			var angle = orientation.getAngle();
-			omegaRadiansPerSecond = m_orientationController
 					.calculate(getHeading().getRadians(), angle.getRadians());
 			m_targetHeadingPublisher.set(angle);
 		}
@@ -423,6 +374,12 @@ public class DriveSubsystem extends SubsystemBase {
 		return runOnce(m_gyro::zeroYaw).withName("ResetHeadingCommand");
 	}
 
+	/**
+	 * Resets the odometry of this {@code DriveSubsystem}.
+	 * 
+	 * @param pose the {@code Pose2d} to which the odometry to set to
+	 * @return a {@code Command} to the odometry of this {@code DriveSubsystem}
+	 */
 	public Command resetOdometry(Pose2d pose) {
 		return runOnce(() -> m_odometry.resetPosition(getHeading(), getModulePositions(), pose))
 				.withName("ResetOdometryCommand");
