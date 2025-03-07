@@ -103,30 +103,29 @@ public class CommandComposer {
 	public static Command score(Command align, int level, Command pickup) {
 		switch (level) {
 			case 4:
-				return scoreWithAlignment(kLevelFourHeight, kGrabberAngleLevelFour, align, pickup);
+				return scoreWithAlignment(kLevelFourHeight, 0.03, kGrabberAngleLevelFour, align, pickup);
 			case 3:
-				return scoreWithAlignment(kLevelThreeHeight, kGrabberAngleOthers, align, pickup);
+				return scoreWithAlignment(kLevelThreeHeight, 0.03, kGrabberAngleOthers, align, pickup);
 			case 2:
-				return scoreWithAlignment(kLevelTwoHeight, kGrabberAngleOthers, align, pickup);
+				return scoreWithAlignment(kLevelTwoHeight, 0.05, kGrabberAngleOthers, align, pickup);
 			case 1:
-				return scoreWithAlignment(kLevelOneHeight, kGrabberAngleOthers, align, pickup);
+				return scoreWithAlignment(kLevelOneHeight, 0.55, kGrabberAngleOthers, align, pickup);
 		}
 		return runOnce(() -> {
 		});
 	}
 
-	private static Command scoreWithAlignment(double level, double angle, Command align, Command pickup) {
+	private static Command scoreWithAlignment(double level, double clearanceHeight, double wristAngle, Command align,
+			Command pickup) {
 		return sequence(
 				parallel(
 						sequence(
 								pickup,
-								parallel(
-										m_elevatorSubsystem.goToLevel(() -> level),
-										sequence(new WaitCommand(.5), m_wristSubsystem.goToAngle(angle)))),
+								m_elevatorSubsystem.goToClearanceHeight(level, clearanceHeight),
+								m_wristSubsystem.goToAngle(wristAngle)),
 						align),
-				m_elevatorSubsystem.lowerToScore(),
-				m_cheeseStickSubsystem.release(),
-				new WaitCommand(0.1));
+				m_elevatorSubsystem.goToLevel(() -> level),
+				score());
 	}
 
 	private static Command toStation(int tagID) {
@@ -145,12 +144,26 @@ public class CommandComposer {
 				levelCommand.get());
 	}
 
+	public static Command score() {
+		return sequence(m_cheeseStickSubsystem.release(), new WaitCommand(1), m_wristSubsystem.goToAngle(270));
+	}
+
 	public static Command scoreLevelOneInTeleop() {
 		return scoreLevelInTeleop(kLevelOneHeight, 0.55, m_elevatorSubsystem::goToLevelOneHeight, kGrabberAngleOthers);
 	}
 
 	public static Command scoreLevelTwoInTeleop() {
 		return scoreLevelInTeleop(kLevelTwoHeight, 0.05, m_elevatorSubsystem::goToLevelTwoHeight, kGrabberAngleOthers);
+	}
+
+	public static Command scoreLevelThreeInTeleop() {
+		return scoreLevelInTeleop(
+				kLevelThreeHeight, 0.03, m_elevatorSubsystem::goToLevelThreeHeight, kGrabberAngleOthers);
+	}
+
+	public static Command scoreLevelFourInTeleop() {
+		return scoreLevelInTeleop(
+				kLevelFourHeight, 0.03, m_elevatorSubsystem::goToLevelFourHeight, kGrabberAngleLevelFour);
 	}
 
 	public static Command removeAlgaeLevelThree() {

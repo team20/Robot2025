@@ -73,8 +73,8 @@ public class WristSubsystem extends SubsystemBase {
 		if (RobotBase.isSimulation()) {
 			m_wristSim = new SparkMaxSim(m_wristMotor, DCMotor.getNEO(1));
 			m_absoluteEncoderSim = new SparkAbsoluteEncoderSim(m_wristMotor);
-			m_wristModel = new SingleJointedArmSim(DCMotor.getNEO(1), 5, 1, 0.1, Math.PI / 2,
-					3 * Math.PI / 2, false, 3 * Math.PI / 2);
+			m_wristModel = new SingleJointedArmSim(DCMotor.getNEO(1), 5, .03, 0.1, Math.PI / 2,
+					3 * Math.PI / 2, true, 3 * Math.PI / 2);
 		} else {
 			m_wristSim = null;
 			m_absoluteEncoderSim = null;
