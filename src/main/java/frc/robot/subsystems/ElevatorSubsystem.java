@@ -88,7 +88,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 		resetEncoder();
 		if (RobotBase.isSimulation()) {
 			m_elevatorMotorSim = new SparkMaxSim(m_elevatorMotor, DCMotor.getNEO(1));
-			m_elevatorModel = new ElevatorSim(DCMotor.getNEO(1), kGearRatio, Units.lbsToKilograms(20),
+			m_elevatorModel = new ElevatorSim(DCMotor.getNEO(1), kGearRatio, Units.lbsToKilograms(3),
 					kMetersPerPulleyRotation / (2 * Math.PI), 0,
 					Units.inchesToMeters(90), true, 0);
 		} else {
@@ -239,6 +239,15 @@ public class ElevatorSubsystem extends SubsystemBase {
 	}
 
 	/**
+	 * Moves the elevator to the given height in inches
+	 * 
+	 * @return the command
+	 */
+	public Command goToHeight(int height) {
+		return goToLevel(() -> Units.inchesToMeters(height)).withName("Elevator to Height");
+	}
+
+	/**
 	 * Moves the elevator to the level one position
 	 * 
 	 * @return the command
@@ -351,9 +360,8 @@ public class ElevatorSubsystem extends SubsystemBase {
 						.until(() -> getPosition() > 0.2), // should stop when level is > 0.2
 				runOnce(() -> setSpeed(0.0)), new WaitCommand(duration), // should go down due to gravity
 				goToLevelOneHeight(), // checking goToLevel(DoubleSupplier)
-				goToLevelThreeHeight(), new WaitCommand(duration), // should stay at level 3
+				goToLevelThreeHeight(), goToBaseHeight(), new WaitCommand(duration), // should stay at level 3
 				goToLevelTwoHeight(), new WaitCommand(duration), // should stay at level 2
-				goToLevelFourHeight(),
-				goToBaseHeight());
+				goToLevelFourHeight(), goToLevel(() -> 0));
 	}
 }

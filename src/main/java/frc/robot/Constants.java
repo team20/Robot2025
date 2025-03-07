@@ -90,7 +90,7 @@ public class Constants {
 		public static final double kI = 0.0;
 		public static final double kD = 0;
 		public static final double kS = 0;
-		public static final double kV = 0.11;
+		public static final double kV = 0.12;
 		public static final double kA = 0.009;
 
 		public static final double kRotationP = 5; // TODO: tune it
@@ -158,11 +158,11 @@ public class Constants {
 		public static final int kElevatorMotorPort = 26;
 		public static final int kSmartCurrentLimit = 60; // TODO: 45
 		public static final int kSecondaryCurrentLimit = 70;
-		public static final double kP = 1.1;
+		public static final double kP = 2.0;
 		public static final double kI = 0;
 		public static final double kD = 0;
 		public static final double kS = 0.05631;
-		public static final double kG = 0.22876;
+		public static final double kG = 0.43;
 		public static final double kV = 5.3794;
 		public static final double kA = 0.74041;
 		public static final double kGearRatio = 10;
@@ -182,15 +182,15 @@ public class Constants {
 				* kMetersPerPulleyRotation;
 		public static final double kMaxVelocity = 2.75;
 		public static final double kMaxAccel = 2.5;
-		public static final double kTolerance = 1;
+		public static final double kTolerance = 0.01;
 		// TODO: During testing make sure these are right
 		public static final double kLevelOneHeight = Units.inchesToMeters(3);
 		public static final double kLevelTwoHeight = Units.inchesToMeters(8);
 		public static final double kLevelThreeHeight = Units.inchesToMeters(29);
-		public static final double kLevelFourHeight = Units.inchesToMeters(50); // TODO: does this uhh do anything...?
-																				// since the max height is well,
-																				// supposedly lower?
-		public static final double kMaxExtension = 1.25 - 0.01; // Likely needs to be upped (safety)
+		// TODO: does this uhh do anything...? since the max height is supposedly lower?
+		// public static final double kLevelFourHeight = Units.inchesToMeters(50);
+		public static final double kLevelFourHeight = Units.inchesToMeters(48);
+		public static final double kMaxExtension = Units.inchesToMeters(49.5); // Likely needs to be upped (safety)
 		// TODO: The amount that the elevator decreases in order to score
 		public static final double kClearanceHeight = Units.inchesToMeters(3.5);
 		public static final double kToScoreHeightDecrease = Units.inchesToMeters(0);
@@ -211,7 +211,7 @@ public class Constants {
 
 		public static final double kWristForwardSoftLimit = 274; // Wrist facing down
 		public static final double kWristReverseSoftLimit = 90; // Wrist facing up
-		public static final double kWristOffset = 0.104;
+		public static final double kWristOffset = 0.75;
 
 		// TODO: Make sure these are tuned (can do with SysId)
 		public static final double kP = 0.01;
