@@ -80,7 +80,9 @@ public class ElevatorSubsystem extends SubsystemBase {
 		resetEncoder();
 		if (RobotBase.isSimulation()) {
 			m_elevatorMotorSim = new SparkMaxSim(m_elevatorMotor, DCMotor.getNEO(1));
-			m_elevatorModel = new ElevatorSim(DCMotor.getNEO(1), kGearRatio, Units.lbsToKilograms(20),
+			m_elevatorModel = new ElevatorSim(DCMotor.getNEO(1), kGearRatio,
+					// Units.lbsToKilograms(20),
+					Units.lbsToKilograms(6),
 					kMetersPerPulleyRotation / (2 * Math.PI), 0,
 					Units.inchesToMeters(90), true, 0);
 		} else {
@@ -150,7 +152,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 
 	@Override
 	public void periodic() {
-		m_elevatorLigament.setLength(Units.inchesToMeters(24) + getPosition());
+		m_elevatorLigament.setLength(Units.inchesToMeters(36) + getPosition());
 		SmartDashboard.putNumber("Elevator/Extension", getPosition());
 	}
 

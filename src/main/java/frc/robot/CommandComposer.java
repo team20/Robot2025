@@ -54,7 +54,7 @@ public class CommandComposer {
 		m_poseEstimationSubsystem = poseEstimationSubsystem;
 	}
 
-	private static Command scoreLevelInTeleop(double level, double clearanceHeight, Supplier<Command> levelCommand,
+	static Command scoreLevelInTeleop(double level, double clearanceHeight, Supplier<Command> levelCommand,
 			double wristAngle) {
 		return sequence(
 				m_elevatorSubsystem.goToClearanceHeight(level, clearanceHeight),

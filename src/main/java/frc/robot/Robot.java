@@ -51,6 +51,7 @@ import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
@@ -148,6 +149,54 @@ public class Robot extends TimedRobot {
 	}
 
 	public void addTestingCommands() {
+		m_testingChooser
+				.addOption(
+						"Prepare Score at Level 3",
+						scoreLevelInTeleop(
+								kLevelThreeHeight, 0.03, m_elevatorSubsystem::goToLevelThreeHeight,
+								kGrabberAngleOthers));
+		m_testingChooser
+				.addOption(
+						"Prepare Score at Level 4",
+						scoreLevelInTeleop(
+								kLevelFourHeight, 0.03, m_elevatorSubsystem::goToLevelFourHeight,
+								kGrabberAngleLevelFour));
+		m_testingChooser
+				.addOption(
+						"Score at Level 3",
+						sequence(
+								scoreLevelInTeleop(
+										kLevelThreeHeight, 0.03, m_elevatorSubsystem::goToLevelThreeHeight,
+										kGrabberAngleOthers),
+								m_cheeseStickSubsystem.release(), new WaitCommand(1), m_wristSubsystem.goToAngle(270)));
+		m_testingChooser
+				.addOption(
+						"Score at Level 4",
+						sequence(
+								scoreLevelInTeleop(
+										kLevelFourHeight, 0.03, m_elevatorSubsystem::goToLevelFourHeight,
+										kGrabberAngleLevelFour),
+								m_cheeseStickSubsystem.release(), new WaitCommand(1), m_wristSubsystem.goToAngle(270)));
+		m_testingChooser
+				.addOption(
+						"Pick Up and Score at Level 3",
+						sequence(
+								prepareForCoralPickup(), new WaitCommand(3),
+								goToBase(),
+								scoreLevelInTeleop(
+										kLevelThreeHeight, 0.03, m_elevatorSubsystem::goToLevelThreeHeight,
+										kGrabberAngleOthers),
+								m_cheeseStickSubsystem.release(), new WaitCommand(1), m_wristSubsystem.goToAngle(270)));
+		m_testingChooser
+				.addOption(
+						"Pick Up and Score at Level 4",
+						sequence(
+								prepareForCoralPickup(), new WaitCommand(3),
+								goToBase(),
+								scoreLevelInTeleop(
+										kLevelFourHeight, 0.03, m_elevatorSubsystem::goToLevelFourHeight,
+										kGrabberAngleLevelFour),
+								m_cheeseStickSubsystem.release(), new WaitCommand(1), m_wristSubsystem.goToAngle(270)));
 		m_testingChooser
 				.addOption(
 						"Left Align to the Closest Tag",
