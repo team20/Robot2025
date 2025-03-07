@@ -215,7 +215,7 @@ public class Constants {
 
 		public static final double kWristForwardSoftLimit = 274; // Wrist facing down
 		public static final double kWristReverseSoftLimit = 90; // Wrist facing up
-		public static final double kWristOffset = 0.104;
+		public static final double kWristOffset = 0.75;
 
 		// TODO: Make sure these are tuned (can do with SysId)
 		public static final double kP = 0.01;
