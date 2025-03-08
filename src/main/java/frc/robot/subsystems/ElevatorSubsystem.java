@@ -24,9 +24,12 @@ import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
+import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
@@ -43,6 +46,12 @@ public class ElevatorSubsystem extends SubsystemBase {
 	private final RelativeEncoder m_elevatorEncoder = m_elevatorMotor.getEncoder();
 	private final SparkClosedLoopController m_closedLoopController = m_elevatorMotor.getClosedLoopController();
 
+	private final Timer m_timer = new Timer();
+	private final ElevatorFeedforward m_ff = new ElevatorFeedforward(kS, kG, kV, kA);
+	private final TrapezoidProfile m_profile = new TrapezoidProfile(
+			new TrapezoidProfile.Constraints(kMaxVelocity, kMaxAccel));
+	// Adjust ramp rate, step voltage, and timeout to make sure elevator doesn't
+	// break
 	private final SysIdRoutine m_sysidRoutine = new SysIdRoutine(
 			new SysIdRoutine.Config(Volts.of(1.5).div(Seconds.of(1)), Volts.of(2), Seconds.of(2)),
 			new SysIdRoutine.Mechanism(m_elevatorMotor::setVoltage, null, this));
@@ -71,8 +80,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 				.voltageCompensation(12);
 		config.closedLoop
 				.feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-				.pid(kP, kI, kD)
-				.outputRange(kMinOutput, kMaxOutput);
+				.pid(kP, kI, kD);
 		config.softLimit.forwardSoftLimit(kMaxExtension).forwardSoftLimitEnabled(true);
 		config.encoder.positionConversionFactor(kMetersPerMotorRotation)
 				.velocityConversionFactor(kMetersPerMotorRotation / 60);
@@ -188,17 +196,34 @@ public class ElevatorSubsystem extends SubsystemBase {
 	}
 
 	/**
-	 * Returns a {@code Command} to move the elevator to the specified level.
+	 * Using Trapezoid Profile to set the position of the elevator
 	 * 
-	 * @param level a {@code DoubleSupplier} that returns the target level
-	 * @return a {@code Command} to move the elevator to the specified level
+	 * @param level A function that returns the level we want to go to
+	 * @return the command
 	 */
 	public Command goToLevel(DoubleSupplier level) {
+		var initial = new TrapezoidProfile.State();
+		var finalState = new TrapezoidProfile.State();
+
 		return startRun(() -> {
-			setPosition(level.getAsDouble(), kG + kS);
-			SmartDashboard.putNumber("Elevator/Goal", m_setPosition);
+			m_timer.restart();
+			initial.position = getPosition();
+			finalState.position = level.getAsDouble();
+			SmartDashboard.putNumber("Elevator/Goal", level.getAsDouble());
 		}, () -> {
-		}).until(() -> atSetpoint());
+			double time = m_timer.get();
+			TrapezoidProfile.State currentState = m_profile.calculate(time, initial, finalState);
+			TrapezoidProfile.State nextState = m_profile.calculate(time + 0.02, initial, finalState);
+			double ff = m_ff.calculateWithVelocities(currentState.velocity, nextState.velocity);
+			setPosition(nextState.position, ff);
+			SmartDashboard.putNumber("Elevator/Current Target Position", currentState.position);
+			SmartDashboard.putNumber("Elevator/Current Target Velocity", currentState.velocity);
+			SmartDashboard.putNumber("Elevator/Next Target Position", nextState.position);
+			SmartDashboard.putNumber("Elevator/Next Target Velocity", nextState.velocity);
+			SmartDashboard.putNumber("Elevator/Profile Time", m_profile.totalTime());
+			SmartDashboard.putNumber("Elevator/Current Time", m_timer.get());
+		}).until(() -> Math.abs(finalState.position - getPosition()) <= kTolerance);
+		// }).until(() -> m_profile.isFinished(m_timer.get()));
 	}
 
 	/**

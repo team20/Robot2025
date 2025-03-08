@@ -103,9 +103,9 @@ public class CommandComposer {
 	public static Command score(Command align, int level, Command pickup) {
 		switch (level) {
 			case 4:
-				return scoreWithAlignment(kLevelFourHeight, 0.03, kGrabberAngleLevelFour, align, pickup);
+				return scoreWithAlignment(kLevelFourHeight, 0.015, kGrabberAngleLevelFour, align, pickup);
 			case 3:
-				return scoreWithAlignment(kLevelThreeHeight, 0.03, kGrabberAngleOthers, align, pickup);
+				return scoreWithAlignment(kLevelThreeHeight, 0.015, kGrabberAngleOthers, align, pickup);
 			case 2:
 				return scoreWithAlignment(kLevelTwoHeight, 0.05, kGrabberAngleOthers, align, pickup);
 			case 1:
@@ -158,12 +158,12 @@ public class CommandComposer {
 
 	public static Command scoreLevelThreeInTeleop() {
 		return scoreLevelInTeleop(
-				kLevelThreeHeight, 0.03, m_elevatorSubsystem::goToLevelThreeHeight, kGrabberAngleOthers);
+				kLevelThreeHeight, 0.15, m_elevatorSubsystem::goToLevelThreeHeight, kGrabberAngleOthers);
 	}
 
 	public static Command scoreLevelFourInTeleop() {
 		return scoreLevelInTeleop(
-				kLevelFourHeight, 0.03, m_elevatorSubsystem::goToLevelFourHeight, kGrabberAngleLevelFour);
+				kLevelFourHeight, 0.15, m_elevatorSubsystem::goToLevelFourHeight, kGrabberAngleLevelFour);
 	}
 
 	public static Command removeAlgaeLevelThree() {

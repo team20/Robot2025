@@ -166,8 +166,6 @@ public class Constants {
 		public static final double kV = 5.3794;
 		public static final double kA = 0.74041;
 		public static final double kGearRatio = 10;
-		public static final double kMaxOutput = 0.55; // TODO: increase as long as the elevator doesn't skip
-		public static final double kMinOutput = -kMaxOutput;
 
 		/**
 		 * 24 teeth, 5 mm pitch, one rotation moves 120 mm, 2 stage cascading elevator
