@@ -191,7 +191,7 @@ public class Constants {
 		public static final double kLevelThreeHeight = Units.inchesToMeters(29); // TODO: 47.63 from carpet (5.5 off?)
 		// TODO: does this uhh do anything...? since the max height is supposedly lower?
 		// public static final double kLevelFourHeight = Units.inchesToMeters(50);
-		public static final double kLevelFourHeight = Units.inchesToMeters(48 + 0.75); // TODO: 72 from carpet
+		public static final double kLevelFourHeight = Units.inchesToMeters(48 + 0.75 + 0.5); // TODO: 72 from carpet
 		public static final double kMaxExtension = Units.inchesToMeters(49.5 + 0.75); // TODO: Likely needs to be upped:
 		// safety
 		// TODO: The amount that the elevator decreases in order to score
@@ -209,7 +209,7 @@ public class Constants {
 		public static final int kSecondaryCurrentLimit = 20;
 		public static final int kGrabberAngleLevelFour = 223;
 		public static final int kGrabberAngleOthers = 221; // 5 degrees steeper from previous value (215)
-		public static final int kGrabberAngleLevelThree = 240;
+		public static final int kGrabberAngleLevelThree = 235;
 		public static final double kAlgaeWristHeight = 170;
 
 		public static final double kWristForwardSoftLimit = 274; // Wrist facing down
@@ -217,9 +217,9 @@ public class Constants {
 		public static final double kWristOffset = 0.75;
 
 		// TODO: Make sure these are tuned (can do with SysId)
-		public static final double kP = 0.025; // 0.01
+		public static final double kP = 0.015; // 0.01
 		public static final double kI = 0.0;
-		public static final double kD = 0.0004; // TODO: 0.0?
+		public static final double kD = 0.001; // TODO: 0.0?
 
 		public static final double kTolerance = 4; // TODO: Change this
 

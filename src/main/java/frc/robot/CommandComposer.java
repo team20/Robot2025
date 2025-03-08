@@ -103,9 +103,10 @@ public class CommandComposer {
 	public static Command score(Command align, int level, Command pickup) {
 		switch (level) {
 			case 4:
-				return score(kLevelFourHeight, kGrabberAngleLevelFour, 0.02, align, pickup);
+				return score(
+						kLevelFourHeight, kGrabberAngleLevelFour, 0.05, align, pickup, m_wristSubsystem.goToAngle(200));
 			case 3:
-				return score(kLevelThreeHeight, kGrabberAngleLevelThree, 0.02, align, pickup);
+				return score(kLevelThreeHeight, kGrabberAngleLevelThree, 0.13, align, pickup);
 			case 2:
 				return score(kLevelTwoHeight, kGrabberAngleOthers, 0.02, align, pickup);
 			case 1:
@@ -125,7 +126,7 @@ public class CommandComposer {
 				align,
 				sequence(
 						pickup,
-						parallel(
+						sequence(
 								m_elevatorSubsystem.goToLevel(() -> level),
 								m_wristSubsystem.goToAngle(wristAngle))));
 	}
@@ -138,14 +139,20 @@ public class CommandComposer {
 	public static Command score(double distance, Command additional) {
 		return sequence(
 				moveStraight(distance, 0.01, 1), m_cheeseStickSubsystem.release(1),
-				parallel(additional, moveStraight(-distance, 0.01, 1)));
+				parallel(additional, moveStraight(-2 * distance, 0.01, 1)));
 	}
 
 	private static Command score(double level, double wristAngle, double distance, Command align,
 			Command pickup) {
+		return score(level, wristAngle, distance, align, pickup, runOnce(() -> {
+		}));
+	}
+
+	private static Command score(double level, double wristAngle, double distance, Command align,
+			Command pickup, Command additional) {
 		return sequence(
 				prepareToScore(level, wristAngle, align, pickup),
-				score(distance));
+				score(distance, additional));
 	}
 
 	private static Command toStation(int tagID) {
