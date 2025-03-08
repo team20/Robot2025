@@ -184,21 +184,10 @@ public class Robot extends TimedRobot {
 				.addOption(
 						"Pick Up and Score at Level 4",
 						sequence(goToBase(), score(toClosestTag(kRobotToTagsLeft), 4)));
-		m_testingChooser
-				.addOption(
-						"Left Align to the Closest Tag",
-						toClosestTag(kRobotToTagsLeft));
-		m_testingChooser
-				.addOption(
-						"Right Align to the Closest Tag",
-						toClosestTag(kRobotToTagsRight));
-		m_testingChooser
-				.addOption(
-						"Score at Level 2", scoreLevelTwoInTeleop());
-		m_testingChooser
-				.addOption(
-						"Right Align to the Closest Tag + Score at Level 2",
-						sequence(toClosestTag(kRobotToTagsRight), scoreLevelTwoInTeleop()));
+		double distanceTolerance = 0.01;
+		double angleToleranceInDegrees = 1;
+		double intermediateDistanceTolerance = 0.08;
+		double intermediateAngleToleranceInDegrees = 8.0;
 		m_testingChooser
 				.addOption(
 						"Check All Subsystems",
@@ -228,10 +217,6 @@ public class Robot extends TimedRobot {
 				.addOption(
 						"Check Absolute Orientation",
 						testAbsoluteOrientation(2));
-		double distanceTolerance = 0.01;
-		double angleToleranceInDegrees = 1;
-		double intermediateDistanceTolerance = 0.08;
-		double intermediateAngleToleranceInDegrees = 8.0;
 		m_testingChooser
 				.addOption(
 						"Reposition the Robot in Simulation",

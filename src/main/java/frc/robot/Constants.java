@@ -88,7 +88,7 @@ public class Constants {
 		// TODO: Make sure these are tuned (can do with SysId)
 		public static final double kP = 0.04; // TODO: tune it
 		public static final double kI = 0.0;
-		public static final double kD = 0; // TODO: tune it
+		public static final double kD = 0.001;
 		public static final double kS = 0;
 		public static final double kV = 0.12;
 		public static final double kA = 0.009;

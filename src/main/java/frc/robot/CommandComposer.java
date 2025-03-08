@@ -179,16 +179,6 @@ public class CommandComposer {
 		return scoreLevelInTeleop(kLevelTwoHeight, 0.1, m_elevatorSubsystem::goToLevelTwoHeight, kGrabberAngleOthers);
 	}
 
-	public static Command scoreLevelThreeInTeleop() {
-		return scoreLevelInTeleop(
-				kLevelThreeHeight, 0.015, m_elevatorSubsystem::goToLevelThreeHeight, kGrabberAngleOthers);
-	}
-
-	public static Command scoreLevelFourInTeleop() {
-		return scoreLevelInTeleop(
-				kLevelFourHeight, 0.015, m_elevatorSubsystem::goToLevelFourHeight, kGrabberAngleLevelFour);
-	}
-
 	public static Command removeAlgaeLevelThree() {
 		return sequence(
 				m_elevatorSubsystem.goToLevelTwoHeight(),
