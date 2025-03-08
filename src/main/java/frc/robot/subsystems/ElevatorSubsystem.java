@@ -306,7 +306,9 @@ public class ElevatorSubsystem extends SubsystemBase {
 	 * @return
 	 */
 	public Command goToBaseHeight() {
-		return runOnce(() -> m_elevatorEncoder.setPosition(0)).withName("Go To Base Height");
+		return goToLevel(() -> 0).withName("Go To Base Height");
+		// return runOnce(() -> m_elevatorEncoder.setPosition(0)).withName("Go To Base
+		// Height");
 	}
 
 	public Command goToClearanceHeight(double level, double clearanceHeight) {

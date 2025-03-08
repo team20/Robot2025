@@ -341,7 +341,7 @@ public class Robot extends TimedRobot {
 		m_operatorController.L1().and(m_operatorController.triangle()).onTrue(CommandComposer.removeAlgaeLevelThree());
 		m_operatorController.L1().and(m_operatorController.square()).onTrue(CommandComposer.removeAlgaeLevelTwo());
 		m_operatorController.L1().and(m_operatorController.circle()).onTrue(CommandComposer.prepareForCoralPickup());
-		m_operatorController.L1().and(m_operatorController.cross()).onTrue(CommandComposer.pickupAtCoralStation());
+		m_operatorController.L1().and(m_operatorController.cross()).onTrue(CommandComposer.goToBase());
 		m_driverController.square().onTrue(CommandComposer.pickupAtCoralStation());
 		m_operatorController.touchpad().onTrue(m_elevatorSubsystem.stopMotor());
 		m_operatorController.create().onTrue(m_elevatorSubsystem.resetTheEncoder());
