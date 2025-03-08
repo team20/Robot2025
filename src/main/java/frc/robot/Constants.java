@@ -86,9 +86,9 @@ public class Constants {
 		public static final int kBackLeftCANCoderPort = 32;
 
 		// TODO: Make sure these are tuned (can do with SysId)
-		public static final double kP = 0.04;
+		public static final double kP = 0.09;
 		public static final double kI = 0.0;
-		public static final double kD = 0;
+		public static final double kD = 0.001;
 		public static final double kS = 0;
 		public static final double kV = 0.12;
 		public static final double kA = 0.009;
@@ -207,7 +207,7 @@ public class Constants {
 		public static final int kSecondaryCurrentLimit = 20;
 		public static final int kGrabberAngleLevelFour = 223;
 		public static final int kGrabberAngleOthers = 221; // 5 degrees steeper from previous value (215)
-		public static final int kGrabberAngleLevelThree = 240;
+		public static final int kGrabberAngleLevelThree = 235;
 		public static final double kAlgaeWristHeight = 170;
 
 		public static final double kWristForwardSoftLimit = 274; // Wrist facing down
@@ -215,13 +215,11 @@ public class Constants {
 		public static final double kWristOffset = 0.75;
 
 		// TODO: Make sure these are tuned (can do with SysId)
-		public static final double kP = 0.025; // 0.01
+		public static final double kP = 0.025;
 		public static final double kI = 0.0;
 		public static final double kD = 0;
 
 		public static final double kTolerance = 4; // TODO: Change this
-
-		public static final double kMinElevatorExtension = 0.0;
 	}
 
 	public static final class AutoAlignConstants {

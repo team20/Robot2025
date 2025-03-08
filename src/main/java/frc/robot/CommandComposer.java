@@ -122,7 +122,7 @@ public class CommandComposer {
 	}
 
 	public static Command prepareForCoralPickup() {
-		return parallel(
+		return sequence(
 				m_elevatorSubsystem.goToCoralStationHeight(),
 				m_wristSubsystem.goToAngle(270));
 	}
