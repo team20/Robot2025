@@ -103,29 +103,49 @@ public class CommandComposer {
 	public static Command score(Command align, int level, Command pickup) {
 		switch (level) {
 			case 4:
-				return scoreWithAlignment(kLevelFourHeight, 0.015, kGrabberAngleLevelFour, align, pickup);
+				return score(kLevelFourHeight, kGrabberAngleLevelFour, 0.02, align, pickup);
 			case 3:
-				return scoreWithAlignment(kLevelThreeHeight, 0.015, kGrabberAngleOthers, align, pickup);
+				return score(kLevelThreeHeight, kGrabberAngleLevelThree, 0.02, align, pickup);
 			case 2:
-				return scoreWithAlignment(kLevelTwoHeight, 0.05, kGrabberAngleOthers, align, pickup);
+				return score(kLevelTwoHeight, kGrabberAngleOthers, 0.02, align, pickup);
 			case 1:
-				return scoreWithAlignment(kLevelOneHeight, 0.55, kGrabberAngleOthers, align, pickup);
+				return score(kLevelOneHeight, kGrabberAngleOthers, 0.02, align, pickup);
 		}
 		return runOnce(() -> {
 		});
 	}
 
-	private static Command scoreWithAlignment(double level, double clearanceHeight, double wristAngle, Command align,
+	static Command prepareToScore(double level, double wristAngle, Command align) {
+		return prepareToScore(level, wristAngle, align, runOnce(() -> {
+		}));
+	}
+
+	static Command prepareToScore(double level, double wristAngle, Command align, Command pickup) {
+		return parallel(
+				align,
+				sequence(
+						pickup,
+						parallel(
+								m_elevatorSubsystem.goToLevel(() -> level),
+								m_wristSubsystem.goToAngle(wristAngle))));
+	}
+
+	public static Command score(double distance) {
+		return score(distance, runOnce(() -> {
+		}));
+	}
+
+	public static Command score(double distance, Command additional) {
+		return sequence(
+				moveStraight(distance, 0.01, 1), m_cheeseStickSubsystem.release(1),
+				parallel(additional, moveStraight(-distance, 0.01, 1)));
+	}
+
+	private static Command score(double level, double wristAngle, double distance, Command align,
 			Command pickup) {
 		return sequence(
-				parallel(
-						sequence(
-								pickup,
-								m_elevatorSubsystem.goToClearanceHeight(level, clearanceHeight),
-								m_wristSubsystem.goToAngle(wristAngle)),
-						align),
-				m_elevatorSubsystem.goToLevel(() -> level),
-				score());
+				prepareToScore(level, wristAngle, align, pickup),
+				score(distance));
 	}
 
 	private static Command toStation(int tagID) {
@@ -144,10 +164,6 @@ public class CommandComposer {
 				levelCommand.get());
 	}
 
-	public static Command score() {
-		return sequence(m_cheeseStickSubsystem.release(), new WaitCommand(1), m_wristSubsystem.goToAngle(270));
-	}
-
 	public static Command scoreLevelOneInTeleop() {
 		return scoreLevelInTeleop(kLevelOneHeight, 0.6, m_elevatorSubsystem::goToLevelOneHeight, kGrabberAngleOthers);
 	}
@@ -158,12 +174,12 @@ public class CommandComposer {
 
 	public static Command scoreLevelThreeInTeleop() {
 		return scoreLevelInTeleop(
-				kLevelThreeHeight, 0.15, m_elevatorSubsystem::goToLevelThreeHeight, kGrabberAngleOthers);
+				kLevelThreeHeight, 0.015, m_elevatorSubsystem::goToLevelThreeHeight, kGrabberAngleOthers);
 	}
 
 	public static Command scoreLevelFourInTeleop() {
 		return scoreLevelInTeleop(
-				kLevelFourHeight, 0.15, m_elevatorSubsystem::goToLevelFourHeight, kGrabberAngleLevelFour);
+				kLevelFourHeight, 0.015, m_elevatorSubsystem::goToLevelFourHeight, kGrabberAngleLevelFour);
 	}
 
 	public static Command removeAlgaeLevelThree() {
@@ -225,7 +241,7 @@ public class CommandComposer {
 
 	public static Command goToBase() {
 		return sequence(
-				m_wristSubsystem.goToAngle(270),
+				parallel(m_cheeseStickSubsystem.grab(), m_wristSubsystem.goToAngle(270)),
 				m_elevatorSubsystem.goToBaseHeight());
 	}
 

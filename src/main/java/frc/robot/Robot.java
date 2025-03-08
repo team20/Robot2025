@@ -51,7 +51,6 @@ import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
@@ -90,7 +89,7 @@ public class Robot extends TimedRobot {
 			setCalibration(640, 480, Rotation2d.fromDegrees(100));
 			// Approximate detection noise with average and standard deviation error in
 			// pixels.
-			setCalibError(0.35, 0.15);
+			setCalibError(0.25, 0.15);
 			// Set the camera image capture framerate (Note: this is limited by robot loop
 			// rate).
 			setFPS(20);
@@ -163,40 +162,28 @@ public class Robot extends TimedRobot {
 	public void addTestingCommands() {
 		m_testingChooser
 				.addOption(
-						"Go to Level 3", m_elevatorSubsystem.goToClearanceHeight(kLevelThreeHeight, 0.03));
+						"Prepare to Score at Level 3",
+						prepareToScore(kLevelThreeHeight, kGrabberAngleLevelThree, toClosestTag(kRobotToTagsLeft)));
 		m_testingChooser
 				.addOption(
-						"Go to Level 4", m_elevatorSubsystem.goToClearanceHeight(kLevelFourHeight, 0.03));
-		m_testingChooser
-				.addOption(
-						"Prepare Score at Level 3",
-						scoreLevelThreeInTeleop());
-		m_testingChooser
-				.addOption(
-						"Prepare Score at Level 4",
-						scoreLevelFourInTeleop());
+						"Prepare to Score at Level 4",
+						prepareToScore(kLevelFourHeight, kGrabberAngleLevelFour, toClosestTag(kRobotToTagsLeft)));
 		m_testingChooser
 				.addOption(
 						"Score at Level 3",
-						sequence(
-								scoreLevelThreeInTeleop(), score()));
+						score(toClosestTag(kRobotToTagsLeft), 3));
 		m_testingChooser
 				.addOption(
 						"Score at Level 4",
-						sequence(
-								scoreLevelFourInTeleop(), score()));
+						score(toClosestTag(kRobotToTagsLeft), 4));
 		m_testingChooser
 				.addOption(
 						"Pick Up and Score at Level 3",
-						sequence(
-								prepareForCoralPickup(), new WaitCommand(3), goToBase(),
-								scoreLevelThreeInTeleop(), score()));
+						sequence(goToBase(), score(toClosestTag(kRobotToTagsLeft), 3)));
 		m_testingChooser
 				.addOption(
 						"Pick Up and Score at Level 4",
-						sequence(
-								prepareForCoralPickup(), new WaitCommand(3), goToBase(),
-								scoreLevelFourInTeleop(), score()));
+						sequence(goToBase(), score(toClosestTag(kRobotToTagsLeft), 4)));
 		m_testingChooser
 				.addOption(
 						"Left Align to the Closest Tag",
@@ -508,7 +495,7 @@ public class Robot extends TimedRobot {
 
 	@Override
 	public void simulationInit() {
-		repositionSimulatedRobot(DriverStation.Alliance.Red, 1);
+		repositionSimulatedRobot(DriverStation.Alliance.Red, 2);
 	}
 
 	/**
@@ -534,7 +521,7 @@ public class Robot extends TimedRobot {
 				kFieldLayout.getFieldWidth() * 1 / 4);
 		m_visionSimulator.setRobotPose(
 				pose(
-						kFieldLayout.getFieldLength() / 2 + 1.2 * (redAlliance ? 1 : -1),
+						kFieldLayout.getFieldLength() / 2 + 2 * (redAlliance ? 1 : -1),
 						yCoordinates.get(location), redAlliance ? 0 : 180));
 	}
 
