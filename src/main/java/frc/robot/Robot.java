@@ -63,6 +63,7 @@ import frc.robot.subsystems.ClimberSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.PoseEstimationSubsystem;
+import frc.robot.subsystems.ProfiledElevatorSubsystem;
 import frc.robot.subsystems.WristSubsystem;
 
 public class Robot extends TimedRobot {
@@ -73,7 +74,7 @@ public class Robot extends TimedRobot {
 	private final AlgaeGrabberSubsystem m_algaeGrabberSubsystem = new AlgaeGrabberSubsystem();
 	private final ClimberSubsystem m_climberSubsystem = new ClimberSubsystem();
 	private final DriveSubsystem m_driveSubsystem = new DriveSubsystem();
-	private final ElevatorSubsystem m_elevatorSubsystem = new ElevatorSubsystem(
+	private final ElevatorSubsystem m_elevatorSubsystem = new ProfiledElevatorSubsystem(
 			m_mechanism.getRoot("anchor", Units.inchesToMeters(23), 0));
 	private final WristSubsystem m_wristSubsystem = new WristSubsystem(m_elevatorSubsystem);
 	private final CheeseStickSubsystem m_cheeseStickSubsystem = new CheeseStickSubsystem(
@@ -380,7 +381,7 @@ public class Robot extends TimedRobot {
 		m_operatorController.L1().and(m_operatorController.triangle()).onTrue(CommandComposer.removeAlgaeLevelThree());
 		m_operatorController.L1().and(m_operatorController.square()).onTrue(CommandComposer.removeAlgaeLevelTwo());
 		m_operatorController.L1().and(m_operatorController.circle()).onTrue(CommandComposer.prepareForCoralPickup());
-		m_operatorController.L1().and(m_operatorController.cross()).onTrue(CommandComposer.pickupAtCoralStation());
+		m_operatorController.L1().and(m_operatorController.cross()).onTrue(CommandComposer.goToBase());
 		m_driverController.square().onTrue(CommandComposer.pickupAtCoralStation());
 		m_operatorController.touchpad().onTrue(m_elevatorSubsystem.stopMotor());
 		m_operatorController.create().onTrue(m_elevatorSubsystem.resetTheEncoder());

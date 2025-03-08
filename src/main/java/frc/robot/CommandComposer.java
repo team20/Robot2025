@@ -149,11 +149,11 @@ public class CommandComposer {
 	}
 
 	public static Command scoreLevelOneInTeleop() {
-		return scoreLevelInTeleop(kLevelOneHeight, 0.55, m_elevatorSubsystem::goToLevelOneHeight, kGrabberAngleOthers);
+		return scoreLevelInTeleop(kLevelOneHeight, 0.6, m_elevatorSubsystem::goToLevelOneHeight, kGrabberAngleOthers);
 	}
 
 	public static Command scoreLevelTwoInTeleop() {
-		return scoreLevelInTeleop(kLevelTwoHeight, 0.05, m_elevatorSubsystem::goToLevelTwoHeight, kGrabberAngleOthers);
+		return scoreLevelInTeleop(kLevelTwoHeight, 0.1, m_elevatorSubsystem::goToLevelTwoHeight, kGrabberAngleOthers);
 	}
 
 	public static Command scoreLevelThreeInTeleop() {
@@ -218,7 +218,7 @@ public class CommandComposer {
 	}
 
 	public static Command prepareForCoralPickup() {
-		return sequence(
+		return parallel(
 				m_elevatorSubsystem.goToCoralStationHeight(),
 				m_wristSubsystem.goToAngle(270));
 	}
@@ -367,7 +367,7 @@ public class CommandComposer {
 	 */
 	public static Command toClosestTag(Transform2d... robotToTags) {
 		return new PathDriveCommand(m_driveSubsystem, 0.01, 1,
-				0.08, 8,
+				0.05, 5,
 				posesToClosestTag(3, robotToTags));
 	}
 

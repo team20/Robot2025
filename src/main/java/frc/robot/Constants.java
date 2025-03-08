@@ -158,7 +158,7 @@ public class Constants {
 		public static final int kElevatorMotorPort = 26;
 		public static final int kSmartCurrentLimit = 60; // TODO: 45
 		public static final int kSecondaryCurrentLimit = 70;
-		public static final double kP = 2.0; // 1.1
+		public static final double kP = 6.0; // 1.1
 		public static final double kI = 0;
 		public static final double kD = 0;
 		public static final double kS = 0.05631;
@@ -166,7 +166,7 @@ public class Constants {
 		public static final double kV = 5.3794;
 		public static final double kA = 0.74041;
 		public static final double kGearRatio = 10;
-		public static final double kMaxOutput = 0.2; // TODO: increase as long as the elevator doesn't skip
+		public static final double kMaxOutput = 0.55; // TODO: increase as long as the elevator doesn't skip
 		public static final double kMinOutput = -kMaxOutput;
 
 		/**
@@ -193,12 +193,13 @@ public class Constants {
 		public static final double kLevelThreeHeight = Units.inchesToMeters(29); // TODO: 47.63 from carpet (5.5 off?)
 		// TODO: does this uhh do anything...? since the max height is supposedly lower?
 		// public static final double kLevelFourHeight = Units.inchesToMeters(50);
-		public static final double kLevelFourHeight = Units.inchesToMeters(48); // TODO: 72 from carpet
-		public static final double kMaxExtension = Units.inchesToMeters(49.5); // TODO: Likely needs to be upped: safety
+		public static final double kLevelFourHeight = Units.inchesToMeters(48 + 2); // TODO: 72 from carpet
+		public static final double kMaxExtension = Units.inchesToMeters(49.5 + 0.75); // TODO: Likely needs to be upped:
+		// safety
 		// TODO: The amount that the elevator decreases in order to score
 		public static final double kClearanceHeight = Units.inchesToMeters(3.5);
 		public static final double kToScoreHeightDecrease = Units.inchesToMeters(0);
-		public static final double kCoralStationHeight = Units.inchesToMeters(17); // TODO: Change
+		public static final double kCoralStationHeight = Units.inchesToMeters(17 + 2); // TODO: Change
 
 		public static final double kAlgaeLevelThreeHeight = Units.inchesToMeters(0.25);
 		public static final double kAlgaeLevelTwoHeight = Units.inchesToMeters(16);
@@ -208,7 +209,7 @@ public class Constants {
 		public static final int kWristMotorPort = 27;
 		public static final int kSmartCurrentLimit = 20;
 		public static final int kSecondaryCurrentLimit = 20;
-		public static final int kGrabberAngleLevelFour = 220;
+		public static final int kGrabberAngleLevelFour = 223;
 		public static final int kGrabberAngleOthers = 221; // 5 degrees steeper from previous value (215)
 		public static final int kGrabberAngleLevelThree = 240;
 		public static final double kAlgaeWristHeight = 170;
@@ -218,7 +219,7 @@ public class Constants {
 		public static final double kWristOffset = 0.75;
 
 		// TODO: Make sure these are tuned (can do with SysId)
-		public static final double kP = 0.01;
+		public static final double kP = 0.025; // 0.01
 		public static final double kI = 0.0;
 		public static final double kD = 0;
 
@@ -252,14 +253,14 @@ public class Constants {
 		 * {@code AprilTag} to align the robot to that {@code AprilTag}.
 		 */
 		static Transform2d[] kRobotToTags = { transform(1.1, 0.0, 180),
-				transform(0.46, 0.0, 180) };
+				transform(0.60, 0.0, 180) };
 
 		/**
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
 		 * {@code AprilTag} to align the robot to the left of that {@code AprilTag}.
 		 */
 		static Transform2d[] kRobotToTagsLeft = { transform(1.1, 0, 180),
-				transform(0.46, -0.165, 180) };
+				transform(0.60, -0.165, 180) };
 
 		/**
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
@@ -268,6 +269,6 @@ public class Constants {
 		// static Transform2d[] kRobotToTagsRight = { transform(1.0, 0.165, 180),
 		// transform(0.5, 0.165, 180) };
 		static Transform2d[] kRobotToTagsRight = { transform(1.1, 0, 180),
-				transform(0.46, 0.215, 180) };
+				transform(0.60, 0.215, 180) };
 	}
 }
