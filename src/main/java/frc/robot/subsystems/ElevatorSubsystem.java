@@ -5,6 +5,7 @@
 package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.*;
+import static edu.wpi.first.wpilibj2.command.Commands.*;
 import static frc.robot.Constants.ElevatorConstants.*;
 
 import java.util.function.DoubleSupplier;
@@ -37,6 +38,7 @@ import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
 public class ElevatorSubsystem extends SubsystemBase {
@@ -86,7 +88,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 		resetEncoder();
 		if (RobotBase.isSimulation()) {
 			m_elevatorMotorSim = new SparkMaxSim(m_elevatorMotor, DCMotor.getNEO(1));
-			m_elevatorModel = new ElevatorSim(DCMotor.getNEO(1), kGearRatio, Units.lbsToKilograms(20),
+			m_elevatorModel = new ElevatorSim(DCMotor.getNEO(1), kGearRatio, Units.lbsToKilograms(3),
 					kMetersPerPulleyRotation / (2 * Math.PI), 0,
 					Units.inchesToMeters(90), true, 0);
 		} else {
@@ -218,7 +220,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 			SmartDashboard.putNumber("Elevator/Next Target Velocity", nextState.velocity);
 			SmartDashboard.putNumber("Elevator/Profile Time", m_profile.totalTime());
 			SmartDashboard.putNumber("Elevator/Current Time", m_timer.get());
-		}).until(() -> m_profile.isFinished(m_timer.get()));
+		}).until(() -> Math.abs(finalState.position - getPosition()) <= kTolerance);
 	}
 
 	/**
@@ -234,6 +236,15 @@ public class ElevatorSubsystem extends SubsystemBase {
 			double speed = Math.signum(input) * Math.pow(input, 2);
 			setSpeed(speed);
 		}).finallyDo(() -> m_elevatorMotor.setVoltage(kG)).withName("Manual Elevator");
+	}
+
+	/**
+	 * Moves the elevator to the given height in inches
+	 * 
+	 * @return the command
+	 */
+	public Command goToHeight(int height) {
+		return goToLevel(() -> Units.inchesToMeters(height)).withName("Elevator to Height");
 	}
 
 	/**
@@ -295,7 +306,9 @@ public class ElevatorSubsystem extends SubsystemBase {
 	 * @return
 	 */
 	public Command goToBaseHeight() {
-		return runOnce(() -> m_elevatorEncoder.setPosition(0)).withName("Go To Base Height");
+		return goToLevel(() -> 0).withName("Go To Base Height");
+		// return runOnce(() -> m_elevatorEncoder.setPosition(0)).withName("Go To Base
+		// Height");
 	}
 
 	public Command goToClearanceHeight(double level, double clearanceHeight) {
@@ -330,5 +343,27 @@ public class ElevatorSubsystem extends SubsystemBase {
 	 */
 	public Command sysidDynamic(SysIdRoutine.Direction direction) {
 		return m_sysidRoutine.dynamic(direction);
+	}
+
+	/**
+	 * Creates a {@code Command} for testing this {@code ElevatorSubsystem}
+	 * (Levels 0, 1, 0, 3, 2, 4, and 0).
+	 * 
+	 * @param duration the duration of each movement in seconds
+	 * 
+	 * @return a {@code Command} for testing this {@code ElevatorSubsystem}
+	 */
+	public Command testCommand(double duration) {
+		return sequence(
+				startRun(() -> setSpeed(0.2), () -> {// checking setSpeed(double)
+				}).until(() -> getPosition() > 0.2), // should stop when level is > 0.2
+				runOnce(() -> setSpeed(0.0)), new WaitCommand(duration), // should go down due to gravity
+				manualMove(() -> 0.5) // checking manualMove(DoubleSupplier)
+						.until(() -> getPosition() > 0.2), // should stop when level is > 0.2
+				runOnce(() -> setSpeed(0.0)), new WaitCommand(duration), // should go down due to gravity
+				goToLevelOneHeight(), // checking goToLevel(DoubleSupplier)
+				goToLevelThreeHeight(), goToBaseHeight(), new WaitCommand(duration), // should stay at level 3
+				goToLevelTwoHeight(), new WaitCommand(duration), // should stay at level 2
+				goToLevelFourHeight(), goToLevel(() -> 0));
 	}
 }

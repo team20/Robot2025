@@ -88,9 +88,9 @@ public class Constants {
 		// TODO: Make sure these are tuned (can do with SysId)
 		public static final double kP = 0.09;
 		public static final double kI = 0.0;
-		public static final double kD = 0;
+		public static final double kD = 0.001;
 		public static final double kS = 0;
-		public static final double kV = 0.11;
+		public static final double kV = 0.12;
 		public static final double kA = 0.009;
 
 		public static final double kRotationP = 5; // TODO: tune it
@@ -134,10 +134,10 @@ public class Constants {
 			kDriveConfig.OpenLoopRamps.VoltageOpenLoopRampPeriod = kRampRate;
 		}
 
-		public static final double kTeleopDriveMaxSpeed = 8.0; // 5 meters per second
+		public static final double kTeleopDriveMaxSpeed = 12.0; // 5 meters per second
 		public static final double kTeleopTurnMaxAngularSpeed = Math.toRadians(360 * 5);
 
-		public static final double kDriveMaxSpeed = 8.0; // 5 meters per second
+		public static final double kDriveMaxSpeed = 12.0; // 5 meters per second
 		public static final double kDriveMinSpeed = 0.2; // 0.2 meters per second
 		public static final double kTurnMaxAngularSpeed = Math.toRadians(360); // 1 rotation per second
 		public static final double kTurnMinAngularSpeed = Math.toRadians(0); // 0 degree per second
@@ -158,11 +158,11 @@ public class Constants {
 		public static final int kElevatorMotorPort = 26;
 		public static final int kSmartCurrentLimit = 60; // TODO: 45
 		public static final int kSecondaryCurrentLimit = 70;
-		public static final double kP = 1.1;
+		public static final double kP = 6.0; // 1.1
 		public static final double kI = 0;
 		public static final double kD = 0;
 		public static final double kS = 0.05631;
-		public static final double kG = 0.22876;
+		public static final double kG = 0.43;
 		public static final double kV = 5.3794;
 		public static final double kA = 0.74041;
 		public static final double kGearRatio = 10;
@@ -182,19 +182,20 @@ public class Constants {
 				* kMetersPerPulleyRotation;
 		public static final double kMaxVelocity = 2.75;
 		public static final double kMaxAccel = 2.5;
-		public static final double kTolerance = 1;
+		public static final double kTolerance = 0.01;
 		// TODO: During testing make sure these are right
 		public static final double kLevelOneHeight = Units.inchesToMeters(3);
 		public static final double kLevelTwoHeight = Units.inchesToMeters(8);
 		public static final double kLevelThreeHeight = Units.inchesToMeters(29);
-		public static final double kLevelFourHeight = Units.inchesToMeters(50); // TODO: does this uhh do anything...?
-																				// since the max height is well,
-																				// supposedly lower?
-		public static final double kMaxExtension = 1.25 - 0.01; // Likely needs to be upped (safety)
+		// TODO: does this uhh do anything...? since the max height is supposedly lower?
+		// public static final double kLevelFourHeight = Units.inchesToMeters(50);
+		public static final double kLevelFourHeight = Units.inchesToMeters(48 + 2); // TODO: 72 from carpet
+		public static final double kMaxExtension = Units.inchesToMeters(49.5 + 0.75); // TODO: Likely needs to be upped:
+		// safety
 		// TODO: The amount that the elevator decreases in order to score
 		public static final double kClearanceHeight = Units.inchesToMeters(3.5);
 		public static final double kToScoreHeightDecrease = Units.inchesToMeters(0);
-		public static final double kCoralStationHeight = Units.inchesToMeters(17); // TODO: Change
+		public static final double kCoralStationHeight = Units.inchesToMeters(17 + 2); // TODO: Change
 
 		public static final double kAlgaeLevelThreeHeight = Units.inchesToMeters(0.25);
 		public static final double kAlgaeLevelTwoHeight = Units.inchesToMeters(16);
@@ -204,17 +205,17 @@ public class Constants {
 		public static final int kWristMotorPort = 27;
 		public static final int kSmartCurrentLimit = 20;
 		public static final int kSecondaryCurrentLimit = 20;
-		public static final int kGrabberAngleLevelFour = 220;
+		public static final int kGrabberAngleLevelFour = 223;
 		public static final int kGrabberAngleOthers = 221; // 5 degrees steeper from previous value (215)
-		public static final int kGrabberAngleLevelThree = 237;
+		public static final int kGrabberAngleLevelThree = 235;
 		public static final double kAlgaeWristHeight = 170;
 
 		public static final double kWristForwardSoftLimit = 274; // Wrist facing down
 		public static final double kWristReverseSoftLimit = 90; // Wrist facing up
-		public static final double kWristOffset = 0.104;
+		public static final double kWristOffset = 0.75;
 
 		// TODO: Make sure these are tuned (can do with SysId)
-		public static final double kP = 0.01;
+		public static final double kP = 0.025;
 		public static final double kI = 0.0;
 		public static final double kD = 0;
 
@@ -245,15 +246,15 @@ public class Constants {
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
 		 * {@code AprilTag} to align the robot to that {@code AprilTag}.
 		 */
-		static Transform2d[] kRobotToTags = { transform(1.0, 0.0, 180),
-				transform(0.5, 0.0, 180) };
+		static Transform2d[] kRobotToTags = { transform(1.1, 0.0, 180),
+				transform(0.60, 0.0, 180) };
 
 		/**
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
 		 * {@code AprilTag} to align the robot to the left of that {@code AprilTag}.
 		 */
-		static Transform2d[] kRobotToTagsLeft = { transform(1.0, -0.165, 180),
-				transform(0.5, -0.165, 180) };
+		static Transform2d[] kRobotToTagsLeft = { transform(1.1, 0, 180),
+				transform(0.60, -0.165, 180) };
 
 		/**
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
@@ -261,7 +262,7 @@ public class Constants {
 		 */
 		// static Transform2d[] kRobotToTagsRight = { transform(1.0, 0.165, 180),
 		// transform(0.5, 0.165, 180) };
-		static Transform2d[] kRobotToTagsRight = { transform(1.0, 0.215, 180),
-				transform(0.5, 0.215, 180) };
+		static Transform2d[] kRobotToTagsRight = { transform(1.1, 0, 180),
+				transform(0.60, 0.215, 180) };
 	}
 }

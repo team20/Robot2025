@@ -5,6 +5,7 @@
 package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.*;
+import static edu.wpi.first.wpilibj2.command.Commands.*;
 import static frc.robot.Constants.WristConstants.*;
 
 import java.util.function.DoubleSupplier;
@@ -31,6 +32,7 @@ import edu.wpi.first.wpilibj.smartdashboard.MechanismObject2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
@@ -48,10 +50,12 @@ public class WristSubsystem extends SubsystemBase {
 	private final SparkAbsoluteEncoderSim m_absoluteEncoderSim;
 	private final SingleJointedArmSim m_wristModel;
 	private final MechanismLigament2d m_wrist = new MechanismLigament2d("wrist", Units.inchesToMeters(9), 0);
+	private final ElevatorSubsystem m_elevatorSubsystem;
 
 	/** Creates a new WristSubsystem. */
-	public WristSubsystem(MechanismLigament2d wristMount) {
-		wristMount.append(m_wrist);
+	public WristSubsystem(ElevatorSubsystem elevatorSubsystem) {
+		m_elevatorSubsystem = elevatorSubsystem;
+		elevatorSubsystem.getWristMount().append(m_wrist);
 		var config = new SparkMaxConfig();
 		config
 				.inverted(true)
@@ -70,7 +74,7 @@ public class WristSubsystem extends SubsystemBase {
 			m_wristSim = new SparkMaxSim(m_wristMotor, DCMotor.getNEO(1));
 			m_absoluteEncoderSim = new SparkAbsoluteEncoderSim(m_wristMotor);
 			m_wristModel = new SingleJointedArmSim(DCMotor.getNEO(1), 5, 1, 0.1, Math.PI / 2,
-					3 * Math.PI / 2, false, 0);
+					3 * Math.PI / 2, false, 3 * Math.PI / 2);
 		} else {
 			m_wristSim = null;
 			m_absoluteEncoderSim = null;
@@ -202,5 +206,24 @@ public class WristSubsystem extends SubsystemBase {
 	 */
 	public Command sysidDynamic(SysIdRoutine.Direction direction) {
 		return m_sysidRoutine.dynamic(direction);
+	}
+
+	/**
+	 * Creates a {@code Command} for testing this {@code WristSubsystem}.
+	 * 
+	 * @param duration the duration of each movement in seconds
+	 * 
+	 * @return a {@code Command} for testing this {@code WristSubsystem}
+	 */
+	public Command testCommand(double duration) {
+		return sequence(
+				m_elevatorSubsystem.goToLevelThreeHeight(),
+				run(() -> setSpeed(-.1)).until(() -> getAngle() < 270 - 10), // checking
+				runOnce(() -> setSpeed(0)), new WaitCommand(duration), // should stay at current angle
+				goToAngle(270), new WaitCommand(duration), // should stay at angle 0
+				goToAngle(270 - 45), new WaitCommand(duration), // should stay at angle 45
+				goToAngle(270), goToAngle(270 - 45),
+				goToAngle(270), goToAngle(270 - 45), goToAngle(270),
+				m_elevatorSubsystem.goToLevelOneHeight());
 	}
 }

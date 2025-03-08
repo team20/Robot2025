@@ -47,7 +47,7 @@ public class DriveSubsystem extends SubsystemBase {
 	private final SwerveDriveKinematics m_kinematics = new SwerveDriveKinematics(
 			kFrontLeftLocation, kFrontRightLocation, kBackLeftLocation, kBackRightLocation);
 	private final SwerveDriveOdometry m_odometry;
-	private final AHRS m_gyro = new AHRS(NavXComType.kMXP_SPI);
+	private final AHRS m_gyro = new AHRS(NavXComType.kUSB1);
 	private final SimDouble m_gyroSim;
 	// https://docs.wpilib.org/en/latest/docs/software/advanced-controls/system-identification/index.html
 	private final SysIdRoutine m_sysidRoutine;
@@ -165,6 +165,7 @@ public class DriveSubsystem extends SubsystemBase {
 	private SwerveModuleState[] calculateModuleStates(ChassisSpeeds speeds, boolean isFieldRelative) {
 		if (isFieldRelative)
 			speeds = ChassisSpeeds.fromFieldRelativeSpeeds(speeds, getHeading());
+		speeds = ChassisSpeeds.discretize(speeds, 0.03);
 		SwerveModuleState[] states = m_kinematics.toSwerveModuleStates(speeds);
 		SwerveDriveKinematics.desaturateWheelSpeeds(states, kTeleopDriveMaxSpeed);
 		double[] moduleAngles = { m_frontLeft.getModuleAngle(), m_frontRight.getModuleAngle(),
@@ -247,6 +248,30 @@ public class DriveSubsystem extends SubsystemBase {
 	 * @return A command to drive the robot.
 	 */
 	public Command driveCommand(DoubleSupplier forwardSpeed, DoubleSupplier strafeSpeed,
+			DoubleSupplier forwardOrientation, DoubleSupplier strafeOrientation, DoubleSupplier rotation,
+			BooleanSupplier isRobotRelative) {
+		return run(
+				() -> drive(
+						chassisSpeeds(forwardSpeed, strafeSpeed, forwardOrientation, strafeOrientation, rotation),
+						!isRobotRelative.getAsBoolean())).withName("DefaultDriveCommand");
+	}
+
+	/**
+	 * Creates a {@code Command} to drive the robot with joystick input.
+	 *
+	 * @param forwardSpeed Forward speed supplier. Positive values make the robot
+	 *        go forward (+X direction).
+	 * @param strafeSpeed Strafe speed supplier. Positive values make the robot
+	 *        go to the left (+Y direction).
+	 * @param forwardOrientation Forward orientation supplier. Positive values make
+	 *        the robot face forward (+X direction).
+	 * @param strafeOrientation Strafe orientation supplier. Positive values make
+	 *        the robot face left (+Y direction).
+	 * @param isRobotRelative Supplier for determining if driving should be robot
+	 *        relative.
+	 * @return A command to drive the robot.
+	 */
+	public Command driveCommand(DoubleSupplier forwardSpeed, DoubleSupplier strafeSpeed,
 			DoubleSupplier forwardOrientation, DoubleSupplier strafeOrientation, BooleanSupplier isRobotRelative) {
 		return run(
 				() -> drive(
@@ -270,6 +295,36 @@ public class DriveSubsystem extends SubsystemBase {
 			DoubleSupplier rotation, BooleanSupplier isRobotRelative) {
 		return run(() -> drive(chassisSpeeds(forwardSpeed, strafeSpeed, rotation), !isRobotRelative.getAsBoolean()))
 				.withName("DefaultDriveCommand");
+	}
+
+	/**
+	 * Creates a {@code ChassisSpeeds} instance to drive the robot with joystick
+	 * input.
+	 *
+	 * @param forwardSpeed Forward speed supplier. Positive values make the robot
+	 *        go forward (+X direction).
+	 * @param strafeSpeed Strafe speed supplier. Positive values make the robot
+	 *        go to the left (+Y direction).
+	 * @param forwardOrientation Forward orientation supplier. Positive values make
+	 *        the robot face forward (+X direction).
+	 * @param strafeOrientation Strafe orientation supplier. Positive values make
+	 *        the robot face left (+Y direction).
+	 * @return a {@code ChassisSpeeds} instance to drive the robot with joystick
+	 *         input
+	 */
+	public ChassisSpeeds chassisSpeeds(DoubleSupplier forwardSpeed, DoubleSupplier strafeSpeed,
+			DoubleSupplier forwardOrientation, DoubleSupplier strafeOrientation, DoubleSupplier rotation) {
+		var orientation = new Translation2d(forwardOrientation.getAsDouble(), strafeOrientation.getAsDouble());
+		double omegaRadiansPerSecond = MathUtil.applyDeadband(rotation.getAsDouble(), ControllerConstants.kDeadzone);
+		omegaRadiansPerSecond = Math.signum(omegaRadiansPerSecond) * Math.pow(omegaRadiansPerSecond, 2)
+				* kTeleopTurnMaxAngularSpeed;
+		if (orientation.getNorm() > 0.05) {
+			var angle = orientation.getAngle();
+			omegaRadiansPerSecond += m_orientationController
+					.calculate(getHeading().getRadians(), angle.getRadians());
+			m_targetHeadingPublisher.set(angle);
+		}
+		return chassisSpeeds(forwardSpeed, strafeSpeed, omegaRadiansPerSecond);
 	}
 
 	/**
@@ -407,6 +462,7 @@ public class DriveSubsystem extends SubsystemBase {
 	 */
 	public Command testCommand(double speed, double rotionalSpeed, double duration) {
 		return sequence(
+				resetOdometry(Pose2d.kZero),
 				run(() -> drive(speed, 0, 0, false)).withTimeout(duration),
 				run(() -> drive(-speed, 0, 0, false)).withTimeout(duration),
 				run(() -> drive(0, speed, 0, false)).withTimeout(duration),

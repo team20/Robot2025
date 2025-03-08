@@ -63,11 +63,11 @@ public class CommandComposer {
 	}
 
 	public static Command scoreLevelOneInTeleop() {
-		return scoreLevelInTeleop(kLevelOneHeight, 4.25, m_elevatorSubsystem::goToLevelOneHeight, kGrabberAngleOthers);
+		return scoreLevelInTeleop(kLevelOneHeight, 0.6, m_elevatorSubsystem::goToLevelOneHeight, kGrabberAngleOthers);
 	}
 
 	public static Command scoreLevelTwoInTeleop() {
-		return scoreLevelInTeleop(kLevelTwoHeight, 4, m_elevatorSubsystem::goToLevelTwoHeight, kGrabberAngleOthers);
+		return scoreLevelInTeleop(kLevelTwoHeight, 0.1, m_elevatorSubsystem::goToLevelTwoHeight, kGrabberAngleOthers);
 	}
 
 	public static Command removeAlgaeLevelThree() {
@@ -163,6 +163,7 @@ public class CommandComposer {
 	public static Command moveForwardBackward(double distanceInFeet, double distanceTolerance,
 			double angleTolerance) {
 		return sequence(
+				m_driveSubsystem.resetOdometry(Pose2d.kZero),
 				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance, Pose2d.kZero),
 				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance,
 						new Pose2d(feetToMeters(distanceInFeet), 0, Rotation2d.kZero)),
@@ -202,6 +203,7 @@ public class CommandComposer {
 	public static Command moveOnSquare(double sideLength, double distanceTolerance,
 			double angleTolerance, double timeout) {
 		return sequence(
+				m_driveSubsystem.resetOdometry(Pose2d.kZero),
 				new DriveCommand(m_driveSubsystem,
 						distanceTolerance, angleTolerance, Pose2d.kZero),
 				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance,
@@ -269,7 +271,7 @@ public class CommandComposer {
 	 */
 	public static Command toClosestTag(Transform2d... robotToTags) {
 		return new PathDriveCommand(m_driveSubsystem, 0.01, 1,
-				0.08, 8,
+				0.05, 5,
 				posesToClosestTag(3, robotToTags));
 	}
 
