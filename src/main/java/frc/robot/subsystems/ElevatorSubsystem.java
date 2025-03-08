@@ -220,7 +220,8 @@ public class ElevatorSubsystem extends SubsystemBase {
 			SmartDashboard.putNumber("Elevator/Next Target Velocity", nextState.velocity);
 			SmartDashboard.putNumber("Elevator/Profile Time", m_profile.totalTime());
 			SmartDashboard.putNumber("Elevator/Current Time", m_timer.get());
-		}).until(() -> m_profile.isFinished(m_timer.get()));
+		}).until(() -> Math.abs(finalState.position - getPosition()) <= kTolerance);
+		// }).until(() -> m_profile.isFinished(m_timer.get()));
 	}
 
 	/**
