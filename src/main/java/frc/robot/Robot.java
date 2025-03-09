@@ -178,6 +178,10 @@ public class Robot extends TimedRobot {
 		// sequence(goToBase(), score(toClosestTag(kRobotToTagsRight), 4)));
 		m_testingChooser
 				.addOption(
+						"Reposition the Robot in Simulation",
+						runOnce(() -> repositionSimulatedRobot()));
+		m_testingChooser
+				.addOption(
 						"Prepare to Score at Level 3 (Left)",
 						prepareToScore(toClosestTag(3, kRobotToTagsLeft), kLevelThreeHeight, kGrabberAngleLevelThree));
 		// prepareToScore(toClosestTag(kRobotToTagsLeft), kLevelThreeHeight,
@@ -231,10 +235,6 @@ public class Robot extends TimedRobot {
 				.addOption(
 						"Check Absolute Orientation",
 						testAbsoluteOrientation(2));
-		m_testingChooser
-				.addOption(
-						"Reposition the Robot in Simulation",
-						runOnce(() -> repositionSimulatedRobot()));
 		m_testingChooser
 				.addOption(
 						"Align to AprilTags 17, 18, 19, 20, 21, and 22",

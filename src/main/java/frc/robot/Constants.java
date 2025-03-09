@@ -219,9 +219,9 @@ public class Constants {
 		public static final double kWristOffset = 0.75;
 
 		// TODO: Make sure these are tuned (can do with SysId)
-		public static final double kP = 0.015; // TODO: Optimize
+		public static final double kP = 0.01; // TODO: Optimize
 		public static final double kI = 0.0;
-		public static final double kD = 0.001; // TODO: Optimize
+		public static final double kD = 0.003; // TODO: Optimize
 
 		public static final double kTolerance = 4; // TODO: Change this
 
@@ -286,7 +286,7 @@ public class Constants {
 		/**
 		 * A {@code Map} storing the distance to travel to score at each scoring level.
 		 */
-		static Map<Integer, Double> kOffsets = Map.of(1, 0.13, 2, 0.13, 3, 0.13, 4, 0.05);
+		static Map<Integer, Double> kOffsets = Map.of(1, 0.13, 2, 0.13, 3, 0.15, 4, 0.05);
 
 	}
 

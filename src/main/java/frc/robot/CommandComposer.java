@@ -138,7 +138,7 @@ public class CommandComposer {
 			Command followup) {
 		return sequence(
 				prepareToScore(align, pickup, level, wristAngle),
-				score(.2, followup));// TODO: Optimize
+				score(.5, followup));// TODO: Optimize
 	}
 
 	static Command prepareToScore(Command align, double level, double wristAngle) {
