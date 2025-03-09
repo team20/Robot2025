@@ -18,8 +18,6 @@ import static frc.robot.subsystems.PoseEstimationSubsystem.*;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.function.BooleanSupplier;
-import java.util.function.Supplier;
-import java.util.stream.IntStream;
 
 import org.littletonrobotics.urcl.URCL;
 import org.photonvision.PhotonCamera;
@@ -28,7 +26,6 @@ import org.photonvision.simulation.SimCameraProperties;
 
 import com.ctre.phoenix6.SignalLogger;
 
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.util.Units;
@@ -54,7 +51,6 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
-import frc.robot.commands.PathDriveCommand;
 import frc.robot.simulation.VisionSimulator;
 import frc.robot.subsystems.AlgaeGrabberSubsystem;
 import frc.robot.subsystems.CheeseStickSubsystem;
@@ -162,28 +158,36 @@ public class Robot extends TimedRobot {
 	public void addTestingCommands() {
 		m_testingChooser
 				.addOption(
-						"Prepare to Score at Level 3",
-						prepareToScore(kLevelThreeHeight, kGrabberAngleLevelThree, toClosestTag(kRobotToTagsLeft)));
-		m_testingChooser
-				.addOption(
-						"Prepare to Score at Level 4",
-						prepareToScore(kLevelFourHeight, kGrabberAngleLevelFour, toClosestTag(kRobotToTagsLeft)));
-		m_testingChooser
-				.addOption(
-						"Score at Level 3",
-						score(toClosestTag(kRobotToTagsLeft), 3));
-		m_testingChooser
-				.addOption(
-						"Score at Level 4",
-						score(toClosestTag(kRobotToTagsLeft), 4));
-		m_testingChooser
-				.addOption(
-						"Pick Up and Score at Level 3",
+						"Pick Up and Score at Level 3 (Left)",
 						sequence(goToBase(), score(toClosestTag(kRobotToTagsLeft), 3)));
 		m_testingChooser
 				.addOption(
-						"Pick Up and Score at Level 4",
+						"Pick Up and Score at Level 3 (Right)",
+						sequence(goToBase(), score(toClosestTag(kRobotToTagsRight), 3)));
+		m_testingChooser
+				.addOption(
+						"Pick Up and Score at Level 4 (Left)",
 						sequence(goToBase(), score(toClosestTag(kRobotToTagsLeft), 4)));
+		m_testingChooser
+				.addOption(
+						"Pick Up and Score at Level 4 (Right)",
+						sequence(goToBase(), score(toClosestTag(kRobotToTagsRight), 4)));
+		m_testingChooser
+				.addOption(
+						"Prepare to Score at Level 3 (Left)",
+						prepareToScore(toClosestTag(kRobotToTagsLeft), kLevelThreeHeight, kGrabberAngleLevelThree));
+		m_testingChooser
+				.addOption(
+						"Prepare to Score at Level 4 (Left)",
+						prepareToScore(toClosestTag(kRobotToTagsLeft), kLevelFourHeight, kGrabberAngleLevelFour));
+		m_testingChooser
+				.addOption(
+						"Score at Level 3 (Left)",
+						score(toClosestTag(kRobotToTagsLeft), 3));
+		m_testingChooser
+				.addOption(
+						"Score at Level 4 (Left)",
+						score(toClosestTag(kRobotToTagsLeft), 4));
 		double distanceTolerance = 0.01;
 		double angleToleranceInDegrees = 1;
 		double intermediateDistanceTolerance = 0.08;
@@ -262,25 +266,6 @@ public class Robot extends TimedRobot {
 				.addOption(
 						"Slowest Movement Test (F/B/L/R/LR/RR and F/B while rotating)",
 						m_driveSubsystem.testCommand(kDriveMinSpeed, kTurnMinAngularSpeed, 1.0));
-		m_testingChooser
-				.addOption(
-						"Fastest Forward/Backward Movement Test (5m)",
-						sequence(
-								CommandComposer.moveStraight(5, 0.01, 1),
-								CommandComposer.moveStraight(-5, 0.01, 1)));
-		m_testingChooser
-				.addOption(
-						"Fastest Rotation Test (5 rotations)",
-						new PathDriveCommand(m_driveSubsystem, 1, 10,
-								1, 100,
-								IntStream.range(1, 1 + 3 * 5)
-										.mapToObj(
-												i -> (Supplier<Pose2d>) (() -> {
-													var pose = m_driveSubsystem.getPose();
-													return new Pose2d(pose.getX(), pose.getY(),
-															Rotation2d.fromDegrees(120 * i));
-												}))
-										.toList()));
 	}
 
 	public void bindAlert(Alert alert, BooleanSupplier event) {

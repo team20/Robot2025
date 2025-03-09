@@ -3,6 +3,8 @@ package frc.robot;
 import static edu.wpi.first.units.Units.*;
 import static frc.robot.subsystems.PoseEstimationSubsystem.*;
 
+import java.util.Map;
+
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
@@ -237,14 +239,14 @@ public class Constants {
 		 * the pose of the robot.
 		 */
 		public static Transform3d kRobotToCamera1 = new Transform3d(new Translation3d(0.3, 0.0, 0.2),
-				new Rotation3d(0, Units.degreesToRadians(-10), 0));
+				new Rotation3d(0, Units.degreesToRadians(-20), 0));
 
 		/**
 		 * The {@code Transform3d} expressing the pose of the second camera relative to
 		 * the pose of the robot.
 		 */
-		public static Transform3d kRobotToCamera2 = new Transform3d(new Translation3d(-0.5, -0.0, 0.2),
-				new Rotation3d(0, Units.degreesToRadians(-20), Units.degreesToRadians(180)));
+		public static Transform3d kRobotToCamera2 = new Transform3d(new Translation3d(-0.5, 0.0, 0.5),
+				new Rotation3d(0, Units.degreesToRadians(0), Units.degreesToRadians(180)));
 
 		/**
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
@@ -264,9 +266,28 @@ public class Constants {
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
 		 * {@code AprilTag} to align the robot to the right of that {@code AprilTag}.
 		 */
-		// static Transform2d[] kRobotToTagsRight = { transform(1.0, 0.165, 180),
-		// transform(0.5, 0.165, 180) };
 		static Transform2d[] kRobotToTagsRight = { transform(1.1, 0, 180),
 				transform(0.60, 0.215, 180) };
+
+		/**
+		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
+		 * {@code AprilTag} to align the robot to the left of that {@code AprilTag}.
+		 */
+		static Transform2d[] kRobotToTagsLeftReady = { transform(1.1, -0.5, 180),
+				transform(0.60, 0.0, 180) };
+
+		/**
+		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
+		 * {@code AprilTag} to align the robot to the right of that {@code AprilTag}.
+		 */
+		static Transform2d[] kRobotToTagsRightReady = { transform(1.1, 0.5, 180),
+				transform(0.60, 0.0, 180) };
+
+		/**
+		 * A {@code Map} storing the distance to travel to score at each scoring level.
+		 */
+		static Map<Integer, Double> kOffsets = Map.of(1, 0.13, 2, 0.13, 3, 0.13, 4, 0.05);
+
 	}
+
 }
