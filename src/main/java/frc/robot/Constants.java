@@ -107,6 +107,7 @@ public class Constants {
 		public static final double kDriveGearRatio = 6.75;
 		public static final double kSteerGearRatio = 150.0 / 7;
 		public static final double kWheelDiameter = Units.inchesToMeters(4) * 0.92;
+		// TODO: make it smaller if not close enough to coral stations
 		public static final double kWheelCircumference = Math.PI * kWheelDiameter;
 
 		public static final double kMetersPerMotorRotation = kWheelCircumference / kDriveGearRatio;
@@ -262,14 +263,16 @@ public class Constants {
 		 * {@code AprilTag} to align the robot to the left of that {@code AprilTag}.
 		 */
 		static Transform2d[] kRobotToTagsLeft = { transform(1.1, 0, 180),
-				transform(0.60, -0.165, 180) };
+				transform(0.60, -0.185, 180) };
+		// TODO: decrease y to align more to the left
 
 		/**
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
 		 * {@code AprilTag} to align the robot to the right of that {@code AprilTag}.
 		 */
 		static Transform2d[] kRobotToTagsRight = { transform(1.1, 0, 180),
-				transform(0.60, 0.215, 180) };
+				transform(0.60, 0.195, 180) };
+		// TODO: decrease y to align more to the left
 
 		/**
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
@@ -289,6 +292,7 @@ public class Constants {
 		 * A {@code Map} storing the distance to travel to score at each scoring level.
 		 */
 		static Map<Integer, Double> kOffsets = Map.of(1, 0.13, 2, 0.13, 3, 0.11, 4, 0.05);
+		// TODO increase to get closer to the tag
 
 	}
 
