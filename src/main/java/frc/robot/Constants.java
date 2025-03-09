@@ -193,12 +193,12 @@ public class Constants {
 		public static final double kMaxExtension = Units.inchesToMeters(49.5 + 0.75); // TODO: Likely needs to be upped:
 		// safety
 		// TODO: The amount that the elevator decreases in order to score
-		public static final double kClearanceHeight = Units.inchesToMeters(3.5);
+		public static final double kClearanceHeight = Units.inchesToMeters(5);// Moved to 5 from 3.5 by Ryan on 3/8/2025
 		public static final double kToScoreHeightDecrease = Units.inchesToMeters(0);
 		public static final double kCoralStationHeight = Units.inchesToMeters(17 + 2); // TODO: Change
 
 		public static final double kAlgaeLevelThreeHeight = Units.inchesToMeters(0.25);
-		public static final double kAlgaeLevelTwoHeight = Units.inchesToMeters(16);
+		public static final double kAlgaeLevelTwoHeight = Units.inchesToMeters(15);
 	}
 
 	public static final class WristConstants {
@@ -207,7 +207,7 @@ public class Constants {
 		public static final int kSecondaryCurrentLimit = 20;
 		public static final int kGrabberAngleLevelFour = 223;
 		public static final int kGrabberAngleOthers = 221; // 5 degrees steeper from previous value (215)
-		public static final int kGrabberAngleLevelThree = 235;
+		public static final int kGrabberAngleLevelThree = 240;
 		public static final double kAlgaeWristHeight = 170;
 
 		public static final double kWristForwardSoftLimit = 274; // Wrist facing down

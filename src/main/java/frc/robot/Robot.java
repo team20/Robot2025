@@ -28,11 +28,14 @@ import org.photonvision.simulation.SimCameraProperties;
 
 import com.ctre.phoenix6.SignalLogger;
 
+import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.cscore.UsbCamera;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.net.WebServer;
+import edu.wpi.first.util.PixelFormat;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DataLogManager;
@@ -143,6 +146,10 @@ public class Robot extends TimedRobot {
 		SmartDashboard.putData("Testing Chooser", m_testingChooser);
 		m_driverController.options().and(m_driverController.create()).and(() -> !DriverStation.isFMSAttached())
 				.onTrue(Commands.deferredProxy(m_testingChooser::getSelected));
+		if (RobotBase.isReal()) {
+			UsbCamera camera = CameraServer.startAutomaticCapture();
+			camera.setVideoMode(PixelFormat.kMJPEG, 160, 120, 30);
+		}
 	}
 
 	public void addTestingCommands() {
@@ -314,7 +321,7 @@ public class Robot extends TimedRobot {
 						() -> -m_driverController.getRightY(),
 						() -> -m_driverController.getRightX(),
 						() -> m_driverController.getL2Axis() - m_driverController.getR2Axis(),
-						m_driverController.getHID()::getSquareButton)); // makes the robot
+						m_driverController.getHID()::getCreateButton)); // makes the robot
 		// robot-oriented
 
 		/// TODO: button binding needed with the correct button
@@ -342,7 +349,6 @@ public class Robot extends TimedRobot {
 		m_operatorController.L1().and(m_operatorController.square()).onTrue(CommandComposer.removeAlgaeLevelTwo());
 		m_operatorController.L1().and(m_operatorController.circle()).onTrue(CommandComposer.prepareForCoralPickup());
 		m_operatorController.L1().and(m_operatorController.cross()).onTrue(CommandComposer.goToBase());
-		m_driverController.square().onTrue(CommandComposer.pickupAtCoralStation());
 		m_operatorController.touchpad().onTrue(m_elevatorSubsystem.stopMotor());
 		m_operatorController.create().onTrue(m_elevatorSubsystem.resetTheEncoder());
 
