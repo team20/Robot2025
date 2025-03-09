@@ -18,6 +18,8 @@ import java.util.function.Supplier;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -59,15 +61,11 @@ public class CommandComposer {
 	}
 
 	public static Command get3ScoreNorth() {
-		return new SelectCommand<Alliance>(Map
-				.of(Alliance.Red, get3ScoreNorthRed(4), Alliance.Blue, get3ScoreNorthBlue(4)),
-				() -> DriverStation.getAlliance().get());
+		return select(get3ScoreNorthRed(4), get3ScoreNorthBlue(4));
 	}
 
 	public static Command get3ScoreSouth() {
-		return new SelectCommand<Alliance>(Map
-				.of(Alliance.Red, get3ScoreSouthRed(4), Alliance.Blue, get3ScoreSouthBlue(4)),
-				() -> DriverStation.getAlliance().get());
+		return select(get3ScoreSouthRed(4), get3ScoreSouthBlue(4));
 	}
 
 	private static Command get3ScoreNorthBlue(int level) {
@@ -141,6 +139,10 @@ public class CommandComposer {
 		return sequence(
 				prepareToScore(align, pickup, level, wristAngle),
 				score(.2, followup));// TODO: Optimize
+	}
+
+	public static Command score(double releaseDuration, Command followup) {
+		return sequence(m_cheeseStickSubsystem.release(releaseDuration), followup);
 	}
 
 	static Command get3ScoreNorthBlue() {
@@ -223,20 +225,6 @@ public class CommandComposer {
 						pickup,
 						m_elevatorSubsystem.goToLevel(() -> level),
 						m_wristSubsystem.goToAngle(wristAngle)));
-	}
-
-	public static Command score(double releaseDuration) {
-		return score(releaseDuration, runOnce(() -> {
-		}));
-	}
-
-	public static Command score(double releaseDuration, Command followup) {
-		return sequence(m_cheeseStickSubsystem.release(releaseDuration), followup);
-	}
-
-	public static Command score(double offset, double releaseDuration) {
-		return score(offset, releaseDuration, runOnce(() -> {
-		}));
 	}
 
 	public static Command score(double offset, double releaseDuration, Command followup) {
@@ -600,4 +588,32 @@ public class CommandComposer {
 			return m_poseEstimationSubsystem.odometryCentricPose(pose.plus(r));
 		})).toList();
 	}
+
+	private static Command select(Command commandRedAlliance, Command commandBlueAlliance) {
+		return new SelectCommand<Object>(Map
+				.of(Alliance.Red, commandRedAlliance, Alliance.Blue, commandBlueAlliance),
+				() -> {
+					Alliance alliance = DriverStation.getAlliance().get();
+					var middle = kFieldLayout.getFieldLength() / 2;
+					try {
+						var confidence = m_poseEstimationSubsystem.confidence();
+						if (confidence < 0.3)
+							return alert("Pose Confidence (" + confidence + ") Too Low!");
+						var x = m_poseEstimationSubsystem.getEstimatedPose().getX();
+						if ((alliance == DriverStation.Alliance.Blue && x > middle)
+								|| (alliance == DriverStation.Alliance.Red && x < middle)) {
+							return alert("Strange Robot Position (" + alliance + " Alliance)!");
+						}
+					} catch (Exception e) {
+					}
+					return alliance;
+				});
+	}
+
+	private static Alert alert(String text) {
+		var a = new Alert(text, AlertType.kError);
+		a.set(true);
+		return a;
+	}
+
 }
