@@ -1,10 +1,10 @@
 {
   "hubs": [
     {
-      "x": 163,
-      "y": 37,
-      "width": 1305,
-      "height": 791,
+      "x": 0,
+      "y": 42,
+      "width": 1468,
+      "height": 786,
       "state": {
         "sidebar": {
           "width": 300,
@@ -15,11 +15,12 @@
             "/URCL/Raw",
             "/SmartDashboard/Wrist",
             "/SmartDashboard/Closest AprilTag Pose (within 3m)",
-            "/SmartDashboard/Cameras"
+            "/SmartDashboard/Cameras",
+            "/SmartDashboard/Superstructure"
           ]
         },
         "tabs": {
-          "selected": 4,
+          "selected": 9,
           "tabs": [
             {
               "type": 0,
@@ -87,6 +88,48 @@
                 "sources": [
                   {
                     "type": "robot",
+                    "logKey": "NT:/SmartDashboard/Pose@PoseEstimationSubsystem",
+                    "logType": "Pose2d",
+                    "visible": true,
+                    "options": {
+                      "model": "KitBot"
+                    }
+                  },
+                  {
+                    "type": "mechanism",
+                    "logKey": "NT:/SmartDashboard/Superstructure",
+                    "logType": "Mechanism2d",
+                    "visible": true,
+                    "options": {}
+                  }
+                ],
+                "game": "2025 Field (Welded)",
+                "origin": "blue"
+              },
+              "controllerUUID": "gds45xsda35y2ei1rr3acat8f6xvm4zv",
+              "renderer": {
+                "cameraIndex": -2,
+                "orbitFov": 50,
+                "cameraPosition": [
+                  2.070054570734936,
+                  3.478507759966968,
+                  3.368050672597365
+                ],
+                "cameraTarget": [
+                  0,
+                  0.5,
+                  0
+                ]
+              },
+              "controlsHeight": 200
+            },
+            {
+              "type": 3,
+              "title": "Simulation",
+              "controller": {
+                "sources": [
+                  {
+                    "type": "robot",
                     "logKey": "NT:/SmartDashboard/Pose@Simulation",
                     "logType": "Pose2d",
                     "visible": true,
@@ -110,9 +153,9 @@
                 "cameraIndex": -2,
                 "orbitFov": 50,
                 "cameraPosition": [
-                  2,
-                  1,
-                  1.0000000000000002
+                  2.1636313378975602,
+                  3.422523295896897,
+                  3.489558506042683
                 ],
                 "cameraTarget": [
                   0,
@@ -124,7 +167,7 @@
             },
             {
               "type": 3,
-              "title": "3D Field",
+              "title": "Front Camera",
               "controller": {
                 "sources": [
                   {
@@ -143,14 +186,47 @@
                 "cameraIndex": 0,
                 "orbitFov": 50,
                 "cameraPosition": [
-                  -5.926786967707081,
-                  0.19999999999999618,
-                  -8.245303700080482
+                  -4.8313257759513295,
+                  0.19999999999999946,
+                  -1.0709671220094679
                 ],
                 "cameraTarget": [
-                  -5.499210033966124,
-                  0.6999999999999971,
-                  -7.492191513396001
+                  -4.379733264328502,
+                  0.5420201433256684,
+                  -0.24690011926898925
+                ]
+              },
+              "controlsHeight": 200
+            },
+            {
+              "type": 3,
+              "title": "Back Camera",
+              "controller": {
+                "sources": [
+                  {
+                    "type": "cameraOverride",
+                    "logKey": "NT:/SmartDashboard/Cameras/BackCamera",
+                    "logType": "Pose3d",
+                    "visible": true,
+                    "options": {}
+                  }
+                ],
+                "game": "2025 Field (Welded)",
+                "origin": "blue"
+              },
+              "controllerUUID": "rfgfnrr407g4ms0uvb009d90iqysrt0p",
+              "renderer": {
+                "cameraIndex": 1,
+                "orbitFov": 50,
+                "cameraPosition": [
+                  -5.215785546419797,
+                  0.4999999999999991,
+                  -1.7725301518872785
+                ],
+                "cameraTarget": [
+                  -5.696360259505379,
+                  0.4999999999999986,
+                  -2.649483939234542
                 ]
               },
               "controlsHeight": 200
@@ -272,7 +348,18 @@
               "type": 1,
               "title": "Elevator",
               "controller": {
-                "leftSources": [],
+                "leftSources": [
+                  {
+                    "type": "stepped",
+                    "logKey": "NT:/SmartDashboard/Wrist/Current Angle",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#e5b31b",
+                      "size": "normal"
+                    }
+                  }
+                ],
                 "rightSources": [
                   {
                     "type": "stepped",
