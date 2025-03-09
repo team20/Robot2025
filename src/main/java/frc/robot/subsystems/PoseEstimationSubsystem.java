@@ -154,7 +154,7 @@ public class PoseEstimationSubsystem extends SubsystemBase {
 		}
 		m_poseEstimator.update(m_driveSubsystem.getHeading(), m_driveSubsystem.getModulePositions());
 		m_estimatedPosePublisher.set(m_poseEstimator.getEstimatedPosition());
-		var closest = closestTagID(getEstimatedPose(), 180, 3);
+		var closest = closestTagID(getEstimatedPose(), 180, 4.5);
 		SmartDashboard.putString("Closest AprilTag ID (within 3m)", closest == null ? "" : ("" + closest));
 		m_closestPosePublisher.set(closest == null ? null : kFieldLayout.getTagPose(closest).get().toPose2d());
 		SmartDashboard.putNumber(

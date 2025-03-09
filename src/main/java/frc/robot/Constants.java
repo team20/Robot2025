@@ -106,7 +106,8 @@ public class Constants {
 		public static final double kTeleopMaxTurnVoltage = 7.2;
 		public static final double kDriveGearRatio = 6.75;
 		public static final double kSteerGearRatio = 150.0 / 7;
-		public static final double kWheelDiameter = Units.inchesToMeters(4);
+		public static final double kWheelDiameter = Units.inchesToMeters(4) * 0.92;
+		// TODO: make it smaller if not close enough to coral stations
 		public static final double kWheelCircumference = Math.PI * kWheelDiameter;
 
 		public static final double kMetersPerMotorRotation = kWheelCircumference / kDriveGearRatio;
@@ -139,7 +140,9 @@ public class Constants {
 		public static final double kTeleopDriveMaxSpeed = 12.0; // TODO: 12 meters per second
 		public static final double kTeleopTurnMaxAngularSpeed = Math.toRadians(360 * 5);// TODO: 5 rotations per second
 
-		public static final double kDriveMaxSpeed = 12.0; // TODO: 12 meters per second
+		// public static final double kDriveMaxSpeed = 12.0; // TODO: 12 meters per
+		// second
+		public static final double kDriveMaxSpeed = 2.0; // TODO: 12 meters per second
 		public static final double kDriveMinSpeed = 0.2; // TODO: Optimize: 0.2 meters per second
 		public static final double kTurnMaxAngularSpeed = Math.toRadians(360); // TODO: 1 rotation per second
 		public static final double kTurnMinAngularSpeed = Math.toRadians(0); // 0 degree per second
@@ -197,12 +200,13 @@ public class Constants {
 		public static final double kMaxExtension = Units.inchesToMeters(49.5 + 0.75); // TODO: Likely needs to be upped:
 		// safety
 		// TODO: The amount that the elevator decreases in order to score
-		public static final double kClearanceHeight = Units.inchesToMeters(3.5);
+		public static final double kClearanceHeight = Units.inchesToMeters(5);// Moved to 5 from 3.5 by Ryan on 3/8/2025
 		public static final double kToScoreHeightDecrease = Units.inchesToMeters(0);
 		public static final double kCoralStationHeight = Units.inchesToMeters(17 + 2); // TODO: Change
 
 		public static final double kAlgaeLevelThreeHeight = Units.inchesToMeters(0.25);
-		public static final double kAlgaeLevelTwoHeight = Units.inchesToMeters(12.5);
+		public static final double kAlgaeLevelTwoHeight = Units.inchesToMeters(16);
+		public static final double kAlgaeLevelTwoAutoHeight = Units.inchesToMeters(12.5);
 	}
 
 	public static final class WristConstants {
@@ -211,18 +215,17 @@ public class Constants {
 		public static final int kSecondaryCurrentLimit = 20;
 		public static final int kGrabberAngleLevelFour = 223;
 		public static final int kGrabberAngleOthers = 221; // 5 degrees steeper from previous value (215)
-		public static final int kGrabberAngleLevelThree = 235;
+		public static final int kGrabberAngleLevelThree = 240;
 		public static final double kAlgaeWristHeight = 170;
 
 		public static final double kWristForwardSoftLimit = 274; // Wrist facing down
 		public static final double kWristReverseSoftLimit = 90; // Wrist facing up
-		public static final double kWristOffset = 0.75;
+		public static final double kWristOffset = 0.75 + (7.5 / 360.0); // angle offset
 
 		// TODO: Make sure these are tuned (can do with SysId)
-		public static final double kP = 0.01;
-		// TODO: Optimize
+		public static final double kP = 0.01; // TODO: Optimize
 		public static final double kI = 0.0;
-		public static final double kD = 0.001; // TODO: Optimize
+		public static final double kD = 0.003; // TODO: Optimize
 
 		public static final double kTolerance = 4; // TODO: Change this
 
@@ -261,7 +264,8 @@ public class Constants {
 		 * {@code AprilTag} to align the robot to the left of that {@code AprilTag}.
 		 */
 		static Transform2d[] kRobotToTagsLeft = { transform(1.1, 0, 180),
-				transform(0.60, -0.165, 180) };
+				transform(0.60, -0.185, 180) };
+		// TODO: decrease y to align more to the left
 
 		/**
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
@@ -287,7 +291,8 @@ public class Constants {
 		/**
 		 * A {@code Map} storing the distance to travel to score at each scoring level.
 		 */
-		static Map<Integer, Double> kOffsets = Map.of(1, 0.13, 2, 0.13, 3, 0.13, 4, 0.05);
+		static Map<Integer, Double> kOffsets = Map.of(1, 0.13, 2, 0.13, 3, 0.11, 4, 0.05);
+		// TODO increase to get closer to the tag
 
 	}
 

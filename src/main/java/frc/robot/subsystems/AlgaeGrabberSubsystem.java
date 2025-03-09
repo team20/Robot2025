@@ -115,7 +115,7 @@ public class AlgaeGrabberSubsystem extends SubsystemBase {
 			m_grabberClosedLoopController.setReference(kDeployGrabberPosition, ControlType.kPosition);
 			m_flywheel.set(kFlywheelSpeed);
 		}).until(this::checkCurrentOnFlywheel).finallyDo(() -> {
-			m_flywheel.set(0.01);
+			m_flywheel.set(0.05);
 			m_grabberAngleMotor.set(0);
 		});
 	}
