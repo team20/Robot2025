@@ -153,6 +153,9 @@ public class Robot extends TimedRobot {
 		m_autoSelector
 				.addOption(
 						"3 Score South", CommandComposer.get3ScoreSouth());
+		m_autoSelector
+				.addOption(
+						"Middle and Algae Blue", CommandComposer.getMiddleScoreAndAlgaeBlue());
 	}
 
 	public void addTestingCommands() {
@@ -379,7 +382,7 @@ public class Robot extends TimedRobot {
 
 	public void bindClimberControls() {
 		// m_climberSubsystem.setDefaultCommand(m_climberSubsystem.manualMove(() ->
-		// m_driverController.getRightY()));
+		// m_driverControlle`r.getRightY()));
 		// once sensors are good make driver controller rumble
 		m_driverController.triangle().onTrue(m_climberSubsystem.deploy());
 		m_driverController.cross().onTrue(m_climberSubsystem.retract());
