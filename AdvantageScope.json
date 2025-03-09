@@ -1,10 +1,10 @@
 {
   "hubs": [
     {
-      "x": 163,
-      "y": 37,
-      "width": 1305,
-      "height": 791,
+      "x": 0,
+      "y": 42,
+      "width": 1468,
+      "height": 786,
       "state": {
         "sidebar": {
           "width": 300,
@@ -19,7 +19,7 @@
           ]
         },
         "tabs": {
-          "selected": 4,
+          "selected": 1,
           "tabs": [
             {
               "type": 0,
@@ -110,21 +110,21 @@
                 "cameraIndex": -2,
                 "orbitFov": 50,
                 "cameraPosition": [
-                  2,
-                  1,
-                  1.0000000000000002
+                  1.5485406167775007,
+                  4.727495134595974,
+                  5.020432899039382
                 ],
                 "cameraTarget": [
-                  0,
+                  -0.9279226425328596,
                   0.5,
-                  0
+                  0.689416832916985
                 ]
               },
               "controlsHeight": 200
             },
             {
               "type": 3,
-              "title": "3D Field",
+              "title": "Front Camera",
               "controller": {
                 "sources": [
                   {
@@ -143,14 +143,47 @@
                 "cameraIndex": 0,
                 "orbitFov": 50,
                 "cameraPosition": [
-                  -5.926786967707081,
-                  0.19999999999999618,
-                  -8.245303700080482
+                  -4.727983477289962,
+                  0.20000000000000057,
+                  1.1334935809151911
                 ],
                 "cameraTarget": [
-                  -5.499210033966124,
-                  0.6999999999999971,
-                  -7.492191513396001
+                  -4.258850558652557,
+                  0.5420201433256691,
+                  0.319284439348825
+                ]
+              },
+              "controlsHeight": 200
+            },
+            {
+              "type": 3,
+              "title": "Back Camera",
+              "controller": {
+                "sources": [
+                  {
+                    "type": "cameraOverride",
+                    "logKey": "NT:/SmartDashboard/Cameras/BackCamera",
+                    "logType": "Pose3d",
+                    "visible": true,
+                    "options": {}
+                  }
+                ],
+                "game": "2025 Field (Welded)",
+                "origin": "blue"
+              },
+              "controllerUUID": "rfgfnrr407g4ms0uvb009d90iqysrt0p",
+              "renderer": {
+                "cameraIndex": 1,
+                "orbitFov": 50,
+                "cameraPosition": [
+                  -5.127376136770504,
+                  0.5000000000000009,
+                  1.8266641973964877
+                ],
+                "cameraTarget": [
+                  -5.626616961121181,
+                  0.5000000000000008,
+                  2.6931274679981074
                 ]
               },
               "controlsHeight": 200
