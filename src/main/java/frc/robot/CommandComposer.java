@@ -498,7 +498,7 @@ public class CommandComposer {
 	 */
 	public static Command toClosestTag(Transform2d... robotToTags) {
 		return new PathDriveCommand(m_driveSubsystem, 0.01, 1,
-				0.05, 5,
+				0.05, 5, // TODO: Optimize
 				posesToClosestTag(3, robotToTags));
 	}
 
@@ -531,7 +531,7 @@ public class CommandComposer {
 	 */
 	public static Command toTag(int tagID, Transform2d... robotToTags) {
 		return new PathDriveCommand(m_driveSubsystem, 0.01, 1,
-				0.16, 16,
+				0.05, 5, // TODO: Optimize
 				posesToTag(tagID, robotToTags));
 	}
 
