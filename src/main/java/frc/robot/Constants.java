@@ -140,7 +140,7 @@ public class Constants {
 		public static final double kTeleopTurnMaxAngularSpeed = Math.toRadians(360 * 5);// TODO: 5 rotations per second
 
 		public static final double kDriveMaxSpeed = 12.0; // TODO: 12 meters per second
-		public static final double kDriveMinSpeed = 0.2; // TODO: 0.2 meters per second
+		public static final double kDriveMinSpeed = 0.2; // TODO: Optimize: 0.2 meters per second
 		public static final double kTurnMaxAngularSpeed = Math.toRadians(360); // TODO: 1 rotation per second
 		public static final double kTurnMinAngularSpeed = Math.toRadians(0); // 0 degree per second
 
@@ -219,9 +219,9 @@ public class Constants {
 		public static final double kWristOffset = 0.75;
 
 		// TODO: Make sure these are tuned (can do with SysId)
-		public static final double kP = 0.015; // 0.01
+		public static final double kP = 0.015; // TODO: Optimize
 		public static final double kI = 0.0;
-		public static final double kD = 0.001; // TODO: 0.0?
+		public static final double kD = 0.001; // TODO: Optimize
 
 		public static final double kTolerance = 4; // TODO: Change this
 

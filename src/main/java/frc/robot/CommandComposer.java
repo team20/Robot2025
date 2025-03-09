@@ -18,6 +18,8 @@ import java.util.function.Supplier;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -59,36 +61,130 @@ public class CommandComposer {
 	}
 
 	public static Command get3ScoreNorth() {
-		return new SelectCommand<Alliance>(Map
-				.of(Alliance.Red, get3ScoreNorthRed(), Alliance.Blue, get3ScoreNorthBlue()),
-				() -> DriverStation.getAlliance().get());
+		return select(get3ScoreNorthRed(4), get3ScoreNorthBlue(4));
 	}
 
 	public static Command get3ScoreSouth() {
-		return new SelectCommand<Alliance>(Map
-				.of(Alliance.Red, get3ScoreSouthRed(), Alliance.Blue, get3ScoreSouthBlue()),
-				() -> DriverStation.getAlliance().get());
+		return select(get3ScoreSouthRed(4), get3ScoreSouthBlue(4));
 	}
 
-	private static Command get3ScoreNorthBlue() {
+	private static Command get3ScoreNorthBlue(int level) {
+		return get3ScoreOptimized(
+				toTag(20, level, kRobotToTagsRight), toTag(19, level, kRobotToTagsRight),
+				toTag(19, level, kRobotToTagsLeft),
+				13, kRobotToTagsRightReady);
+	}
+
+	private static Command get3ScoreNorthRed(int level) {
+		return get3ScoreOptimized(
+				toTag(9, level, kRobotToTagsLeft), toTag(8, level, kRobotToTagsLeft),
+				toTag(8, level, kRobotToTagsRight),
+				2, kRobotToTagsLeftReady);
+	}
+
+	private static Command get3ScoreSouthBlue(int level) {
+		return get3ScoreOptimized(
+				toTag(22, level, kRobotToTagsLeft), toTag(17, level, kRobotToTagsLeft),
+				toTag(17, level, kRobotToTagsRight),
+				12, kRobotToTagsLeftReady);
+	}
+
+	private static Command get3ScoreSouthRed(int level) {
+		return get3ScoreOptimized(
+				toTag(11, level, kRobotToTagsRight), toTag(6, level, kRobotToTagsRightReady),
+				toTag(6, level, kRobotToTagsLeft),
+				1, kRobotToTagsRight);
+	}
+
+	private static Command get3ScoreOptimized(Command align1, Command align2, Command align3, int stationTagID,
+			Transform2d... robotToTags) {
+		return sequence(
+				scoreOptimized(align1, 4),
+				toStation(stationTagID, robotToTags),
+				scoreOptimized(align2, goToBase(), 4),
+				toStation(stationTagID, robotToTags),
+				scoreOptimized(align3, goToBase(), 4),
+				m_wristSubsystem.goToAngle(270));
+	}
+
+	public static Command scoreOptimized(Command align, int level) {
+		return scoreOptimized(align, runOnce(() -> {
+		}), level);
+	}
+
+	public static Command scoreOptimized(Command align, Command pickup, int level) {
+		switch (level) {
+			case 4:
+				return score(
+						align, pickup, kLevelFourHeight, kGrabberAngleLevelFour,
+						m_wristSubsystem.goToAngle(200));
+			case 3:
+				return score(align, pickup, kLevelThreeHeight, kGrabberAngleLevelThree);
+			case 2:
+				return score(align, pickup, kLevelTwoHeight, kGrabberAngleOthers);
+			case 1:
+				return score(align, pickup, kLevelOneHeight, kGrabberAngleOthers);
+		}
+		return runOnce(() -> {
+		});
+	}
+
+	private static Command score(Command align, Command pickup, double level, double wristAngle) {
+		return score(align, pickup, level, wristAngle, runOnce(() -> {
+		}));
+	}
+
+	private static Command score(Command align, Command pickup, double level, double wristAngle,
+			Command followup) {
+		return sequence(
+				prepareToScore(align, pickup, level, wristAngle),
+				score(.2, followup));// TODO: Optimize
+	}
+
+	static Command prepareToScore(Command align, double level, double wristAngle) {
+		return prepareToScore(align, runOnce(() -> {
+		}), level, wristAngle);
+	}
+
+	static Command prepareToScore(Command align, Command pickup, double level, double wristAngle) {
+		return parallel(
+				align,
+				sequence(
+						pickup,
+						m_elevatorSubsystem.goToLevel(() -> level),
+						m_wristSubsystem.goToAngle(wristAngle)));
+	}
+
+	public static Command score(double releaseDuration, Command followup) {
+		return sequence(m_cheeseStickSubsystem.release(releaseDuration), followup);
+	}
+
+	private static Command toStation(int tagID, Transform2d... robotToTags) {
+		return parallel(
+				toTag(tagID, robotToTags), sequence(
+						m_elevatorSubsystem.goToCoralStationHeight(),
+						m_wristSubsystem.goToAngle(270)));
+	}
+
+	static Command get3ScoreNorthBlue() {
 		return get3Score(
 				toTag(20, kRobotToTagsRight), toTag(19, kRobotToTagsRight), toTag(19, kRobotToTagsLeft),
 				13, kRobotToTagsRightReady);
 	}
 
-	private static Command get3ScoreNorthRed() {
+	static Command get3ScoreNorthRed() {
 		return get3Score(
 				toTag(9, kRobotToTagsLeft), toTag(8, kRobotToTagsLeft), toTag(8, kRobotToTagsRight),
 				2, kRobotToTagsLeftReady);
 	}
 
-	private static Command get3ScoreSouthBlue() {
+	static Command get3ScoreSouthBlue() {
 		return get3Score(
 				toTag(22, kRobotToTagsLeft), toTag(17, kRobotToTagsLeft), toTag(17, kRobotToTagsRight),
 				12, kRobotToTagsLeftReady);
 	}
 
-	private static Command get3ScoreSouthRed() {
+	static Command get3ScoreSouthRed() {
 		return get3Score(
 				toTag(11, kRobotToTagsRight), toTag(6, kRobotToTagsRightReady), toTag(6, kRobotToTagsLeft),
 				1, kRobotToTagsRight);
@@ -138,45 +234,10 @@ public class CommandComposer {
 				score(offset, 1.0, followup));
 	}
 
-	static Command prepareToScore(Command align, double level, double wristAngle) {
-		return prepareToScore(align, runOnce(() -> {
-		}), level, wristAngle);
-	}
-
-	static Command prepareToScore(Command align, Command pickup, double level, double wristAngle) {
-		return parallel(
-				align,
-				sequence(
-						pickup,
-						m_elevatorSubsystem.goToLevel(() -> level),
-						m_wristSubsystem.goToAngle(wristAngle)));
-	}
-
-	public static Command score(double releaseDuration) {
-		return score(releaseDuration, runOnce(() -> {
-		}));
-	}
-
-	public static Command score(double releaseDuration, Command followup) {
-		return sequence(m_cheeseStickSubsystem.release(releaseDuration), followup);
-	}
-
-	public static Command score(double offset, double releaseDuration) {
-		return score(offset, releaseDuration, runOnce(() -> {
-		}));
-	}
-
 	public static Command score(double offset, double releaseDuration, Command followup) {
 		return sequence(
 				moveStraight(offset, 0.01, 1), m_cheeseStickSubsystem.release(releaseDuration),
 				parallel(followup, moveStraight(-2 * offset, 0.01, 1)));
-	}
-
-	private static Command toStation(int tagID, Transform2d... robotToTags) {
-		return parallel(
-				toTag(tagID, robotToTags), sequence(
-						m_elevatorSubsystem.goToCoralStationHeight(),
-						m_wristSubsystem.goToAngle(270)));
 	}
 
 	static Command scoreLevelInTeleop(double level, double clearanceHeight, Supplier<Command> levelCommand,
@@ -396,9 +457,7 @@ public class CommandComposer {
 	 *         {@code AprilTag} to score at the specified level
 	 */
 	public static Command toClosestTag(int level, Transform2d... robotToTags) {
-		return new PathDriveCommand(m_driveSubsystem, 0.01, 1,
-				0.05, 5,
-				posesToClosestTag(3, adjust(level, robotToTags)));
+		return toClosestTag(adjust(level, robotToTags));
 	}
 
 	/**
@@ -427,8 +486,24 @@ public class CommandComposer {
 	 */
 	public static Command toClosestTag(Transform2d... robotToTags) {
 		return new PathDriveCommand(m_driveSubsystem, 0.01, 1,
-				0.05, 5,
+				0.05, 5, // TODO: Optimize
 				posesToClosestTag(3, robotToTags));
+	}
+
+	/**
+	 * Creates a {@code Command} to automatically align the robot to the target
+	 * {@code AprilTag}.
+	 *
+	 * @param tagID the ID of the target {@code AprilTag}
+	 * @param level the scoring level
+	 * @param robotToTags the {@code Tranform2d} representing the pose of the
+	 *        target {@code AprilTag} relative to the robot when the robot is
+	 *        aligned
+	 * @return a {@code Command} to automatically align the robot to the target
+	 *         {@code AprilTag}
+	 */
+	public static Command toTag(int tagID, int level, Transform2d... robotToTags) {
+		return toTag(tagID, adjust(level, robotToTags));
 	}
 
 	/**
@@ -444,7 +519,7 @@ public class CommandComposer {
 	 */
 	public static Command toTag(int tagID, Transform2d... robotToTags) {
 		return new PathDriveCommand(m_driveSubsystem, 0.01, 1,
-				0.16, 16,
+				0.05, 5, // TODO: Optimize
 				posesToTag(tagID, robotToTags));
 	}
 
@@ -513,4 +588,32 @@ public class CommandComposer {
 			return m_poseEstimationSubsystem.odometryCentricPose(pose.plus(r));
 		})).toList();
 	}
+
+	private static Command select(Command commandRedAlliance, Command commandBlueAlliance) {
+		return new SelectCommand<Object>(Map
+				.of(Alliance.Red, commandRedAlliance, Alliance.Blue, commandBlueAlliance),
+				() -> {
+					Alliance alliance = DriverStation.getAlliance().get();
+					var middle = kFieldLayout.getFieldLength() / 2;
+					try {
+						var confidence = m_poseEstimationSubsystem.confidence();
+						if (confidence < 0.3)
+							return alert("Pose Confidence (" + confidence + ") Too Low!");
+						var x = m_poseEstimationSubsystem.getEstimatedPose().getX();
+						if ((alliance == DriverStation.Alliance.Blue && x > middle)
+								|| (alliance == DriverStation.Alliance.Red && x < middle)) {
+							return alert("Strange Robot Position (" + alliance + " Alliance)!");
+						}
+					} catch (Exception e) {
+					}
+					return alliance;
+				});
+	}
+
+	private static Alert alert(String text) {
+		var a = new Alert(text, AlertType.kError);
+		a.set(true);
+		return a;
+	}
+
 }
