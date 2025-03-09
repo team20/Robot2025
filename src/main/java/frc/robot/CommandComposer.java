@@ -93,32 +93,107 @@ public class CommandComposer {
 						m_cheeseStickSubsystem.grab()));
 	}
 
-	private static Command scoreLevelInAuto(Supplier<Command> levelCommand) {
+	public static Command scoreOptimized(Command align, Command pickup, int level) {
+		switch (level) {
+			case 4:
+				return score(
+						align, pickup, kLevelFourHeight, kGrabberAngleLevelFour,
+						m_wristSubsystem.goToAngle(205));
+			case 3:
+				return score(align, pickup, kLevelThreeHeight, kGrabberAngleLevelThree);
+			case 2:
+				return score(align, pickup, kLevelTwoHeight, kGrabberAngleOthers);
+			case 1:
+				return score(align, pickup, kLevelOneHeight, kGrabberAngleOthers);
+		}
+		return runOnce(() -> {
+		});
+	}
+
+	private static Command score(Command align, Command pickup, double level, double wristAngle) {
+		return score(align, pickup, level, wristAngle, runOnce(() -> {
+		}));
+	}
+
+	private static Command score(Command align, Command pickup, double level, double wristAngle,
+			Command followup) {
 		return sequence(
-				levelCommand.get(),
-				m_wristSubsystem.goToAngle(35),
-				m_elevatorSubsystem.lowerToScore(),
-				m_cheeseStickSubsystem.release(),
-				waitSeconds(0), // TODO: find the amount of time needed to retract
-				levelCommand.get(),
+				prepareToScore(align, pickup, level, wristAngle),
+				score(.7, followup));// TODO: Optimize
+	}
+
+	static Command prepareToScore(Command align, double level, double wristAngle) {
+		return prepareToScore(align, runOnce(() -> {
+		}), level, wristAngle);
+	}
+
+	static Command prepareToScore(Command align, Command pickup, double level, double wristAngle) {
+		return parallel(
+				align,
+				sequence(
+						pickup,
+						m_elevatorSubsystem.goToLevel(() -> level),
+						m_wristSubsystem.goToAngle(wristAngle)));
+	}
+
+	public static Command score(double releaseDuration, Command followup) {
+		return sequence(m_cheeseStickSubsystem.release(releaseDuration), followup);
+	}
+
+	public static Command score(Command align, int level) {
+		return score(align, runOnce(() -> {
+		}), level);
+	}
+
+	public static Command score(Command align, Command pickup, int level) {
+		switch (level) {
+			case 4:
+				return score(
+						align, pickup, kLevelFourHeight, kGrabberAngleLevelFour, kOffsets.get(level),
+						m_wristSubsystem.goToAngle(200));
+			case 3:
+				return score(align, pickup, kLevelThreeHeight, kGrabberAngleLevelThree, kOffsets.get(level));
+			case 2:
+				return score(align, pickup, kLevelTwoHeight, kGrabberAngleOthers, kOffsets.get(level));
+			case 1:
+				return score(align, pickup, kLevelOneHeight, kGrabberAngleOthers, kOffsets.get(level));
+		}
+		return runOnce(() -> {
+		});
+	}
+
+	private static Command score(Command align, Command pickup, double level, double wristAngle, double offset) {
+		return score(align, pickup, level, wristAngle, offset, runOnce(() -> {
+		}));
+	}
+
+	private static Command score(Command align, Command pickup, double level, double wristAngle, double offset,
+			Command followup) {
+		return sequence(
+				prepareToScore(align, pickup, level, wristAngle),
+				score(offset, 1.0, followup));
+	}
+
+	public static Command score(double offset, double releaseDuration, Command followup) {
+		return sequence(
+				moveStraight(offset, 0.01, 1), m_cheeseStickSubsystem.release(releaseDuration),
+				parallel(followup, moveStraight(-2 * offset, 0.01, 1)));
+	}
+
+	private static Command getMiddleScoreAndAlgae(Command align1, Command align2) {
+		return sequence(
+				scoreOptimized(align1, 4),
+				align2,
 				m_cheeseStickSubsystem.grab(),
-				m_wristSubsystem.goToAngle(-90));
+				removeAlgaeLevelTwo(),
+				parallel(
+						m_wristSubsystem.goToAngle(240),
+						moveStraight(-0.7, 0.01, 1)));
 	}
 
-	public static Command scoreLevelFourInAuto() {
-		return scoreLevelInAuto(m_elevatorSubsystem::goToLevelFourHeight);
-	}
-
-	public static Command scoreLevelThreeInAuto() {
-		return scoreLevelInAuto(m_elevatorSubsystem::goToLevelThreeHeight);
-	}
-
-	public static Command scoreLevelTwoInAuto() {
-		return scoreLevelInAuto(m_elevatorSubsystem::goToLevelTwoHeight);
-	}
-
-	public static Command scoreLevelOneInAuto() {
-		return scoreLevelInAuto(m_elevatorSubsystem::goToLevelOneHeight);
+	public static Command scoreOptimized(Command align, int level) {
+		return scoreOptimized(align, runOnce(() -> {
+		}), level);
 	}
 
 	public static Command prepareForCoralPickup() {

@@ -199,7 +199,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 	 * @param level A function that returns the level we want to go to
 	 * @return the command
 	 */
-	private Command goToLevel(DoubleSupplier level) {
+	public Command goToLevel(DoubleSupplier level) {
 		var initial = new TrapezoidProfile.State();
 		var finalState = new TrapezoidProfile.State();
 

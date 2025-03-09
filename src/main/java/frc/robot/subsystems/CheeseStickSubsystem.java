@@ -55,6 +55,10 @@ public class CheeseStickSubsystem extends SubsystemBase {
 		return runOnce(() -> m_servo.set(kReleaseDistance)).withName("Servo Release");
 	}
 
+	public Command release(double duration) {
+		return run(() -> m_servo.set(kReleaseDistance)).withName("Servo Release").withTimeout(duration);
+	}
+
 	/**
 	 * Returns a command to command the servo to rotate clockwise. This is pushed by
 	 * springs and extends the cheese stock. Does not wait
