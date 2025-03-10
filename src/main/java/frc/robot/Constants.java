@@ -106,7 +106,7 @@ public class Constants {
 		public static final double kTeleopMaxTurnVoltage = 7.2;
 		public static final double kDriveGearRatio = 6.75;
 		public static final double kSteerGearRatio = 150.0 / 7;
-		public static final double kWheelDiameter = Units.inchesToMeters(4) * 0.92;
+		public static final double kWheelDiameter = Units.inchesToMeters(4) * 0.95;
 		// TODO: make it smaller if not close enough to coral stations
 		public static final double kWheelCircumference = Math.PI * kWheelDiameter;
 

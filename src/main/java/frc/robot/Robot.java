@@ -99,12 +99,16 @@ public class Robot extends TimedRobot {
 
 		}
 	};
+	// TODO: both cameras are not correctly set up; not measuring distances
+	// correctly. For now, the back camera is disabled. Will need to use after
+	// configured correctly.
 	private final PhotonCamera m_camera1 = RobotBase.isSimulation()
 			? cameraSim("FrontCamera", kRobotToCamera1, m_visionSimulator, cameraProp)
 			: new PhotonCamera("FrontCamera");
 	private final PhotonCamera m_camera2 = RobotBase.isSimulation()
 			? cameraSim("BackCamera", kRobotToCamera2, m_visionSimulator, cameraProp)
-			: new PhotonCamera("BackCamera");
+			// : new PhotonCamera("BackCamera");
+			: new PhotonCamera("BackCamera2");
 	private final PoseEstimationSubsystem m_poseEstimationSubsystem = new PoseEstimationSubsystem(m_driveSubsystem)
 			.addCamera(m_camera1, kRobotToCamera1)
 			.addCamera(m_camera2, kRobotToCamera2);
