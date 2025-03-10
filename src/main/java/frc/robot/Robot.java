@@ -160,10 +160,14 @@ public class Robot extends TimedRobot {
 	public void addAutoCommands() {
 		m_autoSelector
 				.addOption(
-						"3 Score North", CommandComposer.get3ScoreNorth());
+						"3 Score North (Level 3)",
+						// TODO: Optimize
+						CommandComposer.get3ScoreNorth(3, 0.5, 1.0, 0.1));
 		m_autoSelector
 				.addOption(
-						"3 Score South", CommandComposer.get3ScoreSouth());
+						"3 Score South (Level 3)",
+						// TODO: Optimize
+						CommandComposer.get3ScoreSouth(3, 0.5, 1.0, 0.1));
 		m_autoSelector
 				.addOption(
 						"Middle and Algae Blue", CommandComposer.getMiddleScoreAndAlgaeBlue());
@@ -173,19 +177,27 @@ public class Robot extends TimedRobot {
 		m_testingChooser
 				.addOption(
 						"Pick Up and Score Left at Level 3 (6, 7, 8, 9, 10, 11)",
-						testLeftAlignment(3, 1, 3, 6, 7, 8, 9, 10, 11));
+						testLeftAlignment(
+								3, 0.1, 1.0, 3.0,
+								6, 7, 8, 9, 10, 11));
 		m_testingChooser
 				.addOption(
 						"Pick Up and Score at Right Level 3 (6, 7, 8, 9, 10, 11)",
-						testRightAlignment(3, 1, 3, 6, 7, 8, 9, 10, 11));
+						testRightAlignment(
+								3, 0.1, 1.0, 3.0,
+								6, 7, 8, 9, 10, 11));
 		m_testingChooser
 				.addOption(
 						"Pick Up and Score Left at Level 3 (17, 18, 19, 20, 21, 22)",
-						testLeftAlignment(3, 1, 3, 17, 18, 19, 20, 21, 22));
+						testLeftAlignment(
+								3, 0.1, 1.0, 3.0,
+								17, 18, 19, 20, 21, 22));
 		m_testingChooser
 				.addOption(
 						"Pick Up and Score Right at Level 3 (17, 18, 19, 20, 21, 22)",
-						testRightAlignment(3, 1, 3, 17, 18, 19, 20, 21, 22));
+						testRightAlignment(
+								3, 0.1, 1.0, 3.0,
+								17, 18, 19, 20, 21, 22));
 		m_testingChooser
 				.addOption(
 						"Pick Up and Score at Level 3 (Left)",
@@ -229,12 +241,12 @@ public class Robot extends TimedRobot {
 		m_testingChooser
 				.addOption(
 						"Score at Level 3 (Left)",
-						scoreOptimized(toClosestTag(kLevel2Offset.get(3), 0, kRobotToTagsLeft), 3));
+						score(toClosestTag(kLevel2Offset.get(3), 0, kRobotToTagsLeft), 3));
 		// score(toClosestTag(kRobotToTagsLeft), 3));
 		m_testingChooser
 				.addOption(
 						"Score at Level 4 (Left)",
-						scoreOptimized(toClosestTag(kLevel2Offset.get(4), 0, kRobotToTagsLeft), 4));
+						score(toClosestTag(kLevel2Offset.get(4), 0, kRobotToTagsLeft), 4));
 		// score(toClosestTag(kRobotToTagsLeft), 4));
 		double distanceTolerance = 0.01;
 		double angleToleranceInDegrees = 1;

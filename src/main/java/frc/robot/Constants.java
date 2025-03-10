@@ -142,9 +142,9 @@ public class Constants {
 
 		// public static final double kDriveMaxSpeed = 12.0; // TODO: 12 meters per
 		// second
-		public static final double kDriveMaxSpeed = 2.0; // TODO: 12 meters per second
+		public static final double kDriveMaxSpeed = 2.0; // TODO: Optimize: 12 meters per second
 		public static final double kDriveMinSpeed = 0.2; // TODO: Optimize: 0.2 meters per second
-		public static final double kTurnMaxAngularSpeed = Math.toRadians(360); // TODO: 1 rotation per second
+		public static final double kTurnMaxAngularSpeed = Math.toRadians(360); // TODO: Optimize: 1 rotation per second
 		public static final double kTurnMinAngularSpeed = Math.toRadians(0); // 0 degree per second
 
 		// DriveCommand.java Constants
@@ -310,6 +310,11 @@ public class Constants {
 		 * some {@code AprilTag}s.
 		 */
 		static Map<Integer, Double> kSideAdjustment = Map.of(19, -0.02, 21, -0.01, 22, -0.01);
+
+		/**
+		 * The additional distance to move forward for each coral station.
+		 */
+		static double kCoralStationForwrdAdjustment = 0.1; // TODO: Check
 
 	}
 
