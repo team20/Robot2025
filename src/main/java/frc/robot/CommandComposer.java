@@ -101,8 +101,7 @@ public class CommandComposer {
 	}
 
 	private static Command get3ScoreOptimized(Command align1, Command align2, Command align3, int stationTagID,
-			double forward, double left,
-			Transform2d... robotToTags) {
+			double forward, double left, Transform2d... robotToTags) {
 		return sequence(
 				scoreOptimized(align1, goToBase(), 3), moveStraight(-0.5, 0.2, 20),
 				toStation(stationTagID, forward, left, robotToTags), new WaitCommand(1),
@@ -170,98 +169,12 @@ public class CommandComposer {
 						m_elevatorSubsystem.goToCoralStationHeight()));
 	}
 
-	static Command get3ScoreNorthBlue() {
-		return get3Score(
-				toTag(20, kRobotToTagsRight), toTag(19, kRobotToTagsRight), toTag(19, kRobotToTagsLeft),
-				13, 0.05, 0, kRobotToTagsRightReady);
-	}
-
-	static Command get3ScoreNorthRed() {
-		return get3Score(
-				toTag(9, kRobotToTagsLeft), toTag(8, kRobotToTagsLeft), toTag(8, kRobotToTagsRight),
-				2, 0.05, 0, kRobotToTagsLeftReady);
-	}
-
-	static Command get3ScoreSouthBlue() {
-		return get3Score(
-				toTag(22, kRobotToTagsLeft), toTag(17, kRobotToTagsLeft), toTag(17, kRobotToTagsRight),
-				12, 0.05, 0, kRobotToTagsLeftReady);
-	}
-
-	static Command get3ScoreSouthRed() {
-		return get3Score(
-				toTag(11, kRobotToTagsRight), toTag(6, kRobotToTagsRightReady), toTag(6, kRobotToTagsLeft),
-				1, 0.05, 0, kRobotToTagsRight);
-	}
-
 	static Command getMiddleScoreAndAlgaeBlue() {
 		return getMiddleScoreAndAlgae(toTag(21, kRobotToTagsRight), toTag(21, kRobotToTags));
 	}
 
 	static Command getMiddleScoreAndAlgaeRed() {
 		return getMiddleScoreAndAlgae(toTag(10, kRobotToTagsRight), toTag(10, kRobotToTags));
-	}
-
-	private static Command get3Score(Command align1, Command align2, Command align3, int stationTagID, double forward,
-			double left,
-			Transform2d... robotToTags) {
-		return sequence(
-				score(align1, 4),
-				toStation(stationTagID, forward, left, robotToTags),
-				score(align2, goToBase(), 4),
-				toStation(stationTagID, forward, left, robotToTags),
-				score(align3, goToBase(), 4));
-	}
-
-	private static Command getMiddleScoreAndAlgae(Command align1, Command align2) {
-		return sequence(
-				scoreOptimized(align1, 4),
-				align2,
-				m_cheeseStickSubsystem.grab(),
-				removeAlgaeLevelTwo(),
-				parallel(
-						m_wristSubsystem.goToAngle(240),
-						moveStraight(-0.7, 0.01, 1)));
-	}
-
-	public static Command score(Command align, int level) {
-		return score(align, runOnce(() -> {
-		}), level);
-	}
-
-	public static Command score(Command align, Command pickup, int level) {
-		switch (level) {
-			case 4:
-				return score(
-						align, pickup, kLevelFourHeight, kGrabberAngleLevelFour, kOffsets.get(level),
-						m_wristSubsystem.goToAngle(200));
-			case 3:
-				return score(align, pickup, kLevelThreeHeight, kGrabberAngleLevelThree, kOffsets.get(level));
-			case 2:
-				return score(align, pickup, kLevelTwoHeight, kGrabberAngleOthers, kOffsets.get(level));
-			case 1:
-				return score(align, pickup, kLevelOneHeight, kGrabberAngleOthers, kOffsets.get(level));
-		}
-		return runOnce(() -> {
-		});
-	}
-
-	private static Command score(Command align, Command pickup, double level, double wristAngle, double offset) {
-		return score(align, pickup, level, wristAngle, offset, runOnce(() -> {
-		}));
-	}
-
-	private static Command score(Command align, Command pickup, double level, double wristAngle, double offset,
-			Command followup) {
-		return sequence(
-				prepareToScore(align, pickup, level, wristAngle),
-				score(offset, 1.0, followup));
-	}
-
-	public static Command score(double offset, double releaseDuration, Command followup) {
-		return sequence(
-				moveStraight(offset, 0.01, 1), m_cheeseStickSubsystem.release(releaseDuration),
-				parallel(followup, moveStraight(-2 * offset, 0.01, 1)));
 	}
 
 	static Command scoreLevelInTeleop(double level, double clearanceHeight, Supplier<Command> levelCommand,
@@ -303,93 +216,6 @@ public class CommandComposer {
 						m_cheeseStickSubsystem.grab()));
 	}
 
-	public static Command scoreOptimized(Command align, Command pickup, int level) {
-		switch (level) {
-			case 4:
-				return score(
-						align, pickup, kLevelFourHeight, kGrabberAngleLevelFour,
-						m_wristSubsystem.goToAngle(205));
-			case 3:
-				return score(align, pickup, kLevelThreeHeight, kGrabberAngleLevelThree);
-			case 2:
-				return score(align, pickup, kLevelTwoHeight, kGrabberAngleOthers);
-			case 1:
-				return score(align, pickup, kLevelOneHeight, kGrabberAngleOthers);
-		}
-		return runOnce(() -> {
-		});
-	}
-
-	private static Command score(Command align, Command pickup, double level, double wristAngle) {
-		return score(align, pickup, level, wristAngle, runOnce(() -> {
-		}));
-	}
-
-	private static Command score(Command align, Command pickup, double level, double wristAngle,
-			Command followup) {
-		return sequence(
-				prepareToScore(align, pickup, level, wristAngle),
-				score(.7, followup));// TODO: Optimize
-	}
-
-	static Command prepareToScore(Command align, double level, double wristAngle) {
-		return prepareToScore(align, runOnce(() -> {
-		}), level, wristAngle);
-	}
-
-	static Command prepareToScore(Command align, Command pickup, double level, double wristAngle) {
-		return parallel(
-				align,
-				sequence(
-						pickup,
-						m_elevatorSubsystem.goToLevel(() -> level),
-						m_wristSubsystem.goToAngle(wristAngle)));
-	}
-
-	public static Command score(double releaseDuration, Command followup) {
-		return sequence(m_cheeseStickSubsystem.release(releaseDuration), followup);
-	}
-
-	public static Command score(Command align, int level) {
-		return score(align, runOnce(() -> {
-		}), level);
-	}
-
-	public static Command score(Command align, Command pickup, int level) {
-		switch (level) {
-			case 4:
-				return score(
-						align, pickup, kLevelFourHeight, kGrabberAngleLevelFour, kOffsets.get(level),
-						m_wristSubsystem.goToAngle(200));
-			case 3:
-				return score(align, pickup, kLevelThreeHeight, kGrabberAngleLevelThree, kOffsets.get(level));
-			case 2:
-				return score(align, pickup, kLevelTwoHeight, kGrabberAngleOthers, kOffsets.get(level));
-			case 1:
-				return score(align, pickup, kLevelOneHeight, kGrabberAngleOthers, kOffsets.get(level));
-		}
-		return runOnce(() -> {
-		});
-	}
-
-	private static Command score(Command align, Command pickup, double level, double wristAngle, double offset) {
-		return score(align, pickup, level, wristAngle, offset, runOnce(() -> {
-		}));
-	}
-
-	private static Command score(Command align, Command pickup, double level, double wristAngle, double offset,
-			Command followup) {
-		return sequence(
-				prepareToScore(align, pickup, level, wristAngle),
-				score(offset, 1.0, followup));
-	}
-
-	public static Command score(double offset, double releaseDuration, Command followup) {
-		return sequence(
-				moveStraight(offset, 0.01, 1), m_cheeseStickSubsystem.release(releaseDuration),
-				parallel(followup, moveStraight(-2 * offset, 0.01, 1)));
-	}
-
 	private static Command getMiddleScoreAndAlgae(Command align1, Command align2) {
 		return sequence(
 				scoreOptimized(align1, 4),
@@ -399,11 +225,6 @@ public class CommandComposer {
 				parallel(
 						m_wristSubsystem.goToAngle(240),
 						moveStraight(-0.7, 0.01, 1)));
-	}
-
-	public static Command scoreOptimized(Command align, int level) {
-		return scoreOptimized(align, runOnce(() -> {
-		}), level);
 	}
 
 	public static Command prepareForCoralPickup() {
