@@ -51,6 +51,7 @@ import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
@@ -165,23 +166,104 @@ public class Robot extends TimedRobot {
 	public void addTestingCommands() {
 		m_testingChooser
 				.addOption(
+						"Pick Up and Score at Level 3 Right (17, 18, 19, 20, 21, 22, 23)",
+						sequence(
+								scoreOptimized(
+										toTag(17, kOffsets.get(3) + 0.09, 0.0, kRobotToTagsRight), goToBase(), 3),
+								new WaitCommand(5), moveStraight(-0.95, 0.01, 1),
+								scoreOptimized(
+										toTag(18, kOffsets.get(3) + 0.09 + 0.01, 0.0, kRobotToTagsRight),
+										goToBase(),
+										3),
+								new WaitCommand(5), moveStraight(-0.95, 0.01, 1),
+								scoreOptimized(
+										toTag(19, kOffsets.get(3) + 0.09, 0.0 - 0.02, kRobotToTagsRight),
+										goToBase(),
+										3),
+								new WaitCommand(5), moveStraight(-0.95, 0.01, 1),
+								scoreOptimized(
+										toTag(20, kOffsets.get(3) + 0.09, 0.0, kRobotToTagsRight), goToBase(), 3),
+								new WaitCommand(5), moveStraight(-0.95, 0.01, 1),
+								scoreOptimized(
+										toTag(21, kOffsets.get(3) + 0.09, 0.0 - 0.01, kRobotToTagsRight),
+										goToBase(),
+										3),
+								new WaitCommand(5), moveStraight(-0.95, 0.01, 1),
+								scoreOptimized(
+										toTag(22, kOffsets.get(3) + 0.09 + 0.01, 0.0 - 0.01, kRobotToTagsRight),
+										goToBase(), 3),
+								new WaitCommand(5), moveStraight(-0.95, 0.01, 1),
+								scoreOptimized(
+										toTag(17, kOffsets.get(3) + 0.09, 0.0, kRobotToTagsRight), goToBase(), 3),
+								new WaitCommand(5)));
+		m_testingChooser
+				.addOption(
+						"Pick Up and Score at Level 3 Left (17, 18, 19, 20, 21, 22, 23)",
+						sequence(
+								scoreOptimized(
+										toTag(17, kOffsets.get(3) + 0.09, -0.02, kRobotToTagsLeft), goToBase(), 3),
+								new WaitCommand(5), moveStraight(-0.85, 0.01, 1),
+								scoreOptimized(
+										toTag(18, kOffsets.get(3) + 0.09 + 0.02, -0.02, kRobotToTagsLeft), goToBase(),
+										3),
+								new WaitCommand(5), moveStraight(-0.85, 0.01, 1),
+								scoreOptimized(
+										toTag(19, kOffsets.get(3) + 0.09, -0.02 - 0.02, kRobotToTagsLeft), goToBase(),
+										3),
+								new WaitCommand(5), moveStraight(-0.85, 0.01, 1),
+								scoreOptimized(
+										toTag(20, kOffsets.get(3) + 0.09, -0.02, kRobotToTagsLeft), goToBase(), 3),
+								new WaitCommand(5), moveStraight(-0.85, 0.01, 1),
+								scoreOptimized(
+										toTag(21, kOffsets.get(3) + 0.09, -0.02 - 0.01, kRobotToTagsLeft), goToBase(),
+										3),
+								new WaitCommand(5), moveStraight(-0.85, 0.01, 1),
+								scoreOptimized(
+										toTag(22, kOffsets.get(3) + 0.09 + 0.01, -0.02 - 0.01, kRobotToTagsLeft),
+										goToBase(), 3),
+								new WaitCommand(5), moveStraight(-0.85, 0.01, 1),
+								scoreOptimized(
+										toTag(17, kOffsets.get(3) + 0.09, -0.02, kRobotToTagsLeft), goToBase(), 3),
+								new WaitCommand(5)));
+
+		m_testingChooser
+				.addOption(
+						"Pick Up and Score at Level 4 (17, 18, 19, 20, 21, 22, 23)",
+						sequence(
+								scoreOptimized(toTag(17, kOffsets.get(4), -0.02, kRobotToTagsLeft), goToBase(), 4),
+								new WaitCommand(5), moveStraight(-0.7, 0.01, 1),
+								scoreOptimized(toTag(18, kOffsets.get(4), -0.02, kRobotToTagsLeft), goToBase(), 4),
+								new WaitCommand(5), moveStraight(-0.7, 0.01, 1),
+								scoreOptimized(toTag(19, kOffsets.get(4), -0.02, kRobotToTagsLeft), goToBase(), 4),
+								new WaitCommand(5), moveStraight(-0.7, 0.01, 1),
+								scoreOptimized(toTag(20, kOffsets.get(4), -0.02, kRobotToTagsLeft), goToBase(), 4),
+								new WaitCommand(5), moveStraight(-0.7, 0.01, 1),
+								scoreOptimized(toTag(21, kOffsets.get(4), -0.02, kRobotToTagsLeft), goToBase(), 4),
+								new WaitCommand(5), moveStraight(-0.7, 0.01, 1),
+								scoreOptimized(toTag(22, kOffsets.get(4), -0.02, kRobotToTagsLeft), goToBase(), 4),
+								new WaitCommand(5), moveStraight(-0.7, 0.01, 1),
+								scoreOptimized(toTag(17, kOffsets.get(4), -0.02, kRobotToTagsLeft), goToBase(), 4),
+								new WaitCommand(5)));
+
+		m_testingChooser
+				.addOption(
 						"Pick Up and Score at Level 3 (Left)",
-						scoreOptimized(toClosestTag(kOffsets.get(3), kRobotToTagsLeft), goToBase(), 3));
+						scoreOptimized(toClosestTag(kOffsets.get(3), 0, kRobotToTagsLeft), goToBase(), 3));
 		// sequence(goToBase(), score(toClosestTag(kRobotToTagsLeft), 3)));
 		m_testingChooser
 				.addOption(
 						"Pick Up and Score at Level 3 (Right)",
-						scoreOptimized(toClosestTag(kOffsets.get(3), kRobotToTagsRight), goToBase(), 3));
+						scoreOptimized(toClosestTag(kOffsets.get(3), 0, kRobotToTagsRight), goToBase(), 3));
 		// sequence(goToBase(), score(toClosestTag(kRobotToTagsRight), 3)));
 		m_testingChooser
 				.addOption(
 						"Pick Up and Score at Level 4 (Left)",
-						scoreOptimized(toClosestTag(kOffsets.get(4), kRobotToTagsLeft), goToBase(), 4));
+						scoreOptimized(toClosestTag(kOffsets.get(4), 0, kRobotToTagsLeft), goToBase(), 4));
 		// sequence(goToBase(), score(toClosestTag(kRobotToTagsLeft), 4)));
 		m_testingChooser
 				.addOption(
 						"Pick Up and Score at Level 4 (Right)",
-						scoreOptimized(toClosestTag(kOffsets.get(4), kRobotToTagsRight), goToBase(), 4));
+						scoreOptimized(toClosestTag(kOffsets.get(4), 0, kRobotToTagsRight), goToBase(), 4));
 		// sequence(goToBase(), score(toClosestTag(kRobotToTagsRight), 4)));
 		m_testingChooser
 				.addOption(
@@ -191,7 +273,7 @@ public class Robot extends TimedRobot {
 				.addOption(
 						"Prepare to Score at Level 3 (Left)",
 						prepareToScore(
-								toClosestTag(kOffsets.get(3), kRobotToTagsLeft), kLevelThreeHeight,
+								toClosestTag(kOffsets.get(3), 0, kRobotToTagsLeft), kLevelThreeHeight,
 								kGrabberAngleLevelThree));
 		// prepareToScore(toClosestTag(kRobotToTagsLeft), kLevelThreeHeight,
 		// kGrabberAngleLevelThree));
@@ -199,19 +281,19 @@ public class Robot extends TimedRobot {
 				.addOption(
 						"Prepare to Score at Level 4 (Left)",
 						prepareToScore(
-								toClosestTag(kOffsets.get(4), kRobotToTagsLeft), kLevelFourHeight,
+								toClosestTag(kOffsets.get(4), 0, kRobotToTagsLeft), kLevelFourHeight,
 								kGrabberAngleLevelFour));
 		// prepareToScore(toClosestTag(kRobotToTagsLeft), kLevelFourHeight,
 		// kGrabberAngleLevelFour));
 		m_testingChooser
 				.addOption(
 						"Score at Level 3 (Left)",
-						scoreOptimized(toClosestTag(kOffsets.get(3), kRobotToTagsLeft), 3));
+						scoreOptimized(toClosestTag(kOffsets.get(3), 0, kRobotToTagsLeft), 3));
 		// score(toClosestTag(kRobotToTagsLeft), 3));
 		m_testingChooser
 				.addOption(
 						"Score at Level 4 (Left)",
-						scoreOptimized(toClosestTag(kOffsets.get(4), kRobotToTagsLeft), 4));
+						scoreOptimized(toClosestTag(kOffsets.get(4), 0, kRobotToTagsLeft), 4));
 		// score(toClosestTag(kRobotToTagsLeft), 4));
 		double distanceTolerance = 0.01;
 		double angleToleranceInDegrees = 1;

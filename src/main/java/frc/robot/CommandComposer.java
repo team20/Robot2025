@@ -70,40 +70,43 @@ public class CommandComposer {
 
 	private static Command get3ScoreNorthBlue(int level) {
 		return get3ScoreOptimized(
-				toTag(20, kOffsets.get(level), kRobotToTagsRight), toTag(19, kOffsets.get(level), kRobotToTagsRight),
-				toTag(19, kOffsets.get(level), kRobotToTagsLeft),
-				13, kRobotToTagsRightReady);
+				toTag(20, kOffsets.get(level), 0, kRobotToTagsRight),
+				toTag(19, kOffsets.get(level), 0, kRobotToTagsRight),
+				toTag(19, kOffsets.get(level), 0, kRobotToTagsLeft),
+				13, 0.05, 0, kRobotToTagsRightReady);
 	}
 
 	private static Command get3ScoreNorthRed(int level) {
 		return get3ScoreOptimized(
-				toTag(9, kOffsets.get(level), kRobotToTagsLeft), toTag(8, kOffsets.get(level), kRobotToTagsLeft),
-				toTag(8, kOffsets.get(level), kRobotToTagsRight),
-				2, kRobotToTagsLeftReady);
+				toTag(9, kOffsets.get(level), 0, kRobotToTagsLeft), toTag(8, kOffsets.get(level), 0, kRobotToTagsLeft),
+				toTag(8, kOffsets.get(level), 0, kRobotToTagsRight),
+				2, 0.05, 0, kRobotToTagsLeftReady);
 	}
 
 	private static Command get3ScoreSouthBlue(int level) {
 		return get3ScoreOptimized(
-				toTag(22, kOffsets.get(level), kRobotToTagsLeft), toTag(17, kOffsets.get(level), kRobotToTagsLeft),
-				toTag(17, kOffsets.get(level), kRobotToTagsRight),
-				12, kRobotToTagsLeftReady);
+				toTag(22, kOffsets.get(level), 0, kRobotToTagsLeft),
+				toTag(17, kOffsets.get(level), 0, kRobotToTagsLeft),
+				toTag(17, kOffsets.get(level), 0, kRobotToTagsRight),
+				12, 0.05, 0, kRobotToTagsLeftReady);
 	}
 
 	private static Command get3ScoreSouthRed(int level) {
 		return get3ScoreOptimized(
-				toTag(11, kOffsets.get(level), kRobotToTagsRight),
-				toTag(6, kOffsets.get(level), kRobotToTagsRightReady),
-				toTag(6, kOffsets.get(level), kRobotToTagsLeft),
-				1, kRobotToTagsRight);
+				toTag(11, kOffsets.get(level), 0, kRobotToTagsRight),
+				toTag(6, kOffsets.get(level), 0, kRobotToTagsRightReady),
+				toTag(6, kOffsets.get(level), 0, kRobotToTagsLeft),
+				1, 0.05, 0, kRobotToTagsRight);
 	}
 
 	private static Command get3ScoreOptimized(Command align1, Command align2, Command align3, int stationTagID,
+			double forward, double left,
 			Transform2d... robotToTags) {
 		return sequence(
 				scoreOptimized(align1, 4),
-				toStation(stationTagID, robotToTags), new WaitCommand(1),
+				toStation(stationTagID, forward, left, robotToTags), new WaitCommand(1),
 				scoreOptimized(align2, goToBase(), 4),
-				toStation(stationTagID, robotToTags), new WaitCommand(1),
+				toStation(stationTagID, forward, left, robotToTags), new WaitCommand(1),
 				scoreOptimized(align3, goToBase(), 4),
 				m_wristSubsystem.goToAngle(270));
 	}
@@ -118,7 +121,7 @@ public class CommandComposer {
 			case 4:
 				return score(
 						align, pickup, kLevelFourHeight, kGrabberAngleLevelFour,
-						m_wristSubsystem.goToAngle(205));
+						m_wristSubsystem.goToAngle(210));
 			case 3:
 				return score(align, pickup, kLevelThreeHeight, kGrabberAngleLevelThree);
 			case 2:
@@ -160,9 +163,9 @@ public class CommandComposer {
 		return sequence(m_cheeseStickSubsystem.release(releaseDuration), followup);
 	}
 
-	private static Command toStation(int tagID, Transform2d... robotToTags) {
+	private static Command toStation(int tagID, double forward, double left, Transform2d... robotToTags) {
 		return parallel(
-				toTag(tagID, 0.05, robotToTags), sequence(
+				toTag(tagID, forward, left, robotToTags), sequence(
 						m_elevatorSubsystem.goToCoralStationHeight(),
 						m_wristSubsystem.goToAngle(270)));
 	}
@@ -170,34 +173,35 @@ public class CommandComposer {
 	static Command get3ScoreNorthBlue() {
 		return get3Score(
 				toTag(20, kRobotToTagsRight), toTag(19, kRobotToTagsRight), toTag(19, kRobotToTagsLeft),
-				13, kRobotToTagsRightReady);
+				13, 0.05, 0, kRobotToTagsRightReady);
 	}
 
 	static Command get3ScoreNorthRed() {
 		return get3Score(
 				toTag(9, kRobotToTagsLeft), toTag(8, kRobotToTagsLeft), toTag(8, kRobotToTagsRight),
-				2, kRobotToTagsLeftReady);
+				2, 0.05, 0, kRobotToTagsLeftReady);
 	}
 
 	static Command get3ScoreSouthBlue() {
 		return get3Score(
 				toTag(22, kRobotToTagsLeft), toTag(17, kRobotToTagsLeft), toTag(17, kRobotToTagsRight),
-				12, kRobotToTagsLeftReady);
+				12, 0.05, 0, kRobotToTagsLeftReady);
 	}
 
 	static Command get3ScoreSouthRed() {
 		return get3Score(
 				toTag(11, kRobotToTagsRight), toTag(6, kRobotToTagsRightReady), toTag(6, kRobotToTagsLeft),
-				1, kRobotToTagsRight);
+				1, 0.05, 0, kRobotToTagsRight);
 	}
 
-	private static Command get3Score(Command align1, Command align2, Command align3, int stationTagID,
+	private static Command get3Score(Command align1, Command align2, Command align3, int stationTagID, double forward,
+			double left,
 			Transform2d... robotToTags) {
 		return sequence(
 				score(align1, 4),
-				toStation(stationTagID, robotToTags),
+				toStation(stationTagID, forward, left, robotToTags),
 				score(align2, goToBase(), 4),
-				toStation(stationTagID, robotToTags),
+				toStation(stationTagID, forward, left, robotToTags),
 				score(align3, goToBase(), 4));
 	}
 
@@ -446,13 +450,13 @@ public class CommandComposer {
 		return sequence(commands.toArray(new Command[0]));
 	}
 
-	public static Command toClosestTag(double offset, Transform2d... robotToTags) {
-		return toClosestTag(adjust(offset, robotToTags));
+	public static Command toClosestTag(double forward, double left, Transform2d... robotToTags) {
+		return toClosestTag(adjust(forward, left, robotToTags));
 	}
 
-	private static Transform2d[] adjust(double offset, Transform2d... robotToTags) {
+	private static Transform2d[] adjust(double forward, double left, Transform2d... robotToTags) {
 		return Arrays.stream(robotToTags)
-				.map(t -> new Transform2d(t.getX() - offset, t.getY(), t.getRotation())).toList()
+				.map(t -> new Transform2d(t.getX() - forward, t.getY() - left, t.getRotation())).toList()
 				.toArray(new Transform2d[0]);
 	}
 
@@ -472,20 +476,20 @@ public class CommandComposer {
 				posesToClosestTag(3, robotToTags));
 	}
 
-	/**
-	 * Creates a {@code Command} to automatically align the robot to the target
-	 * {@code AprilTag}.
-	 *
-	 * @param tagID the ID of the target {@code AprilTag}
-	 * @param level the scoring level
-	 * @param robotToTags the {@code Tranform2d} representing the pose of the
-	 *        target {@code AprilTag} relative to the robot when the robot is
-	 *        aligned
-	 * @return a {@code Command} to automatically align the robot to the target
-	 *         {@code AprilTag}
-	 */
-	public static Command toTag(int tagID, double offset, Transform2d... robotToTags) {
-		return toTag(tagID, adjust(offset, robotToTags));
+	// /**
+	// * Creates a {@code Command} to automatically align the robot to the target
+	// * {@code AprilTag}.
+	// *
+	// * @param tagID the ID of the target {@code AprilTag}
+	// * @param level the scoring level
+	// * @param robotToTags the {@code Tranform2d} representing the pose of the
+	// * target {@code AprilTag} relative to the robot when the robot is
+	// * aligned
+	// * @return a {@code Command} to automatically align the robot to the target
+	// * {@code AprilTag}
+	// */
+	public static Command toTag(int tagID, double forward, double left, Transform2d... robotToTags) {
+		return toTag(tagID, adjust(forward, left, robotToTags));
 	}
 
 	/**
