@@ -116,10 +116,10 @@ public class CommandComposer {
 		return sequence(
 				score(align1, goToBase(), level), moveStraight(-distance, intermediateDistanceTolerance, 20),
 				toStation(stationTagID, kCoralStationForwrdAdjustment, intermediateDistanceTolerance, robotToTags),
-				new WaitCommand(waitTime),
+				parallel(m_wristSubsystem.goToAngle(270), new WaitCommand(waitTime)),
 				score(align2, goToBase(), level), moveStraight(-distance, intermediateDistanceTolerance, 20),
 				toStation(stationTagID, kCoralStationForwrdAdjustment, intermediateDistanceTolerance, robotToTags),
-				new WaitCommand(waitTime),
+				parallel(m_wristSubsystem.goToAngle(270), new WaitCommand(waitTime)),
 				score(align3, goToBase(), level));
 	}
 
