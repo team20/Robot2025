@@ -266,7 +266,7 @@ public class Constants {
 		 * {@code AprilTag} to align the robot to the left of that {@code AprilTag}.
 		 */
 		static Transform2d[] kRobotToTagsLeft = { transform(1.1, 0, 180),
-				transform(0.60, -0.185, 180) };
+				transform(0.60, -0.165, 180) };
 		// TODO: decrease y to align more to the left
 
 		/**
@@ -293,10 +293,23 @@ public class Constants {
 				transform(0.60, 0.0, 180) };
 
 		/**
-		 * A {@code Map} storing the distance to travel to score at each scoring level.
+		 * A {@code Map} storing the distance to move forward to score at each scoring
+		 * level.
 		 */
-		static Map<Integer, Double> kOffsets = Map.of(1, 0.13, 2, 0.13, 3, 0.11, 4, 0.05);
+		static Map<Integer, Double> kLevel2Offset = Map.of(1, 0.13, 2, 0.13, 3, 0.11 + 0.09, 4, 0.05);
 		// TODO increase to get closer to the tag
+
+		/**
+		 * A {@code Map} storing the additional distance to move forward for some
+		 * {@code AprilTag}s.
+		 */
+		static Map<Integer, Double> kForwardAdjustment = Map.of(18, 0.015, 22, 0.01);
+
+		/**
+		 * A {@code Map} storing the additional distance to move to left/right for
+		 * some {@code AprilTag}s.
+		 */
+		static Map<Integer, Double> kSideAdjustment = Map.of(19, -0.02, 21, -0.01, 22, -0.01);
 
 	}
 

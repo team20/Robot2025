@@ -70,52 +70,52 @@ public class CommandComposer {
 
 	private static Command get3ScoreNorthBlue(int level) {
 		return get3ScoreOptimized(
-				toTag(20, kOffsets.get(level), 0, kRobotToTagsRight),
-				toTag(19, kOffsets.get(level), 0, kRobotToTagsRight),
-				toTag(19, kOffsets.get(level), 0, kRobotToTagsLeft),
-				13, 0.10, 0, kRobotToTags);
+				toTag(20, kLevel2Offset.get(level), 0, kRobotToTagsRight),
+				toTag(19, kLevel2Offset.get(level), 0, kRobotToTagsRight),
+				toTag(19, kLevel2Offset.get(level), 0, kRobotToTagsLeft),
+				13, 0.10, 0, kRobotToTagsRightReady);
 	}
 
 	private static Command get3ScoreNorthRed(int level) {
 		return get3ScoreOptimized(
-				toTag(9, kOffsets.get(level), 0, kRobotToTagsLeft),
-				toTag(8, kOffsets.get(level), 0, kRobotToTagsLeft),
-				toTag(8, kOffsets.get(level), 0, kRobotToTagsRight),
-				2, 0.10, 0, kRobotToTags);
+				toTag(9, kLevel2Offset.get(level), 0, kRobotToTagsLeft),
+				toTag(8, kLevel2Offset.get(level), 0, kRobotToTagsLeft),
+				toTag(8, kLevel2Offset.get(level), 0, kRobotToTagsRight),
+				2, 0.10, 0, kRobotToTagsLeftReady);
 	}
 
 	private static Command get3ScoreSouthBlue(int level) {
 		return get3ScoreOptimized(
-				toTag(22, kOffsets.get(level) + 0.09 + 0.01, -0.02 - 0.01, kRobotToTagsLeft),
-				toTag(17, kOffsets.get(level) + 0.09, -0.02, kRobotToTagsLeft),
-				toTag(17, kOffsets.get(level) + 0.09, 0.0, kRobotToTagsRight),
-				12, 0.10, 0, kRobotToTags);
+				toTag(22, kLevel2Offset.get(level) + 0.09 + 0.01, -0.01, kRobotToTagsLeft),
+				toTag(17, kLevel2Offset.get(level) + 0.09, 0.0, kRobotToTagsLeft),
+				toTag(17, kLevel2Offset.get(level) + 0.09, 0.0, kRobotToTagsRight),
+				12, 0.10, 0, kRobotToTagsLeftReady);
 	}
 
 	private static Command get3ScoreSouthRed(int level) {
 		return get3ScoreOptimized(
-				toTag(11, kOffsets.get(level), 0, kRobotToTagsRight),
-				toTag(6, kOffsets.get(level), 0, kRobotToTagsRight),
-				toTag(6, kOffsets.get(level), 0, kRobotToTagsLeft),
-				1, 0.10, 0, kRobotToTags);
+				toTag(11, kLevel2Offset.get(level), 0, kRobotToTagsRight),
+				toTag(6, kLevel2Offset.get(level), 0, kRobotToTagsRight),
+				toTag(6, kLevel2Offset.get(level), 0, kRobotToTagsLeft),
+				1, 0.10, 0, kRobotToTagsRightReady);
 	}
 
 	private static Command get3ScoreOptimized(Command align1, Command align2, Command align3, int stationTagID,
 			double forward, double left, Transform2d... robotToTags) {
 		return sequence(
-				scoreOptimized(align1, goToBase(), 3), moveStraight(-0.5, 0.2, 20),
+				score(align1, goToBase(), 3), moveStraight(-0.5, 0.2, 20),
 				toStation(stationTagID, forward, left, robotToTags), new WaitCommand(1),
-				scoreOptimized(align2, goToBase(), 3), moveStraight(-0.5, 0.2, 20),
+				score(align2, goToBase(), 3), moveStraight(-0.5, 0.2, 20),
 				toStation(stationTagID, forward, left, robotToTags), new WaitCommand(1),
-				scoreOptimized(align3, goToBase(), 3));
+				score(align3, goToBase(), 3));
 	}
 
 	public static Command scoreOptimized(Command align, int level) {
-		return scoreOptimized(align, runOnce(() -> {
+		return score(align, runOnce(() -> {
 		}), level);
 	}
 
-	public static Command scoreOptimized(Command align, Command pickup, int level) {
+	public static Command score(Command align, Command pickup, int level) {
 		switch (level) {
 			case 4:
 				return score(
@@ -244,6 +244,38 @@ public class CommandComposer {
 				m_cheeseStickSubsystem.release(),
 				m_elevatorSubsystem.goToCoralStationHeight(),
 				m_cheeseStickSubsystem.grab());
+	}
+
+	public static Command testLeftAlignment(int level, long distance, long duration, int... tagIDs) {
+		return sequence(
+				Arrays.stream(tagIDs)
+						.mapToObj(
+								t -> (Command) score(
+										toTag(
+												t,
+												kLevel2Offset.get(level)
+														+ kForwardAdjustment.getOrDefault(t, 0.0),
+												kSideAdjustment.getOrDefault(t, 0.0),
+												kRobotToTagsLeft),
+										goToBase(), level))
+						.map(c -> sequence(c, moveStraight(-distance, 0.01, 1), new WaitCommand(duration))).toList()
+						.toArray(new Command[0]));
+	}
+
+	public static Command testRightAlignment(int level, long distance, long duration, int... tagIDs) {
+		return sequence(
+				Arrays.stream(tagIDs)
+						.mapToObj(
+								t -> (Command) score(
+										toTag(
+												t,
+												kLevel2Offset.get(level)
+														+ kForwardAdjustment.getOrDefault(t, 0.0),
+												kSideAdjustment.getOrDefault(t, 0.0),
+												kRobotToTagsRight),
+										goToBase(), level))
+						.map(c -> sequence(c, moveStraight(-distance, 0.01, 1), new WaitCommand(duration))).toList()
+						.toArray(new Command[0]));
 	}
 
 	public static Command testAbsoluteOrientation(double duration) {
