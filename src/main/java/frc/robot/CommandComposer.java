@@ -194,6 +194,14 @@ public class CommandComposer {
 				1, 0.05, 0, kRobotToTagsRight);
 	}
 
+	static Command getMiddleScoreAndAlgaeBlue() {
+		return getMiddleScoreAndAlgae(toTag(21, kRobotToTagsRight), toTag(21, kRobotToTags));
+	}
+
+	static Command getMiddleScoreAndAlgaeRed() {
+		return getMiddleScoreAndAlgae(toTag(10, kRobotToTagsRight), toTag(10, kRobotToTags));
+	}
+
 	private static Command get3Score(Command align1, Command align2, Command align3, int stationTagID, double forward,
 			double left,
 			Transform2d... robotToTags) {
@@ -203,6 +211,17 @@ public class CommandComposer {
 				score(align2, goToBase(), 4),
 				toStation(stationTagID, forward, left, robotToTags),
 				score(align3, goToBase(), 4));
+	}
+
+	private static Command getMiddleScoreAndAlgae(Command align1, Command align2) {
+		return sequence(
+				scoreOptimized(align1, 4),
+				align2,
+				m_cheeseStickSubsystem.grab(),
+				removeAlgaeLevelTwo(),
+				parallel(
+						m_wristSubsystem.goToAngle(240),
+						moveStraight(-0.7, 0.01, 1)));
 	}
 
 	public static Command score(Command align, int level) {

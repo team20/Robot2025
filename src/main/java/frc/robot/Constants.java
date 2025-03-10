@@ -167,7 +167,7 @@ public class Constants {
 		public static final double kI = 0;
 		public static final double kD = 0;
 		public static final double kS = 0.05631;
-		public static final double kG = 0.43; // 0.22876
+		public static final double kG = 0.35; // 0.22876 | .43 // TODO: need to check this change by Natalie and Nitya
 		public static final double kV = 5.3794;
 		public static final double kA = 0.74041;
 		public static final double kGearRatio = 10;
@@ -205,7 +205,8 @@ public class Constants {
 		public static final double kCoralStationHeight = Units.inchesToMeters(17 + 2); // TODO: Change
 
 		public static final double kAlgaeLevelThreeHeight = Units.inchesToMeters(0.25);
-		public static final double kAlgaeLevelTwoHeight = Units.inchesToMeters(15);
+		public static final double kAlgaeLevelTwoHeight = Units.inchesToMeters(16);
+		public static final double kAlgaeLevelTwoAutoHeight = Units.inchesToMeters(12.5);
 	}
 
 	public static final class WristConstants {
@@ -257,6 +258,7 @@ public class Constants {
 		 */
 		static Transform2d[] kRobotToTags = { transform(1.1, 0.0, 180),
 				transform(0.60, 0.0, 180) };
+		// transform(0.30, 0.0, 180) }; TODO: Natalie and Nitya need to check
 
 		/**
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
@@ -273,6 +275,7 @@ public class Constants {
 		static Transform2d[] kRobotToTagsRight = { transform(1.1, 0, 180),
 				transform(0.60, 0.195, 180) };
 		// TODO: decrease y to align more to the left
+		// transform(0.45, 0.255, 180) };TODO: Natalie and Nitya need to check
 
 		/**
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
