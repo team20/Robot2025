@@ -202,52 +202,42 @@ public class Robot extends TimedRobot {
 				.addOption(
 						"Pick Up and Score at Level 3 (Left)",
 						score(toClosestTag(kLevel2Offset.get(3), 0, kRobotToTagsLeft), goToBase(), 3));
-		// sequence(goToBase(), score(toClosestTag(kRobotToTagsLeft), 3)));
 		m_testingChooser
 				.addOption(
 						"Pick Up and Score at Level 3 (Right)",
 						score(toClosestTag(kLevel2Offset.get(3), 0, kRobotToTagsRight), goToBase(), 3));
-		// sequence(goToBase(), score(toClosestTag(kRobotToTagsRight), 3)));
-		m_testingChooser
-				.addOption(
-						"Pick Up and Score at Level 4 (Left)",
-						score(toClosestTag(kLevel2Offset.get(4), 0, kRobotToTagsLeft), goToBase(), 4));
-		// sequence(goToBase(), score(toClosestTag(kRobotToTagsLeft), 4)));
-		m_testingChooser
-				.addOption(
-						"Pick Up and Score at Level 4 (Right)",
-						score(toClosestTag(kLevel2Offset.get(4), 0, kRobotToTagsRight), goToBase(), 4));
-		// sequence(goToBase(), score(toClosestTag(kRobotToTagsRight), 4)));
 		m_testingChooser
 				.addOption(
 						"Reposition the Robot in Simulation",
 						runOnce(() -> repositionSimulatedRobot()));
 		m_testingChooser
 				.addOption(
+						"Pick Up and Score at Level 4 (Left)",
+						score(toClosestTag(kLevel2Offset.get(4), 0, kRobotToTagsLeft), goToBase(), 4));
+		m_testingChooser
+				.addOption(
+						"Pick Up and Score at Level 4 (Right)",
+						score(toClosestTag(kLevel2Offset.get(4), 0, kRobotToTagsRight), goToBase(), 4));
+		m_testingChooser
+				.addOption(
 						"Prepare to Score at Level 3 (Left)",
 						prepareToScore(
 								toClosestTag(kLevel2Offset.get(3), 0, kRobotToTagsLeft), kLevelThreeHeight,
 								kGrabberAngleLevelThree));
-		// prepareToScore(toClosestTag(kRobotToTagsLeft), kLevelThreeHeight,
-		// kGrabberAngleLevelThree));
 		m_testingChooser
 				.addOption(
 						"Prepare to Score at Level 4 (Left)",
 						prepareToScore(
 								toClosestTag(kLevel2Offset.get(4), 0, kRobotToTagsLeft), kLevelFourHeight,
 								kGrabberAngleLevelFour));
-		// prepareToScore(toClosestTag(kRobotToTagsLeft), kLevelFourHeight,
-		// kGrabberAngleLevelFour));
 		m_testingChooser
 				.addOption(
 						"Score at Level 3 (Left)",
 						score(toClosestTag(kLevel2Offset.get(3), 0, kRobotToTagsLeft), 3));
-		// score(toClosestTag(kRobotToTagsLeft), 3));
 		m_testingChooser
 				.addOption(
 						"Score at Level 4 (Left)",
 						score(toClosestTag(kLevel2Offset.get(4), 0, kRobotToTagsLeft), 4));
-		// score(toClosestTag(kRobotToTagsLeft), 4));
 		double distanceTolerance = 0.01;
 		double angleToleranceInDegrees = 1;
 		double intermediateDistanceTolerance = 0.08;
