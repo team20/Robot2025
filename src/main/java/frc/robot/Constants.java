@@ -201,7 +201,9 @@ public class Constants {
 		public static final double kCoralStationHeight = Units.inchesToMeters(17 + 2); // TODO: Change
 
 		public static final double kAlgaeLevelThreeHeight = Units.inchesToMeters(0.25);
-		public static final double kAlgaeLevelTwoHeight = Units.inchesToMeters(15);
+		public static final double kAlgaeLevelTwoHeight = Units.inchesToMeters(14);
+		// public static final double kAlgaeLevelTwoAutoHeight =
+		// Units.inchesToMeters(13.5);
 	}
 
 	public static final class WristConstants {
@@ -218,7 +220,7 @@ public class Constants {
 		public static final double kWristOffset = 0.75;
 
 		// TODO: Make sure these are tuned (can do with SysId)
-		public static final double kP = 0.025;
+		public static final double kP = 0.015; // 0.025
 		public static final double kI = 0.0;
 		public static final double kD = 0;
 
@@ -250,14 +252,14 @@ public class Constants {
 		 * {@code AprilTag} to align the robot to that {@code AprilTag}.
 		 */
 		static Transform2d[] kRobotToTags = { transform(1.1, 0.0, 180),
-				transform(0.30, 0.0, 180) };
+				transform(0.20, 0.0, 180) };
 
 		/**
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
 		 * {@code AprilTag} to align the robot to the left of that {@code AprilTag}.
 		 */
 		static Transform2d[] kRobotToTagsLeft = { transform(1.1, 0, 180),
-				transform(0.60, -0.185, 180) };
+				transform(0.45, -0.185, 180) };
 		// TODO: decrease y to align more to the left
 
 		/**

@@ -60,6 +60,8 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.PathDriveCommand;
 import frc.robot.simulation.VisionSimulator;
 import frc.robot.subsystems.AlgaeGrabberSubsystem;
+import frc.robot.subsystems.ArduinoSubsystem;
+import frc.robot.subsystems.ArduinoSubsystem.StatusCode;
 import frc.robot.subsystems.CheeseStickSubsystem;
 import frc.robot.subsystems.ClimberSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
@@ -69,6 +71,7 @@ import frc.robot.subsystems.WristSubsystem;
 
 public class Robot extends TimedRobot {
 	private Command m_autonomousCommand;
+	private final SendableChooser<Command> m_autoSelector = new SendableChooser<Command>();
 	private final SendableChooser<Command> m_testingChooser = new SendableChooser<>();
 	private final Mechanism2d m_mechanism = new Mechanism2d(Units.inchesToMeters(35), Units.inchesToMeters(100));
 	private final AlgaeGrabberSubsystem m_algaeGrabberSubsystem = new AlgaeGrabberSubsystem();
@@ -79,6 +82,7 @@ public class Robot extends TimedRobot {
 	private final WristSubsystem m_wristSubsystem = new WristSubsystem(m_elevatorSubsystem);
 	private final CheeseStickSubsystem m_cheeseStickSubsystem = new CheeseStickSubsystem(
 			m_wristSubsystem.getCheeseStickMount());
+	private final ArduinoSubsystem m_arduinoSubsystem = new ArduinoSubsystem();
 	private final CommandPS5Controller m_driverController = new CommandPS5Controller(kDriverControllerPort);
 	private final CommandPS5Controller m_operatorController = new CommandPS5Controller(kOperatorControllerPort);
 	private final PowerDistribution m_pdh = new PowerDistribution();
@@ -129,6 +133,7 @@ public class Robot extends TimedRobot {
 						kClimberMotorPort, "Climber Motor", kWristMotorPort, "Wrist Motor", kFlywheelMotorPort,
 						"Algae Flywheel Motor", kGrabberAnglePort, "Algae Pivot Motor"));
 		DriverStation.startDataLog(DataLogManager.getLog());
+		addAutoCommands();
 		addTestingCommands();
 		addProgrammingCommands();
 		bindClimberControls();
@@ -144,12 +149,20 @@ public class Robot extends TimedRobot {
 				() -> !m_operatorController.isConnected());
 		DriverStation.silenceJoystickConnectionWarning(true);
 		SmartDashboard.putData("Testing Chooser", m_testingChooser);
+		SmartDashboard.putData("Auto Selector", m_autoSelector);
 		m_driverController.options().and(m_driverController.create()).and(() -> !DriverStation.isFMSAttached())
 				.onTrue(Commands.deferredProxy(m_testingChooser::getSelected));
 		if (RobotBase.isReal()) {
 			UsbCamera camera = CameraServer.startAutomaticCapture();
 			camera.setVideoMode(PixelFormat.kMJPEG, 160, 120, 30);
 		}
+	}
+
+	public void addAutoCommands() {
+		m_autoSelector
+				.addOption(
+						"Middle and Algae Blue", CommandComposer.getMiddleScoreAndAlgaeBlue());
+		m_autoSelector.addOption("Leave", CommandComposer.leave());
 	}
 
 	public void addTestingCommands() {
@@ -359,7 +372,9 @@ public class Robot extends TimedRobot {
 		// m_algaeGrabberSubsystem
 		// .setDefaultCommand(m_algaeGrabberSubsystem.manualMove(() ->
 		// m_operatorController.getRightX()));
-		m_operatorController.L2().onTrue(m_algaeGrabberSubsystem.grabAlgaeAndHold());
+		m_operatorController.L2().onTrue(
+				m_algaeGrabberSubsystem.grabAlgaeAndHold()
+						.andThen(m_arduinoSubsystem.ledPattern(StatusCode.INTAKED_ALGAE)));
 		m_operatorController.R2().onTrue(m_algaeGrabberSubsystem.releaseAlgae());
 		// m_operatorController.R2().whileTrue(m_algaeGrabberSubsystem.reverseFlywheelAndStop());
 	}
@@ -388,6 +403,11 @@ public class Robot extends TimedRobot {
 		m_operatorController.povDown().onTrue(m_climberSubsystem.deploy());
 	}
 
+	public void bindLEDControls() {
+		m_operatorController.povRight().onTrue(m_arduinoSubsystem.ledPattern(StatusCode.RAINBOW_PARTY_FUN_TIME));
+		m_operatorController.povLeft().onTrue(m_arduinoSubsystem.ledPattern(StatusCode.DEFAULT));
+	}
+
 	@Override
 	public void robotPeriodic() {
 		CommandScheduler.getInstance().run();
@@ -408,7 +428,8 @@ public class Robot extends TimedRobot {
 
 	@Override
 	public void autonomousInit() {
-		m_autonomousCommand = null;
+		m_autonomousCommand = m_autoSelector.getSelected();
+		;
 
 		if (m_autonomousCommand != null) {
 			m_autonomousCommand.schedule();

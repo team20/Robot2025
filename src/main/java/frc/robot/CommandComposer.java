@@ -63,7 +63,7 @@ public class CommandComposer {
 	}
 
 	public static Command scoreLevelOneInTeleop() {
-		return scoreLevelInTeleop(kLevelOneHeight, 0.4, m_elevatorSubsystem::goToLevelOneHeight, kGrabberAngleOthers);
+		return scoreLevelInTeleop(kLevelOneHeight, 0.7, m_elevatorSubsystem::goToLevelOneHeight, kGrabberAngleOthers);
 	}
 
 	public static Command scoreLevelTwoInTeleop() {
@@ -182,13 +182,21 @@ public class CommandComposer {
 
 	private static Command getMiddleScoreAndAlgae(Command align1, Command align2) {
 		return sequence(
-				scoreOptimized(align1, 4),
-				align2,
+				scoreOptimized(align1, 4).withTimeout(6),
+				align2.withTimeout(4.5),
 				m_cheeseStickSubsystem.grab(),
 				removeAlgaeLevelTwo(),
 				parallel(
 						m_wristSubsystem.goToAngle(240),
 						moveStraight(-0.7, 0.01, 1)));
+	}
+
+	static Command getMiddleScoreAndAlgaeBlue() {
+		return getMiddleScoreAndAlgae(toTag(21, kRobotToTagsRight), toTag(21, kRobotToTags));
+	}
+
+	public static Command leave() {
+		return m_driveSubsystem.driveCommand(() -> 0.25, () -> 0, () -> 0, () -> true).withTimeout(10);
 	}
 
 	public static Command scoreOptimized(Command align, int level) {
