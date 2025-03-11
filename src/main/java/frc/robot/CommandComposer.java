@@ -63,25 +63,27 @@ public class CommandComposer {
 	}
 
 	public static Command scoreLevelOneInTeleop() {
-		return scoreLevelInTeleop(kLevelOneHeight, 0.7, m_elevatorSubsystem::goToLevelOneHeight, kGrabberAngleOthers);
+		return scoreLevelInTeleop(kLevelOneHeight, 0.7, m_elevatorSubsystem::goToLevelOneHeight, kGrabberAngleOthers)
+				.withName("Score Level One in Teleop");
 	}
 
 	public static Command scoreLevelTwoInTeleop() {
-		return scoreLevelInTeleop(kLevelTwoHeight, 0.4, m_elevatorSubsystem::goToLevelTwoHeight, kGrabberAngleOthers);
+		return scoreLevelInTeleop(kLevelTwoHeight, 0.4, m_elevatorSubsystem::goToLevelTwoHeight, kGrabberAngleOthers)
+				.withName("Score Level Two in Teleop");
 	}
 
 	public static Command removeAlgaeLevelThree() {
 		return sequence(
 				m_elevatorSubsystem.goToLevelTwoHeight(),
 				m_wristSubsystem.goToAngle(kAlgaeWristHeight),
-				m_elevatorSubsystem.goToAlgaeThreeHeight());
+				m_elevatorSubsystem.goToAlgaeThreeHeight()).withName("Remove Algae Level Three");
 	}
 
 	public static Command removeAlgaeLevelTwo() {
 		return sequence(
 				m_elevatorSubsystem.goToCoralStationHeight(),
 				m_wristSubsystem.goToAngle(kAlgaeWristHeight),
-				m_elevatorSubsystem.goToAlgaeTwoHeight());
+				m_elevatorSubsystem.goToAlgaeTwoHeight()).withName("Remove Algae Level Two");
 	}
 
 	public static Command releaseFlickAndDriveBack() {
@@ -90,7 +92,7 @@ public class CommandComposer {
 				parallel(
 						m_wristSubsystem.goToAngle(kGrabberAngleLevelFour - 20),
 						moveStraight(-0.3, 0.01, 1),
-						m_cheeseStickSubsystem.grab()));
+						m_cheeseStickSubsystem.grab())).withName("Release Flick And Drive Back");
 	}
 
 	public static Command scoreOptimized(Command align, Command pickup, int level) {
@@ -192,11 +194,13 @@ public class CommandComposer {
 	}
 
 	static Command getMiddleScoreAndAlgaeBlue() {
-		return getMiddleScoreAndAlgae(toTag(21, kRobotToTagsRight), toTag(21, kRobotToTags));
+		return getMiddleScoreAndAlgae(toTag(21, kRobotToTagsRight), toTag(21, kRobotToTags))
+				.withName("Middle Score and Algae Blue");
 	}
 
 	public static Command leave() {
-		return m_driveSubsystem.driveCommand(() -> 0.25, () -> 0, () -> 0, () -> true).withTimeout(10);
+		return m_driveSubsystem.driveCommand(() -> 0.25, () -> 0, () -> 0, () -> true).withTimeout(10)
+				.withName("Leave Auto");
 	}
 
 	public static Command scoreOptimized(Command align, int level) {
@@ -207,20 +211,20 @@ public class CommandComposer {
 	public static Command prepareForCoralPickup() {
 		return sequence(
 				m_elevatorSubsystem.goToCoralStationHeight(),
-				m_wristSubsystem.goToAngle(270));
+				m_wristSubsystem.goToAngle(270)).withName("Prepare For Coral Pickup");
 	}
 
 	public static Command goToBase() {
 		return sequence(
 				m_wristSubsystem.goToAngle(270),
-				m_elevatorSubsystem.goToBaseHeight());
+				m_elevatorSubsystem.goToBaseHeight()).withName("Go To Base");
 	}
 
 	public static Command pickupAtCoralStation() {
 		return sequence(
 				m_cheeseStickSubsystem.release(),
 				m_elevatorSubsystem.goToCoralStationHeight(),
-				m_cheeseStickSubsystem.grab());
+				m_cheeseStickSubsystem.grab()).withName("Pick Up At Coral Station");
 	}
 
 	public static Command testAbsoluteOrientation(double duration) {

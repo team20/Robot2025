@@ -163,7 +163,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 	}
 
 	public Command resetTheEncoder() {
-		return runOnce(() -> resetEncoder());
+		return runOnce(() -> resetEncoder()).withName("Reset Elevator Encoder");
 	}
 
 	/**

@@ -51,12 +51,12 @@ public class ClimberSubsystem extends SubsystemBase {
 	public Command retract() {
 		return runOnce(() -> {
 			m_climberClosedLoopController.setReference(0, ControlType.kPosition);
-		});
+		}).withName("Climber Retract");
 	}
 
 	public Command deploy() {
 		return runOnce(() -> {
 			m_climberClosedLoopController.setReference(-400, ControlType.kPosition);
-		});
+		}).withName("Climber Deploy");
 	}
 }

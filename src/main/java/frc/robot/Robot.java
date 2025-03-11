@@ -312,21 +312,6 @@ public class Robot extends TimedRobot {
 	}
 
 	public void bindDriveControls() {
-		// m_driveSubsystem.setDefaultCommand(
-		// m_driveSubsystem.driveCommand(
-		// () -> -m_driverController.getLeftY(),
-		// () -> -m_driverController.getLeftX(),
-		// () -> m_driverController.getL2Axis() - m_driverController.getR2Axis(),
-		// m_driverController.getHID()::getSquareButton)); // makes the robot
-		// robot-oriented
-		// m_driveSubsystem.setDefaultCommand(
-		// m_driveSubsystem.driveCommand(
-		// () -> -m_driverController.getLeftY(),
-		// () -> -m_driverController.getLeftX(),
-		// () -> -m_driverController.getRightY(),
-		// () -> -m_driverController.getRightX(),
-		// m_driverController.getHID()::getSquareButton)); // makes the robot
-		// robot-oriented
 		m_driveSubsystem.setDefaultCommand(
 				m_driveSubsystem.driveCommand(
 						() -> -m_driverController.getLeftY(),
@@ -339,9 +324,9 @@ public class Robot extends TimedRobot {
 
 		/// TODO: button binding needed with the correct button
 		m_driverController.L1().whileTrue(
-				toClosestTag(kRobotToTagsLeft));
+				toClosestTag(kRobotToTagsLeft).withName("toClosestTag(kRobotToTagsLeft)"));
 		m_driverController.R1().whileTrue(
-				toClosestTag(kRobotToTagsRight));
+				toClosestTag(kRobotToTagsRight).withName("toClosestTag(kRobotToTagsRight)"));
 		m_driverController.options().onTrue(m_driveSubsystem.resetHeading());
 	}
 
@@ -350,13 +335,16 @@ public class Robot extends TimedRobot {
 		m_operatorController.axisMagnitudeGreaterThan(PS5Controller.Axis.kLeftY.value, kDeadzone)
 				.whileTrue(m_elevatorSubsystem.manualMove(() -> -m_operatorController.getLeftY()));
 		m_operatorController.triangle().onTrue(
-				m_elevatorSubsystem.goToLevelFourHeight().andThen(m_wristSubsystem.goToAngle(kGrabberAngleLevelFour)));
+				m_elevatorSubsystem.goToLevelFourHeight().andThen(m_wristSubsystem.goToAngle(kGrabberAngleLevelFour))
+						.withName("Elevator to Level Four and Wrist to Angle"));
 		m_operatorController.square().onTrue(
 				m_elevatorSubsystem.goToLevelThreeHeight()
-						.andThen(m_wristSubsystem.goToAngle(kGrabberAngleLevelThree)));
+						.andThen(m_wristSubsystem.goToAngle(kGrabberAngleLevelThree))
+						.withName("Elevator to Level Three and Wrist to Angle"));
 		m_operatorController.cross().onTrue(
 				m_elevatorSubsystem.goToLevelTwoHeight()
-						.andThen(m_wristSubsystem.goToAngle(kGrabberAngleOthers)));
+						.andThen(m_wristSubsystem.goToAngle(kGrabberAngleOthers))
+						.withName("Elevator to Level Two and Wrist to Angle"));
 		m_operatorController.circle().onTrue(CommandComposer.scoreLevelOneInTeleop());
 		m_operatorController.L1().and(m_operatorController.triangle()).onTrue(CommandComposer.removeAlgaeLevelThree());
 		m_operatorController.L1().and(m_operatorController.square()).onTrue(CommandComposer.removeAlgaeLevelTwo());
@@ -374,7 +362,8 @@ public class Robot extends TimedRobot {
 		// m_operatorController.getRightX()));
 		m_operatorController.L2().onTrue(
 				m_algaeGrabberSubsystem.grabAlgaeAndHold()
-						.andThen(m_arduinoSubsystem.ledPattern(StatusCode.INTAKED_ALGAE)));
+						.andThen(m_arduinoSubsystem.ledPattern(StatusCode.INTAKED_ALGAE))
+						.withName("Grab Algae and Hold"));
 		m_operatorController.R2().onTrue(m_algaeGrabberSubsystem.releaseAlgae());
 		// m_operatorController.R2().whileTrue(m_algaeGrabberSubsystem.reverseFlywheelAndStop());
 	}
@@ -429,7 +418,6 @@ public class Robot extends TimedRobot {
 	@Override
 	public void autonomousInit() {
 		m_autonomousCommand = m_autoSelector.getSelected();
-		;
 
 		if (m_autonomousCommand != null) {
 			m_autonomousCommand.schedule();

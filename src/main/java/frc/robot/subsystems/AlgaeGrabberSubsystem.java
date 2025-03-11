@@ -143,18 +143,6 @@ public class AlgaeGrabberSubsystem extends SubsystemBase {
 		}).withTimeout(1).finallyDo(() -> {
 			m_flywheel.set(0);
 			m_grabberAngleMotor.set(0);
-		});
-	}
-
-	public Command reversePivot() {
-		return run(() -> {
-			m_grabberClosedLoopController.setReference(.25, ControlType.kPosition);
-		});
-	}
-
-	public Command forwardPivot() {
-		return run(() -> {
-			m_grabberClosedLoopController.setReference(.75, ControlType.kPosition);
-		});
+		}).withName("Release Algae");
 	}
 }
