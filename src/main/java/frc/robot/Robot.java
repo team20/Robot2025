@@ -83,7 +83,8 @@ public class Robot extends TimedRobot {
 			: new VisionSimulator(m_driveSubsystem,
 					pose(kFieldLayout.getFieldLength() / 2, kFieldLayout.getFieldWidth() / 2, 0),
 					0.05); // movement overestimation by 5%
-	SimCameraProperties cameraProp = new SimCameraProperties() {
+	private final PoseEstimationSubsystem m_poseEstimationSubsystem = new PoseEstimationSubsystem(m_driveSubsystem);
+	SimCameraProperties m_cameraProp = new SimCameraProperties() {
 		{
 			setCalibration(640, 480, Rotation2d.fromDegrees(100));
 			// Approximate detection noise with average and standard deviation error in
@@ -98,21 +99,13 @@ public class Robot extends TimedRobot {
 
 		}
 	};
-	// TODO: both cameras are not correctly set up; not measuring distances
-	// correctly. For now, the back camera is disabled. Will need to use after
-	// configured correctly.
-	private final PhotonCamera m_camera1 = RobotBase.isSimulation()
-			? cameraSim("FrontCamera", kRobotToCamera1, m_visionSimulator, cameraProp)
-			: new PhotonCamera("FrontCamera");
-	private final PhotonCamera m_camera2 = RobotBase.isSimulation()
-			? cameraSim("BackCamera", kRobotToCamera2, m_visionSimulator, cameraProp)
-			// : new PhotonCamera("BackCamera");
-			: new PhotonCamera("BackCamera2");
-	private final PoseEstimationSubsystem m_poseEstimationSubsystem = new PoseEstimationSubsystem(m_driveSubsystem)
-			.addCamera(m_camera1, kRobotToCamera1)
-			.addCamera(m_camera2, kRobotToCamera2);
 
 	public Robot() {
+		// TODO: both cameras are not correctly set up; not measuring distances
+		// correctly. For now, the back camera is disabled. Will need to use after
+		// configured correctly.
+		addCamera("FrontCamera", kRobotToCamera1);
+		// addCamera("BackCamera", kRobotToCamera2);
 		SignalLogger.start();
 		WebServer.start(5800, Filesystem.getDeployDirectory().getPath());
 		CommandComposer.setSubsystems(
@@ -157,6 +150,13 @@ public class Robot extends TimedRobot {
 		}
 	}
 
+	private void addCamera(String cameraName, Transform3d robotToCamera) {
+		PhotonCamera camera = RobotBase.isSimulation()
+				? cameraSim(cameraName, robotToCamera, m_visionSimulator, m_cameraProp)
+				: new PhotonCamera(cameraName);
+		m_poseEstimationSubsystem.addCamera(camera, robotToCamera);
+	}
+
 	public void addAutoCommands() {
 		m_autoSelector
 				.addOption(
@@ -176,36 +176,36 @@ public class Robot extends TimedRobot {
 	public void addTestingCommands() {
 		m_testingChooser
 				.addOption(
-						"Pick Up and Score Left at Level 3 (6, 7, 8, 9, 10, 11)",
-						testLeftAlignment(
-								3, 0.1, 1.0, 3.0,
-								6, 7, 8, 9, 10, 11));
-		m_testingChooser
-				.addOption(
-						"Pick Up and Score at Right Level 3 (6, 7, 8, 9, 10, 11)",
-						testRightAlignment(
-								3, 0.1, 1.0, 3.0,
-								6, 7, 8, 9, 10, 11));
-		m_testingChooser
-				.addOption(
-						"Pick Up and Score Left at Level 3 (17, 18, 19, 20, 21, 22)",
-						testLeftAlignment(
-								3, 0.1, 1.0, 3.0,
-								17, 18, 19, 20, 21, 22));
-		m_testingChooser
-				.addOption(
-						"Pick Up and Score Right at Level 3 (17, 18, 19, 20, 21, 22)",
-						testRightAlignment(
-								3, 0.1, 1.0, 3.0,
-								17, 18, 19, 20, 21, 22));
-		m_testingChooser
-				.addOption(
 						"Pick Up and Score at Level 3 (Left)",
 						score(toClosestTag(kLevel2Offset.get(3), 0, kRobotToTagsLeft), goToBase(), 3));
 		m_testingChooser
 				.addOption(
 						"Pick Up and Score at Level 3 (Right)",
 						score(toClosestTag(kLevel2Offset.get(3), 0, kRobotToTagsRight), goToBase(), 3));
+		m_testingChooser
+				.addOption(
+						"Pick Up and Score Left at Level 3 (6, 7, 8, 9, 10, 11)",
+						testLeftAlignment(
+								3, 0.1, 1.5, 3.0,
+								6, 7, 8, 9, 10, 11));
+		m_testingChooser
+				.addOption(
+						"Pick Up and Score at Right Level 3 (6, 7, 8, 9, 10, 11)",
+						testRightAlignment(
+								3, 0.1, 1.5, 3.0,
+								6, 7, 8, 9, 10, 11));
+		m_testingChooser
+				.addOption(
+						"Pick Up and Score Left at Level 3 (17, 18, 19, 20, 21, 22)",
+						testLeftAlignment(
+								3, 0.1, 1.5, 3.0,
+								17, 18, 19, 20, 21, 22));
+		m_testingChooser
+				.addOption(
+						"Pick Up and Score Right at Level 3 (17, 18, 19, 20, 21, 22)",
+						testRightAlignment(
+								3, 0.1, 1.5, 3.0,
+								17, 18, 19, 20, 21, 22));
 		m_testingChooser
 				.addOption(
 						"Reposition the Robot in Simulation",

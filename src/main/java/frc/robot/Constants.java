@@ -296,20 +296,22 @@ public class Constants {
 		 * A {@code Map} storing the distance to move forward to score at each scoring
 		 * level.
 		 */
-		static Map<Integer, Double> kLevel2Offset = Map.of(1, 0.13, 2, 0.13, 3, 0.11 + 0.09, 4, 0.05);
+		static Map<Integer, Double> kLevel2Offset = Map.of(1, 0.13, 2, 0.13, 3, 0.2, 4, 0.05);
 		// TODO increase to get closer to the tag
 
 		/**
 		 * A {@code Map} storing the additional distance to move forward for some
 		 * {@code AprilTag}s.
 		 */
-		static Map<Integer, Double> kForwardAdjustment = Map.of(18, 0.015, 22, 0.01);
+		static Map<Integer, Double> kForwardAdjustment = Map.of();
+		// Map.of(18, 0.015, 22, 0.01);
 
 		/**
 		 * A {@code Map} storing the additional distance to move to left/right for
 		 * some {@code AprilTag}s.
 		 */
-		static Map<Integer, Double> kSideAdjustment = Map.of(19, -0.02, 21, -0.01, 22, -0.01);
+		static Map<Integer, Double> kSideAdjustment = Map.of();
+		// Map.of(19, -0.02, 21, -0.01, 22, -0.01);
 
 		/**
 		 * The additional distance to move forward for each coral station.
