@@ -299,9 +299,8 @@ public class ElevatorSubsystem extends SubsystemBase {
 	 * @return
 	 */
 	public Command goToBaseHeight() {
-		return goToLevel(() -> 0).withName("Go To Base Height");
-		// return runOnce(() -> m_elevatorEncoder.setPosition(0)).withName("Go To Base
-		// Height");
+		return goToLevel(() -> 0).withTimeout(2.0).withName("Go To Base Height");
+		// reason for timeout: avoid damanging wrist when a coral is stuck in thepocket
 	}
 
 	public Command goToClearanceHeight(double level, double clearanceHeight) {
