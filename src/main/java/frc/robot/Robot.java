@@ -212,6 +212,11 @@ public class Robot extends TimedRobot {
 						runOnce(() -> repositionSimulatedRobot()));
 		m_testingChooser
 				.addOption(
+						"Movement of 3 Score North (Level 3)",
+						CommandComposer.get3ScoreNorthMovementTest(3, 0.5, 1.0, 0.1));
+
+		m_testingChooser
+				.addOption(
 						"Pick Up and Score at Level 4 (Left)",
 						score(toClosestTag(kLevel2Offset.get(4), 0, kRobotToTagsLeft), goToBase(), 4));
 		m_testingChooser
