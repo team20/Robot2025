@@ -158,7 +158,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 
 	@Override
 	public void periodic() {
-		m_elevatorLigament.setLength(Units.inchesToMeters(24) + getPosition());
+		m_elevatorLigament.setLength(Units.inchesToMeters(36) + getPosition());
 		SmartDashboard.putNumber("Elevator/Extension", getPosition());
 	}
 
@@ -238,15 +238,6 @@ public class ElevatorSubsystem extends SubsystemBase {
 	}
 
 	/**
-	 * Moves the elevator to the given height in inches
-	 * 
-	 * @return the command
-	 */
-	public Command goToHeight(int height) {
-		return goToLevel(() -> Units.inchesToMeters(height)).withName("Elevator to Height");
-	}
-
-	/**
 	 * Moves the elevator to the level one position
 	 * 
 	 * @return the command
@@ -305,7 +296,8 @@ public class ElevatorSubsystem extends SubsystemBase {
 	 * @return
 	 */
 	public Command goToBaseHeight() {
-		return goToLevel(() -> 0).withName("Go To Base Height");
+		return goToLevel(() -> 0).withTimeout(2.0).withName("Go To Base Height");
+		// reason for timeout: avoid damanging wrist when a coral is stuck in the pocket
 	}
 
 	public Command goToClearanceHeight(double level, double clearanceHeight) {

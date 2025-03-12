@@ -8,8 +8,8 @@ import static frc.robot.Constants.WristConstants.*;
 import static frc.robot.subsystems.PoseEstimationSubsystem.*;
 
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
@@ -17,8 +17,13 @@ import java.util.function.Supplier;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.SelectCommand;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.commands.DriveCommand;
 import frc.robot.commands.PathDriveCommand;
@@ -32,9 +37,9 @@ import frc.robot.subsystems.WristSubsystem;
 
 public class CommandComposer {
 	private static DriveSubsystem m_driveSubsystem;
-	private static AlgaeGrabberSubsystem m_algaeGrabberSubsystem;
+	static AlgaeGrabberSubsystem m_algaeGrabberSubsystem;
 	private static CheeseStickSubsystem m_cheeseStickSubsystem;
-	private static ClimberSubsystem m_climberSubsystem;
+	static ClimberSubsystem m_climberSubsystem;
 	private static ElevatorSubsystem m_elevatorSubsystem;
 	private static WristSubsystem m_wristSubsystem;
 	private static PoseEstimationSubsystem m_poseEstimationSubsystem;
@@ -95,12 +100,12 @@ public class CommandComposer {
 						m_cheeseStickSubsystem.grab())).withName("Release Flick And Drive Back");
 	}
 
-	public static Command scoreOptimized(Command align, Command pickup, int level) {
+	public static Command score(Command align, Command pickup, int level) {
 		switch (level) {
 			case 4:
 				return score(
 						align, pickup, kLevelFourHeight, kGrabberAngleLevelFour,
-						m_wristSubsystem.goToAngle(205));
+						m_wristSubsystem.goToAngle(210));
 			case 3:
 				return score(align, pickup, kLevelThreeHeight, kGrabberAngleLevelThree);
 			case 2:
@@ -147,44 +152,22 @@ public class CommandComposer {
 		}), level);
 	}
 
-	public static Command score(Command align, Command pickup, int level) {
-		switch (level) {
-			case 4:
-				return score(
-						align, pickup, kLevelFourHeight, kGrabberAngleLevelFour, kOffsets.get(level),
-						m_wristSubsystem.goToAngle(200));
-			case 3:
-				return score(align, pickup, kLevelThreeHeight, kGrabberAngleLevelThree, kOffsets.get(level));
-			case 2:
-				return score(align, pickup, kLevelTwoHeight, kGrabberAngleOthers, kOffsets.get(level));
-			case 1:
-				return score(align, pickup, kLevelOneHeight, kGrabberAngleOthers, kOffsets.get(level));
-		}
-		return runOnce(() -> {
-		});
-	}
-
-	private static Command score(Command align, Command pickup, double level, double wristAngle, double offset) {
-		return score(align, pickup, level, wristAngle, offset, runOnce(() -> {
-		}));
-	}
-
-	private static Command score(Command align, Command pickup, double level, double wristAngle, double offset,
-			Command followup) {
-		return sequence(
-				prepareToScore(align, pickup, level, wristAngle),
-				score(offset, 1.0, followup));
-	}
-
-	public static Command score(double offset, double releaseDuration, Command followup) {
-		return sequence(
-				moveStraight(offset, 0.01, 1), m_cheeseStickSubsystem.release(releaseDuration),
-				parallel(followup, moveStraight(-2 * offset, 0.01, 1)));
+	/**
+	 * Returns a {@code Command} to score and remove one algae in the middle of the
+	 * field.
+	 * 
+	 * @return a {@code Command} to score and remove one algae in the middle of the
+	 *         field
+	 */
+	public static Command getMiddleScoreAndAlgae() {
+		return select(
+				getMiddleScoreAndAlgaeRed(),
+				getMiddleScoreAndAlgaeBlue());
 	}
 
 	private static Command getMiddleScoreAndAlgae(Command align1, Command align2) {
 		return sequence(
-				scoreOptimized(align1, 4).withTimeout(6),
+				score(align1, 4).withTimeout(6), // L4
 				align2.withTimeout(4.5),
 				m_cheeseStickSubsystem.grab(),
 				removeAlgaeLevelTwo(),
@@ -193,19 +176,23 @@ public class CommandComposer {
 						moveStraight(-0.7, 0.01, 1)));
 	}
 
+	static Command getMiddleScoreAndAlgaeRed() {
+		return getMiddleScoreAndAlgae(
+				toTag(10, 4, 0.1, kRobotToTagsRight), // L4 scoring (<10cm errors at intermediate point)
+				toTag(10, kForwrdAdjustmentAlgaeRemoval, 0.0, 0.1, kRobotToTags)) // algae removal (<10cm err at i. pnt)
+						.withName("Middle Score and Algae Red");
+	}
+
 	static Command getMiddleScoreAndAlgaeBlue() {
-		return getMiddleScoreAndAlgae(toTag(21, kRobotToTagsRight), toTag(21, kRobotToTags))
-				.withName("Middle Score and Algae Blue");
+		return getMiddleScoreAndAlgae(
+				toTag(21, 4, 0.1, kRobotToTagsRight), // L4 scoring (<10cm errors at intermediate point)
+				toTag(21, kForwrdAdjustmentAlgaeRemoval, 0.0, 0.1, kRobotToTags)) // algae removal (<10cm err at i. pnt)
+						.withName("Middle Score and Algae Blue");
 	}
 
 	public static Command leave() {
 		return m_driveSubsystem.driveCommand(() -> 0.25, () -> 0, () -> 0, () -> true).withTimeout(10)
 				.withName("Leave Auto");
-	}
-
-	public static Command scoreOptimized(Command align, int level) {
-		return scoreOptimized(align, runOnce(() -> {
-		}), level);
 	}
 
 	public static Command prepareForCoralPickup() {
@@ -216,7 +203,7 @@ public class CommandComposer {
 
 	public static Command goToBase() {
 		return sequence(
-				m_wristSubsystem.goToAngle(270),
+				parallel(m_wristSubsystem.goToAngle(270), m_cheeseStickSubsystem.grab()),
 				m_elevatorSubsystem.goToBaseHeight()).withName("Go To Base");
 	}
 
@@ -231,11 +218,11 @@ public class CommandComposer {
 		DoubleSupplier z = () -> 0;
 		BooleanSupplier f = () -> false;
 		return sequence(
-				m_driveSubsystem.driveCommand(z, z, z, () -> 1, f).withTimeout(duration), // 90 degrees
-				m_driveSubsystem.driveCommand(z, z, () -> -1, z, f).withTimeout(duration), // 180 degrees
-				m_driveSubsystem.driveCommand(z, z, z, () -> -1, f).withTimeout(duration), // 270 degrees
-				m_driveSubsystem.driveCommand(z, z, () -> 1, () -> 1, f).withTimeout(duration), // 45 degrees
-				m_driveSubsystem.driveCommand(z, z, () -> 1, z, f).withTimeout(duration)); // 0 degrees
+				m_driveSubsystem.driveCommand(z, z, z, () -> 1, z, f).withTimeout(duration), // 90 degrees
+				m_driveSubsystem.driveCommand(z, z, () -> -1, z, z, f).withTimeout(duration), // 180 degrees
+				m_driveSubsystem.driveCommand(z, z, z, () -> -1, z, f).withTimeout(duration), // 270 degrees
+				m_driveSubsystem.driveCommand(z, z, () -> 1, () -> 1, z, f).withTimeout(duration), // 45 degrees
+				m_driveSubsystem.driveCommand(z, z, () -> 1, z, z, f).withTimeout(duration)); // 0 degrees
 	}
 
 	/**
@@ -304,49 +291,6 @@ public class CommandComposer {
 	}
 
 	/**
-	 * Returns a {@code Command} for aligning the robot to the specified
-	 * {@code AprilTag}s.
-	 * 
-	 * @param distanceTolerance the distance error in meters which is tolerable
-	 * @param angleTolerance the angle error in degrees which is tolerable
-	 * @param intermediateDistanceTolerance the distance error in meters which is
-	 *        tolerable for intermeidate target {@code Pose2d}s
-	 * @param intermediateAngleToleranceInDegrees the angle error in degrees which
-	 *        is tolerable for intermeidate target {@code Pose2d}s
-	 * @param robotToTagTransforms the {@code Pose2d}s of the {@code AprilTag}
-	 *        relative to the center of the robot when the robit is aligned to the
-	 *        ready and alignment poses
-	 * @param robotToTagBackup the {@code Pose2d} of the {@code AprilTag} relative
-	 *        to the center of the robot when the robit is aligned to the backup
-	 *        pose
-	 * @param tagIDs the IDs of the {@code AprilTag}s
-	 * 
-	 * @return a {@code Command} for aligning the robot to the specified
-	 *         {@code AprilTag}s
-	 */
-	public static Command alignToTags(double distanceTolerance, double angleTolerance,
-			double intermediateDistanceTolerance, double intermediateAngleToleranceInDegrees,
-			List<Transform2d> robotToTagTransforms, Transform2d robotToTagBackup, int... tagIDs) {
-		Pose2d previous = null;
-		var commands = new LinkedList<Command>();
-		for (int tagID : tagIDs) {
-			var tagPose = kFieldLayout.getTagPose(tagID).get().toPose2d();
-			var l = new LinkedList<Pose2d>();
-			if (previous != null)
-				l.add(previous);
-			for (var r : robotToTagTransforms)
-				l.add(tagPose.plus(r));
-			previous = tagPose.plus(robotToTagBackup);
-			var command = new PathDriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance,
-					intermediateDistanceTolerance, intermediateAngleToleranceInDegrees, l.stream()
-							.map(p -> (Supplier<Pose2d>) (() -> m_poseEstimationSubsystem.odometryCentricPose(p)))
-							.toList());
-			commands.add(command.andThen(new WaitCommand(.5)));
-		}
-		return sequence(commands.toArray(new Command[0]));
-	}
-
-	/**
 	 * Creates a {@code Command} to automatically align the robot to the closest
 	 * {@code AprilTag}.
 	 *
@@ -374,32 +318,68 @@ public class CommandComposer {
 	 *         {@code AprilTag}
 	 */
 	public static Command toTag(int tagID, Transform2d... robotToTags) {
-		return new PathDriveCommand(m_driveSubsystem, 0.01, 1,
-				0.16, 16,
-				posesToTag(tagID, robotToTags));
+		return toTag(tagID, 0.16, robotToTags);
 	}
 
 	/**
-	 * Creates a {@code Command} to automatically align the robot to the closest
+	 * Creates a {@code Command} to automatically align the robot to the target
 	 * {@code AprilTag}.
 	 *
-	 * @param distanceThresholdInMeters the maximum distance (in meters) within
-	 *        which {@code AprilTag}s are considered
-	 * @param distanceTolerance the distance error in meters which is tolerable
-	 * @param angleToleranceInDegrees the angle error in degrees which is tolerable
+	 * @param tagID the ID of the target {@code AprilTag}
+	 * @param level the scoring level
 	 * @param robotToTags the {@code Tranform2d} representing the pose of the
-	 *        closest {@code AprilTag} relative to the robot when the robot is
+	 *        target {@code AprilTag} relative to the robot when the robot is
 	 *        aligned
-	 * @return a {@code Command} to automatically align the robot to the closest
+	 * @return a {@code Command} to automatically align the robot to the target
 	 *         {@code AprilTag}
 	 */
-	public static Command toTag(double distanceThresholdInMeters, double distanceTolerance,
-			double angleToleranceInDegrees,
-			double intermedateDistanceTolerance, double intermediateAngleToleranceInDegrees,
+	public static Command toTag(int tagID, int level, double intermediateDistanceTolerance,
 			Transform2d... robotToTags) {
-		return new PathDriveCommand(m_driveSubsystem, distanceTolerance, angleToleranceInDegrees,
-				intermedateDistanceTolerance, intermediateAngleToleranceInDegrees,
-				posesToClosestTag(distanceThresholdInMeters, robotToTags));
+		return toTag(
+				tagID, kLevelOffset.get(level) + kForwardAdjustment.getOrDefault(tagID, 0.0),
+				kSideAdjustment.getOrDefault(tagID, 0.0), intermediateDistanceTolerance, robotToTags);
+	}
+
+	/**
+	 * Creates a {@code Command} to automatically align the robot to the target
+	 * {@code AprilTag}.
+	 *
+	 * @param tagID the ID of the target {@code AprilTag}
+	 * @param forwardAdjustment the additional distance to move forward/backward
+	 *        (positive: closer to the tag)
+	 * @param sideAdjustment the additional distance to strafe left/right
+	 *        (positive: left when facing toward the tag)
+	 * @param intermediateDistanceTolerance the distance error in meters which is
+	 *        tolerable for intermeidate target {@code Pose2d}s
+	 * @param robotToTags the {@code Tranform2d} representing the pose of the
+	 *        target {@code AprilTag} relative to the robot when the robot is
+	 *        aligned
+	 * @return a {@code Command} to automatically align the robot to the target
+	 *         {@code AprilTag}
+	 */
+	public static Command toTag(int tagID, double forwardAdjustment, double sideAdjustment,
+			double intermediateDistanceTolerance,
+			Transform2d... robotToTags) {
+		return toTag(tagID, intermediateDistanceTolerance, adjust(forwardAdjustment, sideAdjustment, robotToTags));
+	}
+
+	/**
+	 * Creates a {@code Command} to automatically align the robot to the target
+	 * {@code AprilTag}.
+	 *
+	 * @param tagID the ID of the target {@code AprilTag}
+	 * @param robotToTags the {@code Tranform2d} representing the pose of the
+	 *        target {@code AprilTag} relative to the robot when the robot is
+	 *        aligned
+	 * @param intermediateDistanceTolerance the distance error in meters which is
+	 *        tolerable for intermeidate target {@code Pose2d}s
+	 * @return a {@code Command} to automatically align the robot to the target
+	 *         {@code AprilTag}
+	 */
+	public static Command toTag(int tagID, double intermediateDistanceTolerance, Transform2d... robotToTags) {
+		return new PathDriveCommand(m_driveSubsystem, 0.01, 1,
+				intermediateDistanceTolerance, 16,
+				posesToTag(tagID, robotToTags));
 	}
 
 	/**
@@ -444,4 +424,113 @@ public class CommandComposer {
 			return m_poseEstimationSubsystem.odometryCentricPose(pose.plus(r));
 		})).toList();
 	}
+
+	public static Command get3ScoreNorth(int level, double distance, double waitTime,
+			double intermediateDistanceTolerance) {
+		return select(
+				get3ScoreNorthRed(level, distance, waitTime, intermediateDistanceTolerance),
+				get3ScoreNorthBlue(level, distance, waitTime, intermediateDistanceTolerance));
+	}
+
+	public static Command get3ScoreSouth(int level, double distance, double waitTime,
+			double intermediateDistanceTolerance) {
+		return select(
+				get3ScoreSouthRed(level, distance, waitTime, intermediateDistanceTolerance),
+				get3ScoreSouthBlue(level, distance, waitTime, intermediateDistanceTolerance));
+	}
+
+	private static Command get3ScoreNorthBlue(int level, double distance, double waitTime,
+			double intermediateDistanceTolerance) {
+		return get3Score(
+				toTag(20, level, intermediateDistanceTolerance, kRobotToTagsRight),
+				toTag(19, level, intermediateDistanceTolerance, kRobotToTagsRight),
+				toTag(19, level, intermediateDistanceTolerance, kRobotToTagsLeft), level, distance,
+				13, waitTime, intermediateDistanceTolerance, kRobotToTagsRightReady);
+	}
+
+	private static Command get3ScoreNorthRed(int level, double distance, double waitTime,
+			double intermediateDistanceTolerance) {
+		return get3Score(
+				toTag(9, level, intermediateDistanceTolerance, kRobotToTagsLeft),
+				toTag(8, level, intermediateDistanceTolerance, kRobotToTagsLeft),
+				toTag(8, level, intermediateDistanceTolerance, kRobotToTagsRight), level, distance,
+				2, waitTime, intermediateDistanceTolerance, kRobotToTagsLeftReady);
+	}
+
+	private static Command get3ScoreSouthBlue(int level, double distance, double waitTime,
+			double intermediateDistanceTolerance) {
+		return get3Score(
+				toTag(22, level, intermediateDistanceTolerance, kRobotToTagsLeft),
+				toTag(17, level, intermediateDistanceTolerance, kRobotToTagsLeft),
+				toTag(17, level, intermediateDistanceTolerance, kRobotToTagsRight), level, distance,
+				12, waitTime, intermediateDistanceTolerance, kRobotToTagsLeftReady);
+	}
+
+	private static Command get3ScoreSouthRed(int level, double distance, double waitTime,
+			double intermediateDistanceTolerance) {
+		return get3Score(
+				toTag(11, level, intermediateDistanceTolerance, kRobotToTagsRight),
+				toTag(6, level, intermediateDistanceTolerance, kRobotToTagsRight),
+				toTag(6, level, intermediateDistanceTolerance, kRobotToTagsLeft), level, distance,
+				1, waitTime, intermediateDistanceTolerance, kRobotToTagsRightReady);
+	}
+
+	private static Command get3Score(Command align1, Command align2, Command align3, int level, double distance,
+			int stationTagID, double waitTime,
+			double intermediateDistanceTolerance, Transform2d... robotToTags) {
+		return sequence(
+				score(align1, goToBase(), level), moveStraight(-distance, intermediateDistanceTolerance, 20),
+				toStation(stationTagID, kForwrdAdjustmentCoralStation, intermediateDistanceTolerance, robotToTags),
+				parallel(m_wristSubsystem.goToAngle(270), new WaitCommand(waitTime)),
+				score(align2, goToBase(), level), moveStraight(-distance, intermediateDistanceTolerance, 20),
+				toStation(stationTagID, kForwrdAdjustmentCoralStation, intermediateDistanceTolerance, robotToTags),
+				parallel(m_wristSubsystem.goToAngle(270), new WaitCommand(waitTime)),
+				score(align3, goToBase(), level));
+	}
+
+	private static Command toStation(int tagID, double forwardAdjustment, double intermediateDistanceTolerance,
+			Transform2d... robotToTags) {
+		return parallel(
+				toTag(tagID, forwardAdjustment, 0, intermediateDistanceTolerance, robotToTags),
+				m_elevatorSubsystem.goToCoralStationHeight());
+	}
+
+	public static Command toClosestTag(double forwardAdjustment, double sideAdjustment, Transform2d... robotToTags) {
+		return toClosestTag(adjust(forwardAdjustment, sideAdjustment, robotToTags));
+	}
+
+	private static Transform2d[] adjust(double forwardAdjustment, double sideAdjustment, Transform2d... robotToTags) {
+		return Arrays.stream(robotToTags)
+				.map(t -> new Transform2d(t.getX() - forwardAdjustment, t.getY() - sideAdjustment, t.getRotation()))
+				.toList()
+				.toArray(new Transform2d[0]);
+	}
+
+	private static Command select(Command commandRedAlliance, Command commandBlueAlliance) {
+		return new SelectCommand<Object>(Map
+				.of(Alliance.Red, commandRedAlliance, Alliance.Blue, commandBlueAlliance),
+				() -> {
+					Alliance alliance = DriverStation.getAlliance().get();
+					var middle = kFieldLayout.getFieldLength() / 2;
+					try {
+						var confidence = m_poseEstimationSubsystem.confidence();
+						if (confidence < 0.3)
+							return alert("Pose Confidence (" + confidence + ") Too Low!");
+						var x = m_poseEstimationSubsystem.getEstimatedPose().getX();
+						if ((alliance == DriverStation.Alliance.Blue && x > middle)
+								|| (alliance == DriverStation.Alliance.Red && x < middle)) {
+							return alert("Strange Robot Position (" + alliance + " Alliance)!");
+						}
+					} catch (Exception e) {
+					}
+					return alliance;
+				});
+	}
+
+	private static Alert alert(String text) {
+		var a = new Alert(text, AlertType.kError);
+		a.set(true);
+		return a;
+	}
+
 }

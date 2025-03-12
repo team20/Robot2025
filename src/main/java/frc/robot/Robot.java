@@ -15,11 +15,8 @@ import static frc.robot.Constants.ElevatorConstants.*;
 import static frc.robot.Constants.WristConstants.*;
 import static frc.robot.subsystems.PoseEstimationSubsystem.*;
 
-import java.util.Arrays;
 import java.util.Map;
 import java.util.function.BooleanSupplier;
-import java.util.function.Supplier;
-import java.util.stream.IntStream;
 
 import org.littletonrobotics.urcl.URCL;
 import org.photonvision.PhotonCamera;
@@ -30,7 +27,6 @@ import com.ctre.phoenix6.SignalLogger;
 
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.cscore.UsbCamera;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.util.Units;
@@ -57,7 +53,6 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
-import frc.robot.commands.PathDriveCommand;
 import frc.robot.simulation.VisionSimulator;
 import frc.robot.subsystems.AlgaeGrabberSubsystem;
 import frc.robot.subsystems.ArduinoSubsystem;
@@ -86,14 +81,17 @@ public class Robot extends TimedRobot {
 	private final CommandPS5Controller m_driverController = new CommandPS5Controller(kDriverControllerPort);
 	private final CommandPS5Controller m_operatorController = new CommandPS5Controller(kOperatorControllerPort);
 	private final PowerDistribution m_pdh = new PowerDistribution();
-	private final VisionSimulator m_visionSimulator = new VisionSimulator(m_driveSubsystem,
-			pose(kFieldLayout.getFieldLength() / 2 + 1.5, 1.91 + .3, 0), 0.01);
-	SimCameraProperties cameraProp = new SimCameraProperties() {
+	private final VisionSimulator m_visionSimulator = RobotBase.isReal() ? null
+			: new VisionSimulator(m_driveSubsystem,
+					pose(kFieldLayout.getFieldLength() / 2, kFieldLayout.getFieldWidth() / 2, 0),
+					0.05); // movement overestimation by 5%
+	private final PoseEstimationSubsystem m_poseEstimationSubsystem = new PoseEstimationSubsystem(m_driveSubsystem);
+	SimCameraProperties m_cameraProp = new SimCameraProperties() {
 		{
 			setCalibration(640, 480, Rotation2d.fromDegrees(100));
 			// Approximate detection noise with average and standard deviation error in
 			// pixels.
-			setCalibError(0.35, 0.15);
+			setCalibError(0.25, 0.15);
 			// Set the camera image capture framerate (Note: this is limited by robot loop
 			// rate).
 			setFPS(20);
@@ -103,17 +101,11 @@ public class Robot extends TimedRobot {
 
 		}
 	};
-	private final PhotonCamera m_camera1 = RobotBase.isSimulation()
-			? cameraSim("Camera1", kRobotToCamera1, m_visionSimulator, cameraProp)
-			: new PhotonCamera("FrontCamera");
-	private final PhotonCamera m_camera2 = RobotBase.isSimulation()
-			? cameraSim("Camera2", kRobotToCamera2, m_visionSimulator, cameraProp)
-			: new PhotonCamera("BackCamera");
-	private final PoseEstimationSubsystem m_poseEstimationSubsystem = new PoseEstimationSubsystem(m_driveSubsystem)
-			.addCamera(m_camera1, kRobotToCamera1)
-			.addCamera(m_camera2, kRobotToCamera2);
 
 	public Robot() {
+		// TODO: Please configure cameras correctly and then enable BackCamera.
+		addCamera("FrontCamera", kRobotToCamera1);
+		// addCamera("BackCamera", kRobotToCamera2);
 		SignalLogger.start();
 		WebServer.start(5800, Filesystem.getDeployDirectory().getPath());
 		CommandComposer.setSubsystems(
@@ -161,45 +153,61 @@ public class Robot extends TimedRobot {
 	public void addAutoCommands() {
 		m_autoSelector
 				.addOption(
-						"Middle and Algae Blue", CommandComposer.getMiddleScoreAndAlgaeBlue());
+						"Middle Score and Algae", CommandComposer.getMiddleScoreAndAlgae());
 		m_autoSelector.addOption("Leave", CommandComposer.leave());
+		m_autoSelector
+				.addOption(
+						"3 Score North (Level 3)",
+						// TODO: Optimize
+						CommandComposer.get3ScoreNorth(3, 0.5, 1.0, 0.1));
+		m_autoSelector
+				.addOption(
+						"3 Score South (Level 3)",
+						// TODO: Optimize
+						CommandComposer.get3ScoreSouth(3, 0.5, 1.0, 0.1));
 	}
 
 	public void addTestingCommands() {
 		m_testingChooser
 				.addOption(
-						"Left Align to the Closest Tag",
-						toClosestTag(kRobotToTagsLeft));
+						"Pick Up and Score at Level 3 (Left)",
+						score(toClosestTag(kLevelOffset.get(3), 0, kRobotToTagsLeft), goToBase(), 3));
 		m_testingChooser
 				.addOption(
-						"Right Align to the Closest Tag",
-						toClosestTag(kRobotToTagsRight));
+						"Pick Up and Score at Level 3 (Right)",
+						score(toClosestTag(kLevelOffset.get(3), 0, kRobotToTagsRight), goToBase(), 3));
 		m_testingChooser
 				.addOption(
-						"Left Align to the Closest Tag + Score at Level 2",
-						sequence(toClosestTag(kRobotToTagsLeft), scoreLevelTwoInTeleop()));
+						"Pick Up and Score at Level 4 (Left)",
+						score(toClosestTag(kLevelOffset.get(4), 0, kRobotToTagsLeft), goToBase(), 4));
 		m_testingChooser
 				.addOption(
-						"Right Align to the Closest Tag + Score at Level 2",
-						sequence(toClosestTag(kRobotToTagsRight), scoreLevelTwoInTeleop()));
-		double distanceTolerance = 0.01;
-		double angleToleranceInDegrees = 1;
-		double intermediateDistanceTolerance = 0.08;
-		double intermediateAngleToleranceInDegrees = 8.0;
+						"Pick Up and Score at Level 4 (Right)",
+						score(toClosestTag(kLevelOffset.get(4), 0, kRobotToTagsRight), goToBase(), 4));
 		m_testingChooser
 				.addOption(
-						"Quickly Align AprilTags 7, 8, 9",
-						CommandComposer.alignToTags(
-								distanceTolerance, angleToleranceInDegrees, intermediateDistanceTolerance,
-								intermediateAngleToleranceInDegrees, Arrays.asList(kRobotToTagsLeft),
-								kRobotToTagsLeft[0], 7, 8, 9, 8, 7));
+						"Reposition the Robot in Simulation",
+						runOnce(() -> repositionSimulatedRobot()));
 		m_testingChooser
 				.addOption(
-						"Quickly Align AprilTags 18, 19, 20",
-						CommandComposer.alignToTags(
-								distanceTolerance, angleToleranceInDegrees, intermediateDistanceTolerance,
-								intermediateAngleToleranceInDegrees, Arrays.asList(kRobotToTagsLeft),
-								kRobotToTagsLeft[0], 18, 19, 20, 19, 18));
+						"Prepare to Score at Level 3 (Left)",
+						prepareToScore(
+								toClosestTag(kLevelOffset.get(3), 0, kRobotToTagsLeft), kLevelThreeHeight,
+								kGrabberAngleLevelThree));
+		m_testingChooser
+				.addOption(
+						"Prepare to Score at Level 4 (Left)",
+						prepareToScore(
+								toClosestTag(kLevelOffset.get(4), 0, kRobotToTagsLeft), kLevelFourHeight,
+								kGrabberAngleLevelFour));
+		m_testingChooser
+				.addOption(
+						"Score at Level 3 (Left)",
+						score(toClosestTag(kLevelOffset.get(3), 0, kRobotToTagsLeft), 3));
+		m_testingChooser
+				.addOption(
+						"Score at Level 4 (Left)",
+						score(toClosestTag(kLevelOffset.get(4), 0, kRobotToTagsLeft), 4));
 		m_testingChooser
 				.addOption(
 						"Check All Subsystems",
@@ -227,29 +235,10 @@ public class Robot extends TimedRobot {
 						m_driveSubsystem.testCommand(0.5, Math.toRadians(45), 1.0));
 		m_testingChooser
 				.addOption(
-						"Test Absolute Orientation",
+						"Check Absolute Orientation",
 						testAbsoluteOrientation(2));
-		m_testingChooser
-				.addOption(
-						"Quickly Align AprilTags 17, 18, 19, 20, 21, and 22",
-						CommandComposer.alignToTags(
-								distanceTolerance, angleToleranceInDegrees, intermediateDistanceTolerance,
-								intermediateAngleToleranceInDegrees, Arrays.asList(kRobotToTagsLeft),
-								kRobotToTagsLeft[0], 17, 18, 19, 20, 21, 22, 17));
-		m_testingChooser
-				.addOption(
-						"Quickly Align to AprilTags 12, 13, 17, 18, and 19",
-						CommandComposer.alignToTags(
-								distanceTolerance, angleToleranceInDegrees, intermediateDistanceTolerance,
-								intermediateAngleToleranceInDegrees, Arrays.asList(kRobotToTags), kRobotToTags[0], 18,
-								17, 12, 17, 18, 19, 13, 19, 18));
-		m_testingChooser
-				.addOption(
-						"Quickly Align to AprilTags 1, 2, 6, 7, and 8",
-						CommandComposer.alignToTags(
-								distanceTolerance, angleToleranceInDegrees, intermediateDistanceTolerance,
-								intermediateAngleToleranceInDegrees, Arrays.asList(kRobotToTags), kRobotToTags[0], 7, 6,
-								1, 6, 7, 8, 2, 8, 7));
+		double distanceTolerance = 0.01;
+		double angleToleranceInDegrees = 1;
 		m_testingChooser
 				.addOption(
 						"Check PID Constants for Driving (5'x5' Square)",
@@ -263,25 +252,6 @@ public class Robot extends TimedRobot {
 				.addOption(
 						"Slowest Movement Test (F/B/L/R/LR/RR and F/B while rotating)",
 						m_driveSubsystem.testCommand(kDriveMinSpeed, kTurnMinAngularSpeed, 1.0));
-		m_testingChooser
-				.addOption(
-						"Fastest Forward/Backward Movement Test (5m)",
-						sequence(
-								CommandComposer.moveStraight(5, 0.1, 10),
-								CommandComposer.moveStraight(-5, 0.1, 10)));
-		m_testingChooser
-				.addOption(
-						"Fastest Rotation Test (5 rotations)",
-						new PathDriveCommand(m_driveSubsystem, 1, 10,
-								1, 100,
-								IntStream.range(1, 1 + 3 * 5)
-										.mapToObj(
-												i -> (Supplier<Pose2d>) (() -> {
-													var pose = m_driveSubsystem.getPose();
-													return new Pose2d(pose.getX(), pose.getY(),
-															Rotation2d.fromDegrees(120 * i));
-												}))
-										.toList()));
 	}
 
 	public void bindAlert(Alert alert, BooleanSupplier event) {
@@ -319,10 +289,8 @@ public class Robot extends TimedRobot {
 						() -> -m_driverController.getRightY(),
 						() -> -m_driverController.getRightX(),
 						() -> m_driverController.getL2Axis() - m_driverController.getR2Axis(),
-						m_driverController.getHID()::getCreateButton)); // makes the robot
-		// robot-oriented
+						m_driverController.getHID()::getCreateButton)); // makes the robot robot-oriented
 
-		/// TODO: button binding needed with the correct button
 		m_driverController.L1().whileTrue(
 				toClosestTag(kRobotToTagsLeft).withName("toClosestTag(kRobotToTagsLeft)"));
 		m_driverController.R1().whileTrue(
@@ -479,4 +447,44 @@ public class Robot extends TimedRobot {
 		m_visionSimulator.addCamera(cameraSim, robotToCamera);
 		return camera;
 	}
+
+	private void addCamera(String cameraName, Transform3d robotToCamera) {
+		PhotonCamera camera = RobotBase.isSimulation()
+				? cameraSim(cameraName, robotToCamera, m_visionSimulator, m_cameraProp)
+				: new PhotonCamera(cameraName);
+		m_poseEstimationSubsystem.addCamera(camera, robotToCamera);
+	}
+
+	@Override
+	public void simulationInit() {
+		repositionSimulatedRobot(DriverStation.Alliance.Red, 2);
+	}
+
+	/**
+	 * Repositions the robot in simulation according to the alliance station.
+	 */
+	void repositionSimulatedRobot() {
+		var alliance = DriverStation.getAlliance();
+		if (alliance.isPresent())
+			repositionSimulatedRobot(alliance.get(), DriverStation.getLocation().getAsInt());
+	}
+
+	/**
+	 * Repositions the robot in simulation according to the specified alliance
+	 * station.
+	 * 
+	 * @param alliance the {@code Alliance}
+	 * @param location the location of the team's driver station
+	 */
+	void repositionSimulatedRobot(DriverStation.Alliance alliance, int location) {
+		var redAlliance = alliance == DriverStation.Alliance.Red;
+		Map<Integer, Double> yCoordinates = Map.of(
+				1, kFieldLayout.getFieldWidth() * 3 / 4, 2, kFieldLayout.getFieldWidth() * 2 / 4, 3,
+				kFieldLayout.getFieldWidth() * 1 / 4);
+		m_visionSimulator.setRobotPose(
+				pose(
+						kFieldLayout.getFieldLength() / 2 + 1.5 * (redAlliance ? 1 : -1),
+						yCoordinates.get(location), redAlliance ? 0 : 180));
+	}
+
 }
