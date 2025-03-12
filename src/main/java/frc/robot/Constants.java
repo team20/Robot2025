@@ -32,7 +32,7 @@ public class Constants {
 		public static final double kDeployGrabberPosition = .75;
 		public static final double kFlywheelSpeed = .8;
 
-		public static final double kP = 0.7; // TODO: Tune (0.5)
+		public static final double kP = 0.7;
 		public static final double kI = 0.0;
 		public static final double kD = 0;
 
@@ -42,7 +42,6 @@ public class Constants {
 
 	public static final class CheeseStickConstants {
 		public static final int kServoPort = 0;
-		// TODO: test release angle(0=-135 0.5=0 1=135)
 		public static final double kReleaseDistance = 0.4;
 		/**
 		 * Set this value to how far the cheese stick wheels extend beyond the lexan.
@@ -55,12 +54,10 @@ public class Constants {
 		public static final double kClimberForwardSoftLimit = .5;
 		public static final double kClimberReverseSoftLimit = 0;
 		public static final double kSpeed = 0.75;
-		// TODO: fix PID values
 		public static final double kP = 0.75;
 		public static final double kI = 0;
 		public static final double kD = 0;
 
-		// TODO: Check
 		public static final int kSmartCurrentLimit = 50;
 		public static final int kSecondaryCurrentLimit = kSmartCurrentLimit + 15;
 	}
@@ -95,9 +92,9 @@ public class Constants {
 		public static final double kV = 0.12;
 		public static final double kA = 0.009;
 
-		public static final double kRotationP = 5; // TODO: tune it
+		public static final double kRotationP = 5;
 		public static final double kRotationI = 0.0;
-		public static final double kRotationD = 0.1; // TODO: tune it
+		public static final double kRotationD = 0.1;
 		public static final double kRotationS = 0;
 		public static final double kRotationV = 1.9;
 		public static final double kRotationA = 0.009;
@@ -107,13 +104,12 @@ public class Constants {
 		public static final double kDriveGearRatio = 6.75;
 		public static final double kSteerGearRatio = 150.0 / 7;
 		public static final double kWheelDiameter = Units.inchesToMeters(4) * 0.95;
-		// TODO: make it smaller if not close enough to coral stations
+		// TODO: decrease for robot to align closer to coral stations
 		public static final double kWheelCircumference = Math.PI * kWheelDiameter;
 
 		public static final double kMetersPerMotorRotation = kWheelCircumference / kDriveGearRatio;
 
 		// https://docs.wpilib.org/en/latest/docs/software/basic-programming/coordinate-system.html
-		// TODO: CHECK
 		public static final Translation2d kFrontLeftLocation = new Translation2d(0.381, 0.381);
 		public static final Translation2d kFrontRightLocation = new Translation2d(0.381, -0.381);
 		public static final Translation2d kBackLeftLocation = new Translation2d(-0.381, 0.381);
@@ -137,19 +133,19 @@ public class Constants {
 			kDriveConfig.OpenLoopRamps.VoltageOpenLoopRampPeriod = kRampRate;
 		}
 
-		public static final double kTeleopDriveMaxSpeed = 12.0; // TODO: 12 meters per second
-		public static final double kTeleopTurnMaxAngularSpeed = Math.toRadians(360 * 5);// TODO: 5 rotations per second
+		public static final double kTeleopDriveMaxSpeed = 12.0; // 12 meters per second
+		public static final double kTeleopTurnMaxAngularSpeed = Math.toRadians(360 * 5);// 5 rotations per second
 
-		public static final double kDriveMaxSpeed = 12.0; // TODO: Optimize: 12 meters per second
-		public static final double kDriveMinSpeed = 0.2; // TODO: Optimize: 0.2 meters per second
-		public static final double kTurnMaxAngularSpeed = Math.toRadians(360); // TODO: Optimize: 1 rotation per second
+		public static final double kDriveMaxSpeed = 12.0; // 12 meters per second TODO: Optimize
+		public static final double kDriveMinSpeed = 0.2; // 0.2 meters per second TODO: Optimize
+		public static final double kTurnMaxAngularSpeed = Math.toRadians(360); // 1 rotation per second TODO: Optimize
 		public static final double kTurnMinAngularSpeed = Math.toRadians(0); // 0 degree per second
 
 		// DriveCommand.java Constants
 		public static final double kDriveP = 5;
 		public static final double kDriveI = 0;
 		public static final double kDriveD = 0;
-		public static final double kDriveMaxAcceleration = 2 * kDriveMaxSpeed; // TODO: kDriveMaxSpeed in 0.5 sec
+		public static final double kDriveMaxAcceleration = 2 * kDriveMaxSpeed; // kDriveMaxSpeed in 0.5 sec
 
 		public static final double kTurnP = 5;
 		public static final double kTurnI = 0;
@@ -159,7 +155,7 @@ public class Constants {
 
 	public static final class ElevatorConstants {
 		public static final int kElevatorMotorPort = 26;
-		public static final int kSmartCurrentLimit = 60; // TODO: 45
+		public static final int kSmartCurrentLimit = 60;
 		public static final int kSecondaryCurrentLimit = 70;
 		public static final double kP = 6.0; // 1.1
 		public static final double kI = 0;
@@ -183,29 +179,24 @@ public class Constants {
 		 *               kGearRatio motor rots    1 pulley rotation
 		 * </pre>
 		 */
-		public static final double kMetersPerMotorRotation = (1 / kGearRatio)
-				* kMetersPerPulleyRotation;
+		public static final double kMetersPerMotorRotation = (1 / kGearRatio) * kMetersPerPulleyRotation;
 		public static final double kMaxVelocity = 2.75;
 		public static final double kMaxAccel = 2.5;
 		public static final double kTolerance = 0.01;
-		// TODO: During testing make sure these are right
 		public static final double kLevelOneHeight = Units.inchesToMeters(3);
-		public static final double kLevelTwoHeight = Units.inchesToMeters(8); // TODO: 31.88 from carpet
-		public static final double kLevelThreeHeight = Units.inchesToMeters(29); // TODO: 47.63 from carpet (5.5 off?)
-		// TODO: does this uhh do anything...? since the max height is supposedly lower?
-		// public static final double kLevelFourHeight = Units.inchesToMeters(50);
-		public static final double kLevelFourHeight = Units.inchesToMeters(48 + 0.75 + 0.5); // TODO: 72 from carpet
-		public static final double kMaxExtension = Units.inchesToMeters(49.5 + 0.75); // TODO: Likely needs to be upped:
-		// safety
-		// TODO: The amount that the elevator decreases in order to score
-		public static final double kClearanceHeight = Units.inchesToMeters(5.5);// Moved to 5 from 3.5 by Ryan on
-																				// 3/8/2025
+		public static final double kLevelTwoHeight = Units.inchesToMeters(8);
+		public static final double kLevelThreeHeight = Units.inchesToMeters(29);
+		public static final double kLevelFourHeight = Units.inchesToMeters(48 + 2);
+		public static final double kMaxExtension = Units.inchesToMeters(49.5 + 0.75);
+		// The amount that the elevator decreases in order to score
+		public static final double kClearanceHeight = Units.inchesToMeters(5.5);
 		public static final double kToScoreHeightDecrease = Units.inchesToMeters(0);
-		public static final double kCoralStationHeight = Units.inchesToMeters(17 + 2); // TODO: Change
+		public static final double kCoralStationHeight = Units.inchesToMeters(17 + 2);
 
 		public static final double kAlgaeLevelThreeHeight = Units.inchesToMeters(0.25);
-		public static final double kAlgaeLevelTwoHeight = Units.inchesToMeters(16);
-		public static final double kAlgaeLevelTwoAutoHeight = Units.inchesToMeters(12.5);
+		public static final double kAlgaeLevelTwoHeight = Units.inchesToMeters(14);
+		// public static final double kAlgaeLevelTwoAutoHeight =
+		// Units.inchesToMeters(13.5);
 	}
 
 	public static final class WristConstants {
@@ -213,7 +204,7 @@ public class Constants {
 		public static final int kSmartCurrentLimit = 20;
 		public static final int kSecondaryCurrentLimit = 20;
 		public static final int kGrabberAngleLevelFour = 223;
-		public static final int kGrabberAngleOthers = 221; // 5 degrees steeper from previous value (215)
+		public static final int kGrabberAngleOthers = 221;
 		public static final int kGrabberAngleLevelThree = 240;
 		public static final double kAlgaeWristHeight = 170;
 
@@ -221,15 +212,11 @@ public class Constants {
 		public static final double kWristReverseSoftLimit = 90; // Wrist facing up
 		public static final double kWristOffset = 0.75 + (3.5 / 360.0); // angle offset
 
-		// TODO: Make sure these are tuned (can do with SysId)
-		public static final double kP = 0.01; // TODO: Optimize
+		public static final double kP = 0.01;
 		public static final double kI = 0.0;
-		public static final double kD = 0.003; // TODO: Optimize
+		public static final double kD = 0.003;
 
-		public static final double kTolerance = 1; // TODO: Change this
-		// public static final double kTolerance = 4; // TODO: Change this
-
-		public static final double kMinElevatorExtension = 0.0;
+		public static final double kTolerance = 4;
 	}
 
 	public static final class AutoAlignConstants {
@@ -258,7 +245,6 @@ public class Constants {
 		 */
 		static Transform2d[] kRobotToTags = { transform(1.1, 0.0, 180),
 				transform(0.60, 0.0, 180) };
-		// transform(0.30, 0.0, 180) }; TODO: Natalie and Nitya need to check
 
 		/**
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
@@ -266,7 +252,9 @@ public class Constants {
 		 */
 		static Transform2d[] kRobotToTagsLeft = { transform(1.1, 0, 180),
 				transform(0.60, -0.165, 180) };
-		// TODO: decrease y to align more to the left
+		// transform(0.45, -0.185, 180) }; TODO: Natalie and Nitya need to check
+		// decrease y to align more to the left
+		// no need to change x because of kLevelOffset
 
 		/**
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
@@ -274,8 +262,19 @@ public class Constants {
 		 */
 		static Transform2d[] kRobotToTagsRight = { transform(1.1, 0, 180),
 				transform(0.60, 0.195, 180) };
-		// TODO: decrease y to align more to the left
-		// transform(0.45, 0.255, 180) };TODO: Natalie and Nitya need to check
+		// transform(0.45, 0.255, 180) }; TODO: Natalie and Nitya need to check
+		// decrease y to align more to the left
+		// no need to change x because of kLevelOffset
+
+		/**
+		 * The offset for alignment to algaes (positive: closer to algae).
+		 */
+		static double kForwrdAdjustmentAlgaeRemoval = 0.25; // TODO: Natalie and Nitya need to check
+
+		/**
+		 * The offset for alignment to coral stations (positive: closer to station).
+		 */
+		static double kForwrdAdjustmentCoralStation = 0.1; // TODO: increase for robot to align more closely to station
 
 		/**
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
@@ -295,27 +294,27 @@ public class Constants {
 		 * A {@code Map} storing the distance to move forward to score at each scoring
 		 * level.
 		 */
-		static Map<Integer, Double> kLevel2Offset = Map.of(1, 0.13, 2, 0.13, 3, 0.2, 4, 0.05);
-		// TODO increase to get closer to the tag
+		static Map<Integer, Double> kLevelOffset = Map.of(
+				1, 0.13, // L1
+				2, 0.2, // L2
+				3, 0.2, // L3
+				4, 0.05); // L4
+		// TODO: Natalie and Nitya need to check
+		// increase the offset value to get closer to the tag
 
 		/**
-		 * A {@code Map} storing the additional distance to move forward for some
-		 * {@code AprilTag}s.
+		 * A {@code Map} storing the additional distance to move forward/backward for
+		 * some {@code AprilTag}s (positive: closer to the tag).
 		 */
 		static Map<Integer, Double> kForwardAdjustment = Map.of();
 		// Map.of(18, 0.015, 22, 0.01);
 
 		/**
 		 * A {@code Map} storing the additional distance to move to left/right for
-		 * some {@code AprilTag}s.
+		 * some {@code AprilTag}s (positive: strafe left when facing toward the tag).
 		 */
 		static Map<Integer, Double> kSideAdjustment = Map.of();
 		// Map.of(19, -0.02, 21, -0.01, 22, -0.01);
-
-		/**
-		 * The additional distance to move forward for each coral station.
-		 */
-		static double kCoralStationForwrdAdjustment = 0.1; // TODO: Check
 
 	}
 

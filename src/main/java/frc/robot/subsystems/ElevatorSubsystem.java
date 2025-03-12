@@ -165,7 +165,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 	}
 
 	public Command resetTheEncoder() {
-		return runOnce(() -> resetEncoder());
+		return runOnce(() -> resetEncoder()).withName("Reset Elevator Encoder");
 	}
 
 	/**
@@ -232,7 +232,6 @@ public class ElevatorSubsystem extends SubsystemBase {
 	 * @return Command for moving
 	 */
 	public Command manualMove(DoubleSupplier joystick) {
-		// double speed = 0;
 		return run(() -> {
 			double input = joystick.getAsDouble();
 			double speed = Math.signum(input) * Math.pow(input, 2);
@@ -300,7 +299,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 	 */
 	public Command goToBaseHeight() {
 		return goToLevel(() -> 0).withTimeout(2.0).withName("Go To Base Height");
-		// reason for timeout: avoid damanging wrist when a coral is stuck in thepocket
+		// reason for timeout: avoid damanging wrist when a coral is stuck in the pocket
 	}
 
 	public Command goToClearanceHeight(double level, double clearanceHeight) {

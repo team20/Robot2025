@@ -88,8 +88,7 @@ public class WristSubsystem extends SubsystemBase {
 	 * @param speed the speed you want to set it to
 	 */
 	public void setSpeed(double speed) {
-		if (m_elevatorSubsystem.getPosition() > kMinElevatorExtension)
-			m_wristMotor.set(speed);
+		m_wristMotor.set(speed);
 	}
 
 	/**
@@ -173,8 +172,7 @@ public class WristSubsystem extends SubsystemBase {
 		return run(() -> {
 			double input = joystick.getAsDouble();
 			double speed = Math.signum(input) * Math.pow(input, 2);
-			if (m_elevatorSubsystem.getPosition() >= kMinElevatorExtension)
-				m_wristMotor.set(speed * 0.5);
+			m_wristMotor.set(speed * 0.5);
 		}).withName("Manual Wrist");
 	}
 
@@ -186,8 +184,7 @@ public class WristSubsystem extends SubsystemBase {
 	public Command goToAngle(double angle) {
 		return run(() -> {
 			SmartDashboard.putNumber("Wrist/Target Angle", angle);
-			if (m_elevatorSubsystem.getPosition() >= kMinElevatorExtension)
-				m_wristClosedLoopController.setReference(angle, ControlType.kPosition);
+			m_wristClosedLoopController.setReference(angle, ControlType.kPosition);
 		}).until(atAngle(angle)).withName("Wrist go to angle");
 	}
 
