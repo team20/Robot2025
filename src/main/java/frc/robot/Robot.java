@@ -365,12 +365,10 @@ public class Robot extends TimedRobot {
 						.andThen(m_arduinoSubsystem.ledPattern(StatusCode.INTAKED_ALGAE))
 						.withName("Grab Algae and Hold"));
 		m_operatorController.R2().onTrue(m_algaeGrabberSubsystem.releaseAlgae());
-		// m_operatorController.R2().whileTrue(m_algaeGrabberSubsystem.reverseFlywheelAndStop());
 	}
 
 	public void bindWristControls() {
 		m_wristSubsystem.setDefaultCommand(m_wristSubsystem.manualMove(() -> m_operatorController.getRightY()));
-		// m_driverController.square().onTrue(m_wristSubsystem.goToAngle(180));
 	}
 
 	public void bindCheeseStickControls() {
@@ -384,7 +382,6 @@ public class Robot extends TimedRobot {
 	public void bindClimberControls() {
 		// m_climberSubsystem.setDefaultCommand(m_climberSubsystem.manualMove(() ->
 		// m_driverController.getRightY()));
-		// once sensors are good make driver controller rumble
 		m_driverController.triangle().onTrue(m_climberSubsystem.deploy());
 		m_driverController.cross().onTrue(m_climberSubsystem.retract());
 

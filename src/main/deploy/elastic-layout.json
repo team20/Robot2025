@@ -30,9 +30,9 @@
           },
           {
             "title": "Elevator Extension",
-            "x": 630.0,
+            "x": 600.0,
             "y": 0.0,
-            "width": 900.0,
+            "width": 540.0,
             "height": 150.0,
             "type": "Number Bar",
             "properties": {
@@ -48,9 +48,9 @@
           },
           {
             "title": "FMSInfo",
-            "x": 0.0,
-            "y": 360.0,
-            "width": 600.0,
+            "x": 1140.0,
+            "y": 0.0,
+            "width": 390.0,
             "height": 150.0,
             "type": "FMSInfo",
             "properties": {
@@ -72,16 +72,16 @@
           },
           {
             "title": "photonvision_Port_1181_Input_MJPEG_Server",
-            "x": 630.0,
+            "x": 960.0,
             "y": 150.0,
-            "width": 450.0,
+            "width": 300.0,
             "height": 420.0,
             "type": "Camera Stream",
             "properties": {
               "topic": "/CameraPublisher/photonvision_Port_1181_Input_MJPEG_Server",
               "period": 0.06,
               "rotation_turns": 0,
-              "compression": 10,
+              "compression": 12,
               "resolution": [
                 320.0,
                 240.0
@@ -90,20 +90,76 @@
           },
           {
             "title": "photonvision_Port_1183_Input_MJPEG_Server",
-            "x": 1080.0,
+            "x": 1260.0,
             "y": 150.0,
-            "width": 450.0,
+            "width": 270.0,
             "height": 420.0,
             "type": "Camera Stream",
             "properties": {
               "topic": "/CameraPublisher/photonvision_Port_1183_Input_MJPEG_Server",
               "period": 0.06,
               "rotation_turns": 0,
-              "compression": 10,
+              "compression": 11,
               "resolution": [
                 320.0,
                 240.0
               ]
+            }
+          },
+          {
+            "title": "USB Camera 0",
+            "x": 600.0,
+            "y": 150.0,
+            "width": 360.0,
+            "height": 360.0,
+            "type": "Camera Stream",
+            "properties": {
+              "topic": "/CameraPublisher/USB Camera 0",
+              "period": 0.06,
+              "rotation_turns": 0
+            }
+          },
+          {
+            "title": "Auto Selector",
+            "x": 0.0,
+            "y": 360.0,
+            "width": 360.0,
+            "height": 150.0,
+            "type": "ComboBox Chooser",
+            "properties": {
+              "topic": "/SmartDashboard/Auto Selector",
+              "period": 0.06,
+              "sort_options": false
+            }
+          },
+          {
+            "title": "Algae",
+            "x": 480.0,
+            "y": 360.0,
+            "width": 120.0,
+            "height": 150.0,
+            "type": "Boolean Box",
+            "properties": {
+              "topic": "/SmartDashboard/Algae Current Tripped",
+              "period": 0.06,
+              "data_type": "boolean",
+              "true_color": 4282822058,
+              "false_color": 4278190080,
+              "true_icon": "None",
+              "false_icon": "None"
+            }
+          },
+          {
+            "title": "Climber Color",
+            "x": 360.0,
+            "y": 360.0,
+            "width": 120.0,
+            "height": 150.0,
+            "type": "Single Color View",
+            "properties": {
+              "topic": "/SmartDashboard/Climber Color",
+              "period": 0.06,
+              "data_type": "string"
             }
           }
         ]
@@ -129,7 +185,7 @@
           {
             "title": "Testing Chooser",
             "x": 0.0,
-            "y": 300.0,
+            "y": 150.0,
             "width": 360.0,
             "height": 150.0,
             "type": "ComboBox Chooser",
@@ -149,6 +205,32 @@
             "properties": {
               "topic": "/SmartDashboard/Scheduler",
               "period": 0.06
+            }
+          },
+          {
+            "title": "Auto Selector",
+            "x": 0.0,
+            "y": 0.0,
+            "width": 360.0,
+            "height": 150.0,
+            "type": "ComboBox Chooser",
+            "properties": {
+              "topic": "/SmartDashboard/Auto Selector",
+              "period": 0.06,
+              "sort_options": false
+            }
+          },
+          {
+            "title": "Auto Chooser",
+            "x": 1050.0,
+            "y": 0.0,
+            "width": 480.0,
+            "height": 120.0,
+            "type": "ComboBox Chooser",
+            "properties": {
+              "topic": "/SmartDashboard/Auto Chooser",
+              "period": 0.06,
+              "sort_options": false
             }
           }
         ]

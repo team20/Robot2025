@@ -230,7 +230,6 @@ public class ElevatorSubsystem extends SubsystemBase {
 	 * @return Command for moving
 	 */
 	public Command manualMove(DoubleSupplier joystick) {
-		// double speed = 0;
 		return run(() -> {
 			double input = joystick.getAsDouble();
 			double speed = Math.signum(input) * Math.pow(input, 2);
@@ -307,8 +306,6 @@ public class ElevatorSubsystem extends SubsystemBase {
 	 */
 	public Command goToBaseHeight() {
 		return goToLevel(() -> 0).withName("Go To Base Height");
-		// return runOnce(() -> m_elevatorEncoder.setPosition(0)).withName("Go To Base
-		// Height");
 	}
 
 	public Command goToClearanceHeight(double level, double clearanceHeight) {

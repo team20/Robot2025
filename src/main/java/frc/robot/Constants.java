@@ -32,7 +32,7 @@ public class Constants {
 		public static final double kDeployGrabberPosition = .75;
 		public static final double kFlywheelSpeed = .8;
 
-		public static final double kP = 0.7; // TODO: Tune (0.5)
+		public static final double kP = 0.7;
 		public static final double kI = 0.0;
 		public static final double kD = 0;
 
@@ -42,7 +42,6 @@ public class Constants {
 
 	public static final class CheeseStickConstants {
 		public static final int kServoPort = 0;
-		// TODO: test release angle(0=-135 0.5=0 1=135)
 		public static final double kReleaseDistance = 0.4;
 		/**
 		 * Set this value to how far the cheese stick wheels extend beyond the lexan.
@@ -55,12 +54,10 @@ public class Constants {
 		public static final double kClimberForwardSoftLimit = .5;
 		public static final double kClimberReverseSoftLimit = 0;
 		public static final double kSpeed = 0.75;
-		// TODO: fix PID values
 		public static final double kP = 0.75;
 		public static final double kI = 0;
 		public static final double kD = 0;
 
-		// TODO: Check
 		public static final int kSmartCurrentLimit = 50;
 		public static final int kSecondaryCurrentLimit = kSmartCurrentLimit + 15;
 	}
@@ -112,7 +109,6 @@ public class Constants {
 		public static final double kMetersPerMotorRotation = kWheelCircumference / kDriveGearRatio;
 
 		// https://docs.wpilib.org/en/latest/docs/software/basic-programming/coordinate-system.html
-		// TODO: CHECK
 		public static final Translation2d kFrontLeftLocation = new Translation2d(0.381, 0.381);
 		public static final Translation2d kFrontRightLocation = new Translation2d(0.381, -0.381);
 		public static final Translation2d kBackLeftLocation = new Translation2d(-0.381, 0.381);
@@ -158,7 +154,7 @@ public class Constants {
 
 	public static final class ElevatorConstants {
 		public static final int kElevatorMotorPort = 26;
-		public static final int kSmartCurrentLimit = 60; // TODO: 45
+		public static final int kSmartCurrentLimit = 60;
 		public static final int kSecondaryCurrentLimit = 70;
 		public static final double kP = 6.0; // 1.1
 		public static final double kI = 0;
@@ -180,23 +176,17 @@ public class Constants {
 		 *               kGearRatio motor rots    1 pulley rotation
 		 * </pre>
 		 */
-		public static final double kMetersPerMotorRotation = (1 / kGearRatio)
-				* kMetersPerPulleyRotation;
+		public static final double kMetersPerMotorRotation = (1 / kGearRatio) * kMetersPerPulleyRotation;
 		public static final double kMaxVelocity = 2.75;
 		public static final double kMaxAccel = 2.5;
 		public static final double kTolerance = 0.01;
-		// TODO: During testing make sure these are right
 		public static final double kLevelOneHeight = Units.inchesToMeters(3);
 		public static final double kLevelTwoHeight = Units.inchesToMeters(8);
 		public static final double kLevelThreeHeight = Units.inchesToMeters(29);
-		// TODO: does this uhh do anything...? since the max height is supposedly lower?
-		// public static final double kLevelFourHeight = Units.inchesToMeters(50);
 		public static final double kLevelFourHeight = Units.inchesToMeters(48 + 2); // TODO: 72 from carpet
-		public static final double kMaxExtension = Units.inchesToMeters(49.5 + 0.75); // TODO: Likely needs to be upped:
-		// safety
+		public static final double kMaxExtension = Units.inchesToMeters(49.5 + 0.75);
 		// TODO: The amount that the elevator decreases in order to score
-		public static final double kClearanceHeight = Units.inchesToMeters(5.5);// Moved to 5 from 3.5 by Ryan on
-																				// 3/8/2025
+		public static final double kClearanceHeight = Units.inchesToMeters(5.5);
 		public static final double kToScoreHeightDecrease = Units.inchesToMeters(0);
 		public static final double kCoralStationHeight = Units.inchesToMeters(17 + 2); // TODO: Change
 
@@ -211,7 +201,7 @@ public class Constants {
 		public static final int kSmartCurrentLimit = 20;
 		public static final int kSecondaryCurrentLimit = 20;
 		public static final int kGrabberAngleLevelFour = 223;
-		public static final int kGrabberAngleOthers = 221; // 5 degrees steeper from previous value (215)
+		public static final int kGrabberAngleOthers = 221;
 		public static final int kGrabberAngleLevelThree = 240;
 		public static final double kAlgaeWristHeight = 170;
 
@@ -219,12 +209,11 @@ public class Constants {
 		public static final double kWristReverseSoftLimit = 90; // Wrist facing up
 		public static final double kWristOffset = 0.75;
 
-		// TODO: Make sure these are tuned (can do with SysId)
-		public static final double kP = 0.015; // 0.025
+		public static final double kP = 0.015;
 		public static final double kI = 0.0;
 		public static final double kD = 0;
 
-		public static final double kTolerance = 4; // TODO: Change this
+		public static final double kTolerance = 4;
 	}
 
 	public static final class AutoAlignConstants {

@@ -47,12 +47,9 @@ public class AlgaeGrabberSubsystem extends SubsystemBase {
 				.feedbackSensor(FeedbackSensor.kAbsoluteEncoder)
 				.pid(kP, kI, kD);
 		config.absoluteEncoder.zeroOffset(0.383);
-		// config.softLimit.forwardSoftLimit(kAlgaePivotForwardSoftLimit).forwardSoftLimitEnabled(true);
-		// config.softLimit.reverseSoftLimit(kAlgaePivotReverseSoftLimit).reverseSoftLimitEnabled(true);
 		m_grabberAngleMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 		// Causes Spark Maxes to send this data, allowing URCL to log it
 		m_grabberAngleMotor.getAbsoluteEncoder().getPosition();
-		SmartDashboard.putNumber("Algae Encoder", m_grabberAngleMotor.getEncoder().getPosition());
 	}
 
 	@Override
@@ -60,6 +57,7 @@ public class AlgaeGrabberSubsystem extends SubsystemBase {
 		if (m_keepArmUp) {
 			m_grabberClosedLoopController.setReference(0.25, ControlType.kPosition);
 		}
+		SmartDashboard.putBoolean("Algae Current Tripped", checkCurrentOnFlywheel());
 	}
 
 	/**
