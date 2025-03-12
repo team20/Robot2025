@@ -88,7 +88,9 @@ public class ElevatorSubsystem extends SubsystemBase {
 		resetEncoder();
 		if (RobotBase.isSimulation()) {
 			m_elevatorMotorSim = new SparkMaxSim(m_elevatorMotor, DCMotor.getNEO(1));
-			m_elevatorModel = new ElevatorSim(DCMotor.getNEO(1), kGearRatio, Units.lbsToKilograms(20),
+			m_elevatorModel = new ElevatorSim(DCMotor.getNEO(1), kGearRatio,
+					// Units.lbsToKilograms(20),
+					Units.lbsToKilograms(6),
 					kMetersPerPulleyRotation / (2 * Math.PI), 0,
 					Units.inchesToMeters(90), true, 0);
 		} else {
@@ -158,7 +160,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 
 	@Override
 	public void periodic() {
-		m_elevatorLigament.setLength(Units.inchesToMeters(24) + getPosition());
+		m_elevatorLigament.setLength(Units.inchesToMeters(36) + getPosition());
 		SmartDashboard.putNumber("Elevator/Extension", getPosition());
 	}
 
@@ -220,7 +222,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 			SmartDashboard.putNumber("Elevator/Next Target Velocity", nextState.velocity);
 			SmartDashboard.putNumber("Elevator/Profile Time", m_profile.totalTime());
 			SmartDashboard.putNumber("Elevator/Current Time", m_timer.get());
-		}).until(() -> m_profile.isFinished(m_timer.get()));
+		}).until(() -> Math.abs(finalState.position - getPosition()) <= kTolerance);
 	}
 
 	/**
@@ -297,7 +299,8 @@ public class ElevatorSubsystem extends SubsystemBase {
 	 * @return
 	 */
 	public Command goToBaseHeight() {
-		return runOnce(() -> m_elevatorEncoder.setPosition(0)).withName("Go To Base Height");
+		return goToLevel(() -> 0).withTimeout(2.0).withName("Go To Base Height");
+		// reason for timeout: avoid damanging wrist when a coral is stuck in thepocket
 	}
 
 	public Command goToClearanceHeight(double level, double clearanceHeight) {
@@ -356,4 +359,26 @@ public class ElevatorSubsystem extends SubsystemBase {
 				goToLevelFourHeight(), goToLevel(() -> 0));
 	}
 
+	// double m_arbFF = m_ff.calculate(0);
+
+	// Double m_position = null;
+
+	// public Command goToLevel(DoubleSupplier level) {
+	// return startRun(() -> {
+	// m_setPosition = level.getAsDouble();
+	// m_position = null;
+	// SmartDashboard.putNumber("Elevator/Goal", m_setPosition);
+	// }, () -> {
+	// var p = getPosition();
+	// if (m_position != null)
+	// if (m_setPosition > p && p <= m_position + 1e-3)
+	// m_arbFF += 0.2 * TimedRobot.kDefaultPeriod; // can add .2V per second
+	// else
+	// m_arbFF *= Math.pow(0.95, TimedRobot.kDefaultPeriod); // can reduce 5% per
+	// second
+	// SmartDashboard.putNumber("Elevator/FFVoltage", m_arbFF);
+	// setPosition(m_setPosition, m_arbFF);
+	// m_position = p;
+	// }).until(() -> atSetpoint());
+	// }
 }

@@ -19,6 +19,8 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -59,93 +61,144 @@ public class CommandComposer {
 		m_poseEstimationSubsystem = poseEstimationSubsystem;
 	}
 
-	public static Command testTriangle() {
+	public static Command get3ScoreNorth(int level, double distance, double waitTime,
+			double intermediateDistanceTolerance) {
+		return select(
+				get3ScoreNorthRed(level, distance, waitTime, intermediateDistanceTolerance),
+				get3ScoreNorthBlue(level, distance, waitTime, intermediateDistanceTolerance));
+	}
+
+	public static Command get3ScoreSouth(int level, double distance, double waitTime,
+			double intermediateDistanceTolerance) {
+		return select(
+				get3ScoreSouthRed(level, distance, waitTime, intermediateDistanceTolerance),
+				get3ScoreSouthBlue(level, distance, waitTime, intermediateDistanceTolerance));
+	}
+
+	private static Command get3ScoreNorthBlue(int level, double distance, double waitTime,
+			double intermediateDistanceTolerance) {
+		return get3Score(
+				toTag(20, level, intermediateDistanceTolerance, kRobotToTagsRight),
+				toTag(19, level, intermediateDistanceTolerance, kRobotToTagsRight),
+				toTag(19, level, intermediateDistanceTolerance, kRobotToTagsLeft), level, distance,
+				13, waitTime, intermediateDistanceTolerance, kRobotToTagsRightReady);
+	}
+
+	private static Command get3ScoreNorthRed(int level, double distance, double waitTime,
+			double intermediateDistanceTolerance) {
+		return get3Score(
+				toTag(9, level, intermediateDistanceTolerance, kRobotToTagsLeft),
+				toTag(8, level, intermediateDistanceTolerance, kRobotToTagsLeft),
+				toTag(8, level, intermediateDistanceTolerance, kRobotToTagsRight), level, distance,
+				2, waitTime, intermediateDistanceTolerance, kRobotToTagsLeftReady);
+	}
+
+	private static Command get3ScoreSouthBlue(int level, double distance, double waitTime,
+			double intermediateDistanceTolerance) {
+		return get3Score(
+				toTag(22, level, intermediateDistanceTolerance, kRobotToTagsLeft),
+				toTag(17, level, intermediateDistanceTolerance, kRobotToTagsLeft),
+				toTag(17, level, 0.0, intermediateDistanceTolerance, kRobotToTagsRight), level, distance,
+				12, waitTime, intermediateDistanceTolerance, kRobotToTagsLeftReady);
+	}
+
+	private static Command get3ScoreSouthRed(int level, double distance, double waitTime,
+			double intermediateDistanceTolerance) {
+		return get3Score(
+				toTag(11, level, intermediateDistanceTolerance, kRobotToTagsRight),
+				toTag(6, level, intermediateDistanceTolerance, kRobotToTagsRight),
+				toTag(6, level, intermediateDistanceTolerance, kRobotToTagsLeft), level, distance,
+				1, waitTime, intermediateDistanceTolerance, kRobotToTagsRightReady);
+	}
+
+	private static Command get3Score(Command align1, Command align2, Command align3, int level, double distance,
+			int stationTagID, double waitTime,
+			double intermediateDistanceTolerance, Transform2d... robotToTags) {
 		return sequence(
-				m_elevatorSubsystem.goToLevel(() -> 0.3), m_wristSubsystem.goToAngle(270 - 45),
-				m_elevatorSubsystem.goToLevelFourHeight(), m_wristSubsystem.goToAngle(270),
-				m_elevatorSubsystem.goToBaseHeight());
+				score(align1, goToBase(), level), moveStraight(-distance, intermediateDistanceTolerance, 20),
+				toStation(stationTagID, kCoralStationForwrdAdjustment, intermediateDistanceTolerance, robotToTags),
+				parallel(m_wristSubsystem.goToAngle(270), new WaitCommand(waitTime)),
+				score(align2, goToBase(), level), moveStraight(-distance, intermediateDistanceTolerance, 20),
+				toStation(stationTagID, kCoralStationForwrdAdjustment, intermediateDistanceTolerance, robotToTags),
+				parallel(m_wristSubsystem.goToAngle(270), new WaitCommand(waitTime)),
+				score(align3, goToBase(), level));
 	}
 
-	public static Command get3ScoreNorth() {
-		return new SelectCommand<Alliance>(Map
-				.of(Alliance.Red, get3ScoreNorthRed(), Alliance.Blue, get3ScoreNorthBlue()),
-				() -> DriverStation.getAlliance().get());
-	}
-
-	public static Command get3ScoreSouth() {
-		return new SelectCommand<Alliance>(Map
-				.of(Alliance.Red, get3ScoreSouthRed(), Alliance.Blue, get3ScoreSouthBlue()),
-				() -> DriverStation.getAlliance().get());
-	}
-
-	private static Command get3ScoreNorthBlue() {
-		return get3Score(toTag(20, kRobotToTagsRight), 13, toTag(19, kRobotToTagsRight), toTag(19, kRobotToTagsLeft));
-	}
-
-	private static Command get3ScoreNorthRed() {
-		return get3Score(toTag(9, kRobotToTagsLeft), 2, toTag(8, kRobotToTagsLeft), toTag(8, kRobotToTagsRight));
-	}
-
-	private static Command get3ScoreSouthBlue() {
-		return get3Score(toTag(22, kRobotToTagsLeft), 12, toTag(17, kRobotToTagsLeft), toTag(17, kRobotToTagsRight));
-	}
-
-	private static Command get3ScoreSouthRed() {
-		return get3Score(toTag(11, kRobotToTagsRight), 1, toTag(6, kRobotToTagsRight), toTag(6, kRobotToTagsLeft));
-	}
-
-	private static Command get3Score(Command align1, int pickupTagID, Command align2, Command align3) {
-		return sequence(
-				score(align1, 4),
-				toStation(pickupTagID),
-				score(align2, 4, goToBase()),
-				toStation(pickupTagID),
-				score(align3, 4, goToBase()));
+	public static Command toTag(int tagID, int level, double intermediateDistanceTolerance,
+			Transform2d... robotToTags) {
+		return toTag(
+				tagID, kLevel2Offset.get(level) + kForwardAdjustment.getOrDefault(tagID, 0.0),
+				kSideAdjustment.getOrDefault(tagID, 0.0), intermediateDistanceTolerance, robotToTags);
 	}
 
 	public static Command score(Command align, int level) {
-		return score(align, level, runOnce(() -> {
-		}));
+		return score(align, runOnce(() -> {
+		}), level);
 	}
 
-	public static Command score(Command align, int level, Command pickup) {
+	public static Command score(Command align, Command pickup, int level) {
 		switch (level) {
 			case 4:
-				return scoreWithAlignment(kLevelFourHeight, kGrabberAngleLevelFour, align, pickup);
+				return score(
+						align, pickup, kLevelFourHeight, kGrabberAngleLevelFour,
+						m_wristSubsystem.goToAngle(210));
 			case 3:
-				return scoreWithAlignment(kLevelThreeHeight, kGrabberAngleOthers, align, pickup);
+				return score(align, pickup, kLevelThreeHeight, kGrabberAngleLevelThree);
 			case 2:
-				return scoreWithAlignment(kLevelTwoHeight, kGrabberAngleOthers, align, pickup);
+				return score(align, pickup, kLevelTwoHeight, kGrabberAngleOthers);
 			case 1:
-				return scoreWithAlignment(kLevelOneHeight, kGrabberAngleOthers, align, pickup);
+				return score(align, pickup, kLevelOneHeight, kGrabberAngleOthers);
 		}
 		return runOnce(() -> {
 		});
 	}
 
-	private static Command scoreWithAlignment(double level, double angle, Command align, Command pickup) {
-		return sequence(
-				parallel(
-						sequence(
-								pickup,
-								parallel(
-										m_elevatorSubsystem.goToLevel(() -> level),
-										sequence(new WaitCommand(.5), m_wristSubsystem.goToAngle(angle)))),
-						align),
-				m_elevatorSubsystem.lowerToScore(),
-				m_cheeseStickSubsystem.release(),
-				new WaitCommand(0.1));
+	private static Command score(Command align, Command pickup, double level, double wristAngle) {
+		return score(align, pickup, level, wristAngle, runOnce(() -> {
+		}));
 	}
 
-	private static Command toStation(int tagID) {
+	private static Command score(Command align, Command pickup, double level, double wristAngle,
+			Command followup) {
 		return sequence(
-				parallel(
-						m_wristSubsystem.goToAngle(270),
-						toTag(tagID, kRobotToTags),
-						m_elevatorSubsystem.goToCoralStationHeight()));
+				prepareToScore(align, pickup, level, wristAngle),
+				score(.7, followup));// TODO: Optimize
 	}
 
-	private static Command scoreLevelInTeleop(double level, double clearanceHeight, Supplier<Command> levelCommand,
+	static Command prepareToScore(Command align, double level, double wristAngle) {
+		return prepareToScore(align, runOnce(() -> {
+		}), level, wristAngle);
+	}
+
+	static Command prepareToScore(Command align, Command pickup, double level, double wristAngle) {
+		return parallel(
+				align,
+				sequence(
+						pickup,
+						m_elevatorSubsystem.goToLevel(() -> level),
+						m_wristSubsystem.goToAngle(wristAngle)));
+	}
+
+	public static Command score(double releaseDuration, Command followup) {
+		return sequence(m_cheeseStickSubsystem.release(releaseDuration), followup);
+	}
+
+	private static Command toStation(int tagID, double forward, double intermediateDistanceTolerance,
+			Transform2d... robotToTags) {
+		return parallel(
+				toTag(tagID, forward, 0, intermediateDistanceTolerance, robotToTags),
+				m_elevatorSubsystem.goToCoralStationHeight());
+	}
+
+	static Command getMiddleScoreAndAlgaeBlue() {
+		return getMiddleScoreAndAlgae(toTag(21, 0.1, kRobotToTagsRight), toTag(21, 0.1, kRobotToTags));
+	}
+
+	static Command getMiddleScoreAndAlgaeRed() {
+		return getMiddleScoreAndAlgae(toTag(10, 0.1, kRobotToTagsRight), toTag(10, 0.1, kRobotToTags));
+	}
+
+	static Command scoreLevelInTeleop(double level, double clearanceHeight, Supplier<Command> levelCommand,
 			double wristAngle) {
 		return sequence(
 				m_elevatorSubsystem.goToClearanceHeight(level, clearanceHeight),
@@ -154,11 +207,11 @@ public class CommandComposer {
 	}
 
 	public static Command scoreLevelOneInTeleop() {
-		return scoreLevelInTeleop(kLevelOneHeight, 0.55, m_elevatorSubsystem::goToLevelOneHeight, kGrabberAngleOthers);
+		return scoreLevelInTeleop(kLevelOneHeight, 0.4, m_elevatorSubsystem::goToLevelOneHeight, kGrabberAngleOthers);
 	}
 
 	public static Command scoreLevelTwoInTeleop() {
-		return scoreLevelInTeleop(kLevelTwoHeight, 0.05, m_elevatorSubsystem::goToLevelTwoHeight, kGrabberAngleOthers);
+		return scoreLevelInTeleop(kLevelTwoHeight, 0.4, m_elevatorSubsystem::goToLevelTwoHeight, kGrabberAngleOthers);
 	}
 
 	public static Command removeAlgaeLevelThree() {
@@ -184,43 +237,26 @@ public class CommandComposer {
 						m_cheeseStickSubsystem.grab()));
 	}
 
-	private static Command scoreLevelInAuto(Supplier<Command> levelCommand) {
+	private static Command getMiddleScoreAndAlgae(Command align1, Command align2) {
 		return sequence(
-				levelCommand.get(),
-				m_wristSubsystem.goToAngle(35),
-				m_elevatorSubsystem.lowerToScore(),
-				m_cheeseStickSubsystem.release(),
-				waitSeconds(0), // TODO: find the amount of time needed to retract
-				levelCommand.get(),
+				score(align1, 4),
+				align2,
 				m_cheeseStickSubsystem.grab(),
-				m_wristSubsystem.goToAngle(-90));
-	}
-
-	public static Command scoreLevelFourInAuto() {
-		return scoreLevelInAuto(m_elevatorSubsystem::goToLevelFourHeight);
-	}
-
-	public static Command scoreLevelThreeInAuto() {
-		return scoreLevelInAuto(m_elevatorSubsystem::goToLevelThreeHeight);
-	}
-
-	public static Command scoreLevelTwoInAuto() {
-		return scoreLevelInAuto(m_elevatorSubsystem::goToLevelTwoHeight);
-	}
-
-	public static Command scoreLevelOneInAuto() {
-		return scoreLevelInAuto(m_elevatorSubsystem::goToLevelOneHeight);
+				removeAlgaeLevelTwo(),
+				parallel(
+						m_wristSubsystem.goToAngle(240),
+						moveStraight(-0.7, 0.01, 1)));
 	}
 
 	public static Command prepareForCoralPickup() {
-		return sequence(
+		return parallel(
 				m_elevatorSubsystem.goToCoralStationHeight(),
 				m_wristSubsystem.goToAngle(270));
 	}
 
 	public static Command goToBase() {
 		return sequence(
-				m_wristSubsystem.goToAngle(270),
+				parallel(m_cheeseStickSubsystem.grab(), m_wristSubsystem.goToAngle(270)),
 				m_elevatorSubsystem.goToBaseHeight());
 	}
 
@@ -229,6 +265,83 @@ public class CommandComposer {
 				m_cheeseStickSubsystem.release(),
 				m_elevatorSubsystem.goToCoralStationHeight(),
 				m_cheeseStickSubsystem.grab());
+	}
+
+	public static Command get3ScoreNorthMovementTest(int level, double distance, double waitTime,
+			double intermediateDistanceTolerance) {
+		return select(
+				get3ScoreNorthRedMovementTest(level, distance, waitTime, intermediateDistanceTolerance),
+				get3ScoreNorthBlueMovementTest(level, distance, waitTime, intermediateDistanceTolerance));
+	}
+
+	private static Command get3ScoreNorthBlueMovementTest(int level, double distance, double waitTime,
+			double intermediateDistanceTolerance) {
+		return sequence(
+				toTag(20, level, intermediateDistanceTolerance, kRobotToTagsRight),
+				moveStraight(-distance, intermediateDistanceTolerance, 20),
+				toTag(13, kCoralStationForwrdAdjustment, 0.0, intermediateDistanceTolerance, kRobotToTagsRightReady),
+				new WaitCommand(waitTime),
+				toTag(19, level, intermediateDistanceTolerance, kRobotToTagsRight),
+				moveStraight(-distance, intermediateDistanceTolerance, 20),
+				toTag(13, kCoralStationForwrdAdjustment, 0.0, intermediateDistanceTolerance, kRobotToTagsRightReady),
+				new WaitCommand(waitTime),
+				toTag(19, level, intermediateDistanceTolerance, kRobotToTagsLeft));
+	}
+
+	private static Command get3ScoreNorthRedMovementTest(int level, double distance, double waitTime,
+			double intermediateDistanceTolerance) {
+		return sequence(
+				toTag(9, level, intermediateDistanceTolerance, kRobotToTagsLeft),
+				moveStraight(-distance, intermediateDistanceTolerance, 20),
+				toTag(2, kCoralStationForwrdAdjustment, 0.0, intermediateDistanceTolerance, kRobotToTagsLeftReady),
+				new WaitCommand(waitTime),
+				toTag(8, level, intermediateDistanceTolerance, kRobotToTagsLeft),
+				moveStraight(-distance, intermediateDistanceTolerance, 20),
+				toTag(2, kCoralStationForwrdAdjustment, 0.0, intermediateDistanceTolerance, kRobotToTagsLeftReady),
+				new WaitCommand(waitTime),
+				toTag(8, level, intermediateDistanceTolerance, kRobotToTagsRight));
+	}
+
+	public static Command testLeftAlignment(int level, double intermediateDistanceTolerance, double distance,
+			double duration, int... tagIDs) {
+		return sequence(
+				Arrays.stream(tagIDs)
+						.mapToObj(
+								t -> (Command) score(
+										toTag(
+												t,
+												kLevel2Offset.get(level)
+														+ kForwardAdjustment.getOrDefault(t, 0.0),
+												kSideAdjustment.getOrDefault(t, 0.0), 0.1,
+												kRobotToTagsLeft),
+										goToBase(), level))
+						.map(
+								c -> sequence(
+										c, moveStraight(-distance, intermediateDistanceTolerance, 1),
+										new WaitCommand(duration)))
+						.toList()
+						.toArray(new Command[0]));
+	}
+
+	public static Command testRightAlignment(int level, double intermediateDistanceTolerance, double distance,
+			double duration, int... tagIDs) {
+		return sequence(
+				Arrays.stream(tagIDs)
+						.mapToObj(
+								t -> (Command) score(
+										toTag(
+												t,
+												kLevel2Offset.get(level)
+														+ kForwardAdjustment.getOrDefault(t, 0.0),
+												kSideAdjustment.getOrDefault(t, 0.0), 0.1,
+												kRobotToTagsRight),
+										goToBase(), level))
+						.map(
+								c -> sequence(
+										c, moveStraight(-distance, intermediateDistanceTolerance, 1),
+										new WaitCommand(duration)))
+						.toList()
+						.toArray(new Command[0]));
 	}
 
 	public static Command testAbsoluteOrientation(double duration) {
@@ -350,6 +463,16 @@ public class CommandComposer {
 		return sequence(commands.toArray(new Command[0]));
 	}
 
+	public static Command toClosestTag(double forward, double left, Transform2d... robotToTags) {
+		return toClosestTag(adjust(forward, left, robotToTags));
+	}
+
+	private static Transform2d[] adjust(double forward, double left, Transform2d... robotToTags) {
+		return Arrays.stream(robotToTags)
+				.map(t -> new Transform2d(t.getX() - forward, t.getY() - left, t.getRotation())).toList()
+				.toArray(new Transform2d[0]);
+	}
+
 	/**
 	 * Creates a {@code Command} to automatically align the robot to the closest
 	 * {@code AprilTag}.
@@ -362,8 +485,25 @@ public class CommandComposer {
 	 */
 	public static Command toClosestTag(Transform2d... robotToTags) {
 		return new PathDriveCommand(m_driveSubsystem, 0.01, 1,
-				0.08, 8,
+				0.05, 5, // TODO: Optimize
 				posesToClosestTag(3, robotToTags));
+	}
+
+	// /**
+	// * Creates a {@code Command} to automatically align the robot to the target
+	// * {@code AprilTag}.
+	// *
+	// * @param tagID the ID of the target {@code AprilTag}
+	// * @param level the scoring level
+	// * @param robotToTags the {@code Tranform2d} representing the pose of the
+	// * target {@code AprilTag} relative to the robot when the robot is
+	// * aligned
+	// * @return a {@code Command} to automatically align the robot to the target
+	// * {@code AprilTag}
+	// */
+	public static Command toTag(int tagID, double forward, double left, double intermediateDistanceTolerance,
+			Transform2d... robotToTags) {
+		return toTag(tagID, intermediateDistanceTolerance, adjust(forward, left, robotToTags));
 	}
 
 	/**
@@ -377,9 +517,9 @@ public class CommandComposer {
 	 * @return a {@code Command} to automatically align the robot to the target
 	 *         {@code AprilTag}
 	 */
-	public static Command toTag(int tagID, Transform2d... robotToTags) {
-		return new PathDriveCommand(m_driveSubsystem, 0.01, 1,
-				0.16, 16,
+	public static Command toTag(int tagID, double intermediateDistanceTolerance, Transform2d... robotToTags) {
+		return new PathDriveCommand(m_driveSubsystem, 0.03, 3,
+				intermediateDistanceTolerance, 20,
 				posesToTag(tagID, robotToTags));
 	}
 
@@ -513,6 +653,33 @@ public class CommandComposer {
 			}
 
 		};
+	}
+
+	private static Command select(Command commandRedAlliance, Command commandBlueAlliance) {
+		return new SelectCommand<Object>(Map
+				.of(Alliance.Red, commandRedAlliance, Alliance.Blue, commandBlueAlliance),
+				() -> {
+					Alliance alliance = DriverStation.getAlliance().get();
+					var middle = kFieldLayout.getFieldLength() / 2;
+					try {
+						var confidence = m_poseEstimationSubsystem.confidence();
+						if (confidence < 0.3)
+							return alert("Pose Confidence (" + confidence + ") Too Low!");
+						var x = m_poseEstimationSubsystem.getEstimatedPose().getX();
+						if ((alliance == DriverStation.Alliance.Blue && x > middle)
+								|| (alliance == DriverStation.Alliance.Red && x < middle)) {
+							return alert("Strange Robot Position (" + alliance + " Alliance)!");
+						}
+					} catch (Exception e) {
+					}
+					return alliance;
+				});
+	}
+
+	private static Alert alert(String text) {
+		var a = new Alert(text, AlertType.kError);
+		a.set(true);
+		return a;
 	}
 
 }
