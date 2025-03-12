@@ -14,6 +14,9 @@ import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
+import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
@@ -21,6 +24,8 @@ public class ClimberSubsystem extends SubsystemBase {
 	private final SparkMax m_motor = new SparkMax(kClimberMotorPort, MotorType.kBrushless);
 	private final SparkClosedLoopController m_climberClosedLoopController = m_motor
 			.getClosedLoopController();
+	private final DigitalInput m_leftSensor = new DigitalInput(1);
+	private final DigitalInput m_rightSensor = new DigitalInput(2);
 
 	public ClimberSubsystem() {
 		var config = new SparkMaxConfig();
@@ -28,10 +33,19 @@ public class ClimberSubsystem extends SubsystemBase {
 		config.closedLoop
 				.feedbackSensor(FeedbackSensor.kPrimaryEncoder)
 				.pid(kP, kI, kD);
-		// config.softLimit.forwardSoftLimit(kClimberForwardSoftLimit).forwardSoftLimitEnabled(true);
-		// config.softLimit.reverseSoftLimit(kClimberForwardSoftLimit).reverseSoftLimitEnabled(true);
 		m_motor.getEncoder().setPosition(0);
 		m_motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+	}
+
+	@Override
+	public void periodic() {
+		if (m_leftSensor.get() && m_rightSensor.get()) {
+			SmartDashboard.putString("Climber Color", Color.kLawnGreen.toHexString());
+		} else if (m_leftSensor.get() ^ m_rightSensor.get()) { // Left or right, but not both
+			SmartDashboard.putString("Climber Color", Color.kYellow.toHexString());
+		} else {
+			SmartDashboard.putString("Climber Color", Color.kBlack.toHexString());
+		}
 	}
 
 	/**
