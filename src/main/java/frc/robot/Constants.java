@@ -241,7 +241,7 @@ public class Constants {
 		 * {@code AprilTag} to align the robot to that {@code AprilTag}.
 		 */
 		static Transform2d[] kRobotToTags = { transform(1.1, 0.0, 180),
-				transform(0.20, 0.0, 180) };
+				transform(0.35, 0.0, 180) };
 
 		/**
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
@@ -250,14 +250,12 @@ public class Constants {
 		static Transform2d[] kRobotToTagsLeft = { transform(1.1, 0, 180),
 				transform(0.45, -0.185, 180) };
 		// TODO: decrease y to align more to the left
-
 		/**
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
 		 * {@code AprilTag} to align the robot to the right of that {@code AprilTag}.
 		 */
 		static Transform2d[] kRobotToTagsRight = { transform(1.1, 0, 180),
-				transform(0.45, 0.255, 180) };
-
+				transform(0.45, 0.250, 180) };
 		/**
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
 		 * {@code AprilTag} to align the robot to the left of that {@code AprilTag}.
