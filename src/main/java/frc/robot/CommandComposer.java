@@ -17,6 +17,7 @@ import java.util.function.Supplier;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -62,7 +63,7 @@ public class CommandComposer {
 	private static Command scoreLevelInTeleop(double level, double clearanceHeight, Supplier<Command> levelCommand,
 			double wristAngle) {
 		return sequence(
-				m_elevatorSubsystem.goToClearanceHeight(level, clearanceHeight),
+				m_elevatorSubsystem.goToClearanceHeight(level, Units.inchesToMeters(clearanceHeight)),
 				m_wristSubsystem.goToAngle(wristAngle),
 				levelCommand.get());
 	}
@@ -73,7 +74,7 @@ public class CommandComposer {
 	}
 
 	public static Command scoreLevelTwoInTeleop() {
-		return scoreLevelInTeleop(kLevelTwoHeight, 0.4, m_elevatorSubsystem::goToLevelTwoHeight, kGrabberAngleOthers)
+		return scoreLevelInTeleop(kLevelTwoHeight, 0.7, m_elevatorSubsystem::goToLevelTwoHeight, kGrabberAngleOthers)
 				.withName("Score Level Two in Teleop");
 	}
 
@@ -125,7 +126,7 @@ public class CommandComposer {
 	private static Command score(Command align, Command pickup, double level, double wristAngle,
 			Command followup) {
 		return sequence(
-				prepareToScore(align, pickup, level, wristAngle),
+				prepareToScore(align, pickup, level, wristAngle).withTimeout(3.5),
 				score(.7, followup));// TODO: Optimize
 	}
 
@@ -172,8 +173,8 @@ public class CommandComposer {
 				m_cheeseStickSubsystem.grab(),
 				removeAlgaeLevelTwo(),
 				parallel(
-						m_wristSubsystem.goToAngle(240),
-						moveStraight(-0.7, 0.01, 1)));
+						m_wristSubsystem.goToAngle(255),
+						moveStraight(-0.5, 0.01, 1)));
 	}
 
 	static Command getMiddleScoreAndAlgaeRed() {
@@ -189,6 +190,12 @@ public class CommandComposer {
 				toTag(21, kForwrdAdjustmentAlgaeRemoval, 0.0, 0.1, kRobotToTags)) // algae removal (<10cm err at i. pnt)
 						.withName("Middle Score and Algae Blue");
 	}
+
+	// static Command getMiddleScoreAndAlgaeRed() {
+	// return getMiddleScoreAndAlgae(toTag(10, kRobotToTagsRight), toTag(10,
+	// kRobotToTags))
+	// .withName("Middle Score and Algae Red");
+	// }
 
 	public static Command leave() {
 		return m_driveSubsystem.driveCommand(() -> 0.25, () -> 0, () -> 0, () -> true).withTimeout(10)

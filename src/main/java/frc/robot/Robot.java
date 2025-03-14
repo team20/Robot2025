@@ -25,13 +25,10 @@ import org.photonvision.simulation.SimCameraProperties;
 
 import com.ctre.phoenix6.SignalLogger;
 
-import edu.wpi.first.cameraserver.CameraServer;
-import edu.wpi.first.cscore.UsbCamera;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.net.WebServer;
-import edu.wpi.first.util.PixelFormat;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DataLogManager;
@@ -85,7 +82,6 @@ public class Robot extends TimedRobot {
 			: new VisionSimulator(m_driveSubsystem,
 					pose(kFieldLayout.getFieldLength() / 2, kFieldLayout.getFieldWidth() / 2, 0),
 					0.05); // movement overestimation by 5%
-	private final PoseEstimationSubsystem m_poseEstimationSubsystem = new PoseEstimationSubsystem(m_driveSubsystem);
 	SimCameraProperties m_cameraProp = new SimCameraProperties() {
 		{
 			setCalibration(640, 480, Rotation2d.fromDegrees(100));
@@ -101,6 +97,15 @@ public class Robot extends TimedRobot {
 
 		}
 	};
+	private final PhotonCamera m_camera1 = RobotBase.isSimulation()
+			? cameraSim("Camera1", kRobotToCamera1, m_visionSimulator, m_cameraProp)
+			: new PhotonCamera("BackCamera");
+	private final PhotonCamera m_camera2 = RobotBase.isSimulation()
+			? cameraSim("Camera2", kRobotToCamera2, m_visionSimulator, m_cameraProp)
+			: new PhotonCamera("FrontCamera");
+	private final PoseEstimationSubsystem m_poseEstimationSubsystem = new PoseEstimationSubsystem(m_driveSubsystem)
+			.addCamera(m_camera1, kRobotToCamera1)
+			.addCamera(m_camera2, kRobotToCamera2);
 
 	public Robot() {
 		// TODO: Please configure cameras correctly and then enable BackCamera.
@@ -144,10 +149,6 @@ public class Robot extends TimedRobot {
 		SmartDashboard.putData("Auto Selector", m_autoSelector);
 		m_driverController.options().and(m_driverController.create()).and(() -> !DriverStation.isFMSAttached())
 				.onTrue(Commands.deferredProxy(m_testingChooser::getSelected));
-		if (RobotBase.isReal()) {
-			UsbCamera camera = CameraServer.startAutomaticCapture();
-			camera.setVideoMode(PixelFormat.kMJPEG, 160, 120, 30);
-		}
 	}
 
 	public void addAutoCommands() {
