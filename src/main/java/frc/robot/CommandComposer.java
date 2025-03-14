@@ -186,16 +186,16 @@ public class CommandComposer {
 	private static Command getMiddleScoreAndAlgae(Command align1, Command align2) {
 		return sequence(
 				scoreOptimized(align1, 4),
-				align2.withTimeout(4.5),
+				align2.withTimeout(4),
 				m_cheeseStickSubsystem.grab(),
 				removeAlgaeLevelTwo(),
 				parallel(
-						m_wristSubsystem.goToAngle(255),
+						m_wristSubsystem.goToAngle(268),
 						moveStraight(-0.5, 0.01, 1)));
 	}
 
 	static Command getMiddleScoreAndAlgaeBlue() {
-		return getMiddleScoreAndAlgae(toTag(21, kRobotToTagsRight), toTag(21, kRobotToTags))
+		return getMiddleScoreAndAlgae(toTag(6, kRobotToTagsRight), toTag(6, kRobotToTags))
 				.withName("Middle Score and Algae Blue");
 	}
 
