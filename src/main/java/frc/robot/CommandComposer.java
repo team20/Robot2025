@@ -195,7 +195,7 @@ public class CommandComposer {
 	}
 
 	static Command getMiddleScoreAndAlgaeBlue() {
-		return getMiddleScoreAndAlgae(toTag(6, kRobotToTagsRight), toTag(6, kRobotToTags))
+		return getMiddleScoreAndAlgae(toTag(21, kRobotToTagsRight), toTag(21, kRobotToTags))
 				.withName("Middle Score and Algae Blue");
 	}
 
