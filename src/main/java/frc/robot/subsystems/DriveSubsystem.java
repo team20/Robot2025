@@ -61,6 +61,7 @@ public class DriveSubsystem extends SubsystemBase {
 	private final StructPublisher<Rotation2d> m_targetHeadingPublisher;
 
 	private final PIDController m_orientationController = new PIDController(kRotationP, kRotationI, kRotationD);
+	private AtomicBoolean shouldBeCoast = new AtomicBoolean(true);
 
 	/** Creates a new DriveSubsystem. */
 	public DriveSubsystem() {
@@ -219,6 +220,9 @@ public class DriveSubsystem extends SubsystemBase {
 	}
 
 	public void setDriveMotorNeutralMode(NeutralModeValue mode) {
+		// If we just set the motors to brake, when toggling, it should then switch to
+		// coast
+		shouldBeCoast.set(mode == NeutralModeValue.Brake);
 		m_frontLeft.setNeutralMode(mode);
 		m_frontRight.setNeutralMode(mode);
 		m_backLeft.setNeutralMode(mode);
@@ -242,7 +246,6 @@ public class DriveSubsystem extends SubsystemBase {
 	}
 
 	public Command toggleCoastMode() {
-		AtomicBoolean shouldBeCoast = new AtomicBoolean(true);
 		return runOnce(() -> {
 			NeutralModeValue mode;
 			if (shouldBeCoast.get()) {
