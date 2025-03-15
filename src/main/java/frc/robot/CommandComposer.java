@@ -212,7 +212,7 @@ public class CommandComposer {
 	}
 
 	public static Command leave() {
-		return m_driveSubsystem.driveCommand(() -> 0.25, () -> 0, () -> 0, () -> true).withTimeout(10)
+		return m_driveSubsystem.driveCommand(() -> -0.25, () -> 0, () -> 0, () -> true).withTimeout(10)
 				.withName("Leave Auto");
 	}
 
