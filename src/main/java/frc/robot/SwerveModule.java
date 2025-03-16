@@ -69,6 +69,11 @@ public class SwerveModule {
 		}
 	}
 
+	/**
+	 * Sets the neutral mode of the swerve modules
+	 * 
+	 * @param neutralMode what mode to set it to
+	 */
 	public void setNeutralMode(NeutralModeValue neutralMode) {
 		var config = new TalonFXConfiguration();
 		config.MotorOutput.NeutralMode = neutralMode;

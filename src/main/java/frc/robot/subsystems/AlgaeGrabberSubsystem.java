@@ -115,7 +115,7 @@ public class AlgaeGrabberSubsystem extends SubsystemBase {
 		}).until(this::checkCurrentOnFlywheel).finallyDo(() -> {
 			m_flywheel.set(0.05);
 			m_grabberAngleMotor.set(0);
-		});
+		}).withName("Grab Algae and Hold");
 	}
 
 	/**
@@ -125,7 +125,8 @@ public class AlgaeGrabberSubsystem extends SubsystemBase {
 	 * @return The command.
 	 */
 	public Command reverseFlywheelAndStop() {
-		return run(() -> m_flywheel.set(-kFlywheelSpeed)).finallyDo(() -> m_flywheel.set(0));
+		return run(() -> m_flywheel.set(-kFlywheelSpeed)).finallyDo(() -> m_flywheel.set(0))
+				.withName("Reverse Flywheel and Stop");
 	}
 
 	/**

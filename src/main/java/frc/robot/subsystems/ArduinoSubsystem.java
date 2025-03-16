@@ -47,10 +47,23 @@ public class ArduinoSubsystem extends SubsystemBase {
 		}
 	}
 
+	/**
+	 * Changes the led to the code
+	 * 
+	 * @param code the status code of the LEDs
+	 * @return runs the command once
+	 */
 	public Command ledPattern(StatusCode code) {
 		return runOnce(() -> setCode(code));
 	}
 
+	/**
+	 * Changes the leds to the code for a certain time
+	 * 
+	 * @param code the status coed of the LEDs
+	 * @param seconds the time for the command to run
+	 * @return runs the command until timeout
+	 */
 	public Command ledPatternTime(StatusCode code, double seconds) {
 		return run(() -> setCode(code)).withTimeout(seconds);
 	}

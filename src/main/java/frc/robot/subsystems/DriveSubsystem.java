@@ -5,7 +5,6 @@
 package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.*;
-import static edu.wpi.first.wpilibj2.command.Commands.*;
 import static frc.robot.Constants.DriveConstants.*;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -226,105 +225,6 @@ public class DriveSubsystem extends SubsystemBase {
 	}
 
 	/**
-	 * Is invoked periodically by the {@link CommandScheduler}. Useful
-	 * for updating subsystem-specific state.
-	 */
-	@Override
-	public void periodic() {
-		SwerveModuleState[] states = { m_frontLeft.getModuleState(), m_frontRight.getModuleState(),
-				m_backLeft.getModuleState(), m_backRight.getModuleState() };
-		m_currentModuleStatePublisher.set(states);
-		var speeds = m_kinematics.toChassisSpeeds(states);
-		m_currentChassisSpeedsPublisher.set(speeds);
-		if (RobotBase.isSimulation())// TODO: Use SysId to get feedforward model for rotation
-			m_gyroSim.set(-Math.toDegrees(speeds.omegaRadiansPerSecond * TimedRobot.kDefaultPeriod) + m_gyro.getYaw());
-		m_posePublisher.set(m_odometry.update(getHeading(), getModulePositions()));
-	}
-
-	public Command toggleCoastMode() {
-		AtomicBoolean shouldBeCoast = new AtomicBoolean(true);
-		return runOnce(() -> {
-			NeutralModeValue mode;
-			if (shouldBeCoast.get()) {
-				mode = NeutralModeValue.Coast;
-			} else {
-				mode = NeutralModeValue.Brake;
-			}
-			shouldBeCoast.set(!shouldBeCoast.get());
-			setDriveMotorNeutralMode(mode);
-		}).withName("Drive Toggle Coast Mode");
-	}
-
-	public Command setNeutralMode(NeutralModeValue mode) {
-		return runOnce(() -> setDriveMotorNeutralMode(mode)).withName("Drive Enable Coast Mode");
-	}
-
-	/**
-	 * Creates a {@code Command} to drive the robot with joystick input.
-	 *
-	 * @param forwardSpeed Forward speed supplier. Positive values make the robot
-	 *        go forward (+X direction).
-	 * @param strafeSpeed Strafe speed supplier. Positive values make the robot
-	 *        go to the left (+Y direction).
-	 * @param forwardOrientation Forward orientation supplier. Positive values make
-	 *        the robot face forward (+X direction).
-	 * @param strafeOrientation Strafe orientation supplier. Positive values make
-	 *        the robot face left (+Y direction).
-	 * @param isRobotRelative Supplier for determining if driving should be robot
-	 *        relative.
-	 * @return A command to drive the robot.
-	 */
-	public Command driveCommand(DoubleSupplier forwardSpeed, DoubleSupplier strafeSpeed,
-			DoubleSupplier forwardOrientation, DoubleSupplier strafeOrientation, DoubleSupplier rotation,
-			BooleanSupplier isRobotRelative) {
-		return run(
-				() -> drive(
-						chassisSpeeds(forwardSpeed, strafeSpeed, forwardOrientation, strafeOrientation, rotation),
-						!isRobotRelative.getAsBoolean())).withName("DefaultDriveCommand");
-	}
-
-	/**
-	 * Creates a {@code Command} to drive the robot with joystick input.
-	 *
-	 * @param forwardSpeed Forward speed supplier. Positive values make the robot
-	 *        go forward (+X direction).
-	 * @param strafeSpeed Strafe speed supplier. Positive values make the robot
-	 *        go to the left (+Y direction).
-	 * @param forwardOrientation Forward orientation supplier. Positive values make
-	 *        the robot face forward (+X direction).
-	 * @param strafeOrientation Strafe orientation supplier. Positive values make
-	 *        the robot face left (+Y direction).
-	 * @param isRobotRelative Supplier for determining if driving should be robot
-	 *        relative.
-	 * @return A command to drive the robot.
-	 */
-	public Command driveCommand(DoubleSupplier forwardSpeed, DoubleSupplier strafeSpeed,
-			DoubleSupplier forwardOrientation, DoubleSupplier strafeOrientation, BooleanSupplier isRobotRelative) {
-		return run(
-				() -> drive(
-						chassisSpeeds(forwardSpeed, strafeSpeed, forwardOrientation, strafeOrientation),
-						!isRobotRelative.getAsBoolean())).withName("DefaultDriveCommand");
-	}
-
-	/**
-	 * Creates a {@code Command} to drive the robot with joystick input.
-	 *
-	 * @param forwardSpeed Forward speed supplier. Positive values make the robot
-	 *        go forward (+X direction).
-	 * @param strafeSpeed Strafe speed supplier. Positive values make the robot
-	 *        go to the left (+Y direction).
-	 * @param rotation Rotation supplier. Positive values make
-	 *        the robot rotate left (CCW direction).
-	 * @return a {@code ChassisSpeeds} instance to drive the robot with joystick
-	 *         input
-	 */
-	public Command driveCommand(DoubleSupplier forwardSpeed, DoubleSupplier strafeSpeed,
-			DoubleSupplier rotation, BooleanSupplier isRobotRelative) {
-		return run(() -> drive(chassisSpeeds(forwardSpeed, strafeSpeed, rotation), !isRobotRelative.getAsBoolean()))
-				.withName("DefaultDriveCommand");
-	}
-
-	/**
 	 * Creates a {@code ChassisSpeeds} instance to drive the robot with joystick
 	 * input.
 	 *
@@ -443,6 +343,51 @@ public class DriveSubsystem extends SubsystemBase {
 	}
 
 	/**
+	 * Is invoked periodically by the {@link CommandScheduler}. Useful
+	 * for updating subsystem-specific state.
+	 */
+	@Override
+	public void periodic() {
+		SwerveModuleState[] states = { m_frontLeft.getModuleState(), m_frontRight.getModuleState(),
+				m_backLeft.getModuleState(), m_backRight.getModuleState() };
+		m_currentModuleStatePublisher.set(states);
+		var speeds = m_kinematics.toChassisSpeeds(states);
+		m_currentChassisSpeedsPublisher.set(speeds);
+		if (RobotBase.isSimulation())// TODO: Use SysId to get feedforward model for rotation
+			m_gyroSim.set(-Math.toDegrees(speeds.omegaRadiansPerSecond * TimedRobot.kDefaultPeriod) + m_gyro.getYaw());
+		m_posePublisher.set(m_odometry.update(getHeading(), getModulePositions()));
+	}
+
+	/**
+	 * If robot is on brake changes to coast, else goes to brake
+	 * 
+	 * @return the command
+	 */
+	public Command toggleCoastMode() {
+		AtomicBoolean shouldBeCoast = new AtomicBoolean(true);
+		return runOnce(() -> {
+			NeutralModeValue mode;
+			if (shouldBeCoast.get()) {
+				mode = NeutralModeValue.Coast;
+			} else {
+				mode = NeutralModeValue.Brake;
+			}
+			shouldBeCoast.set(!shouldBeCoast.get());
+			setDriveMotorNeutralMode(mode);
+		}).withName("Drive Toggle Coast Mode");
+	}
+
+	/**
+	 * Command to set the robot to coast
+	 * 
+	 * @param mode what mode to set the motors to
+	 * @return the command
+	 */
+	public Command setNeutralMode(NeutralModeValue mode) {
+		return runOnce(() -> setDriveMotorNeutralMode(mode)).withName("Drive Enable Coast Mode");
+	}
+
+	/**
 	 * Creates a command to reset the gyro heading to zero.
 	 * 
 	 * @return A command to reset the gyro heading.
@@ -451,9 +396,80 @@ public class DriveSubsystem extends SubsystemBase {
 		return runOnce(m_gyro::zeroYaw).withName("ResetHeadingCommand");
 	}
 
+	/**
+	 * Command of {@link edu.wpi.first.math.kinematics.Odometry#resetPosition()}
+	 * 
+	 * @param pose the position that the robot is at on the field
+	 * @return runs the command once
+	 */
 	public Command resetOdometry(Pose2d pose) {
 		return runOnce(() -> m_odometry.resetPosition(getHeading(), getModulePositions(), pose))
 				.withName("ResetOdometryCommand");
+	}
+
+	/**
+	 * Creates a {@code Command} to drive the robot with joystick input.
+	 *
+	 * @param forwardSpeed Forward speed supplier. Positive values make the robot
+	 *        go forward (+X direction).
+	 * @param strafeSpeed Strafe speed supplier. Positive values make the robot
+	 *        go to the left (+Y direction).
+	 * @param forwardOrientation Forward orientation supplier. Positive values make
+	 *        the robot face forward (+X direction).
+	 * @param strafeOrientation Strafe orientation supplier. Positive values make
+	 *        the robot face left (+Y direction).
+	 * @param isRobotRelative Supplier for determining if driving should be robot
+	 *        relative.
+	 * @return A command to drive the robot.
+	 */
+	public Command driveCommand(DoubleSupplier forwardSpeed, DoubleSupplier strafeSpeed,
+			DoubleSupplier forwardOrientation, DoubleSupplier strafeOrientation, DoubleSupplier rotation,
+			BooleanSupplier isRobotRelative) {
+		return run(
+				() -> drive(
+						chassisSpeeds(forwardSpeed, strafeSpeed, forwardOrientation, strafeOrientation, rotation),
+						!isRobotRelative.getAsBoolean())).withName("DefaultDriveCommand");
+	}
+
+	/**
+	 * Creates a {@code Command} to drive the robot with joystick input.
+	 *
+	 * @param forwardSpeed Forward speed supplier. Positive values make the robot
+	 *        go forward (+X direction).
+	 * @param strafeSpeed Strafe speed supplier. Positive values make the robot
+	 *        go to the left (+Y direction).
+	 * @param forwardOrientation Forward orientation supplier. Positive values make
+	 *        the robot face forward (+X direction).
+	 * @param strafeOrientation Strafe orientation supplier. Positive values make
+	 *        the robot face left (+Y direction).
+	 * @param isRobotRelative Supplier for determining if driving should be robot
+	 *        relative.
+	 * @return A command to drive the robot.
+	 */
+	public Command driveCommand(DoubleSupplier forwardSpeed, DoubleSupplier strafeSpeed,
+			DoubleSupplier forwardOrientation, DoubleSupplier strafeOrientation, BooleanSupplier isRobotRelative) {
+		return run(
+				() -> drive(
+						chassisSpeeds(forwardSpeed, strafeSpeed, forwardOrientation, strafeOrientation),
+						!isRobotRelative.getAsBoolean())).withName("DefaultDriveCommand");
+	}
+
+	/**
+	 * Creates a {@code Command} to drive the robot with joystick input.
+	 *
+	 * @param forwardSpeed Forward speed supplier. Positive values make the robot
+	 *        go forward (+X direction).
+	 * @param strafeSpeed Strafe speed supplier. Positive values make the robot
+	 *        go to the left (+Y direction).
+	 * @param rotation Rotation supplier. Positive values make
+	 *        the robot rotate left (CCW direction).
+	 * @return a {@code ChassisSpeeds} instance to drive the robot with joystick
+	 *         input
+	 */
+	public Command driveCommand(DoubleSupplier forwardSpeed, DoubleSupplier strafeSpeed,
+			DoubleSupplier rotation, BooleanSupplier isRobotRelative) {
+		return run(() -> drive(chassisSpeeds(forwardSpeed, strafeSpeed, rotation), !isRobotRelative.getAsBoolean()))
+				.withName("DefaultDriveCommand");
 	}
 
 	/**
@@ -474,31 +490,6 @@ public class DriveSubsystem extends SubsystemBase {
 	 */
 	public Command sysidDynamic(SysIdRoutine.Direction direction) {
 		return m_sysidRoutine.dynamic(direction);
-	}
-
-	/**
-	 * Creates a {@code Command} for testing this {@code DriveSubsystem}. The robot
-	 * must move forward, backward, strafe left, strafe right, turn left, turn
-	 * right, and moving forward and backward while turning.
-	 * 
-	 * @param speed the speed in meters per second
-	 * @param rotionalSpeed the angular speed in radians per second
-	 * @param duration the duration of each movement in seconds
-	 * 
-	 * @return a {@code Command} for testing this {@code DriveSubsystem}
-	 */
-	public Command testCommand(double speed, double rotionalSpeed, double duration) {
-		return sequence(
-				resetOdometry(Pose2d.kZero),
-				run(() -> drive(speed, 0, 0, false)).withTimeout(duration),
-				run(() -> drive(-speed, 0, 0, false)).withTimeout(duration),
-				run(() -> drive(0, speed, 0, false)).withTimeout(duration),
-				run(() -> drive(0, -speed, 0, false)).withTimeout(duration),
-				run(() -> drive(0, 0, rotionalSpeed, false)).withTimeout(duration),
-				run(() -> drive(0, 0, -rotionalSpeed, false)).withTimeout(duration),
-				run(() -> drive(speed, 0, rotionalSpeed, true)).withTimeout(duration),
-				run(() -> drive(-speed, 0, -rotionalSpeed, true)).withTimeout(duration),
-				run(() -> drive(0, 0, 0, true)));
 	}
 
 }

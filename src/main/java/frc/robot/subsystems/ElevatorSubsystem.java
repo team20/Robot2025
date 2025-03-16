@@ -5,7 +5,6 @@
 package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.*;
-import static edu.wpi.first.wpilibj2.command.Commands.*;
 import static frc.robot.Constants.ElevatorConstants.*;
 
 import java.util.function.DoubleSupplier;
@@ -38,7 +37,6 @@ import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
 public class ElevatorSubsystem extends SubsystemBase {
@@ -162,6 +160,11 @@ public class ElevatorSubsystem extends SubsystemBase {
 		SmartDashboard.putNumber("Elevator/Extension", getPosition());
 	}
 
+	/**
+	 * Command to reset the elevator encoder to 0
+	 * 
+	 * @return
+	 */
 	public Command resetTheEncoder() {
 		return runOnce(() -> resetEncoder()).withName("Reset Elevator Encoder");
 	}
@@ -240,7 +243,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 	/**
 	 * Moves the elevator to the given height in inches
 	 * 
-	 * @return the command
+	 * @return uses {@link #goToLevel()}
 	 */
 	public Command goToHeight(int height) {
 		return goToLevel(() -> Units.inchesToMeters(height)).withName("Elevator to Height");
@@ -249,7 +252,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 	/**
 	 * Moves the elevator to the level one position
 	 * 
-	 * @return the command
+	 * @return uses {@link #goToLevel()}
 	 */
 	public Command goToLevelOneHeight() {
 		return goToLevel(() -> kLevelOneHeight).withName("Elevator to Level 1");
@@ -258,7 +261,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 	/**
 	 * Moves the elevator to the level two positon
 	 * 
-	 * @return the command
+	 * @return uses {@link #goToLevel()}
 	 */
 	public Command goToLevelTwoHeight() {
 		return goToLevel(() -> kLevelTwoHeight).withName("Elevator to Level 2");
@@ -267,7 +270,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 	/**
 	 * Moves the elevator to the level three position
 	 * 
-	 * @return the command
+	 * @return uses {@link #goToLevel()}
 	 */
 	public Command goToLevelThreeHeight() {
 		return goToLevel(() -> kLevelThreeHeight).withName("Elevator to Level 3");
@@ -276,7 +279,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 	/**
 	 * Moves the elevator to the level four position
 	 * 
-	 * @return the command
+	 * @return uses {@link #goToLevel()}
 	 */
 	public Command goToLevelFourHeight() {
 		return goToLevel(() -> kLevelFourHeight).withName("Elevator to Level 4");
@@ -285,41 +288,49 @@ public class ElevatorSubsystem extends SubsystemBase {
 	/**
 	 * Moves the elevator to the coral station position
 	 * 
-	 * @return the command
+	 * @return uses {@link #goToLevel()}
 	 */
 	public Command goToCoralStationHeight() {
 		return goToLevel(() -> kCoralStationHeight).withName("Elevator to Coral Station");
 	}
 
-	public Command goToAlgaeThreeHeight() {
+	/**
+	 * Moves the elevator to upper algae removal height
+	 * 
+	 * @return uses {@link #goToLevel()}
+	 */
+	public Command goToUpperAlgaeHeight() {
 		return goToLevel(() -> kAlgaeLevelThreeHeight).withName("Algae Level Three Height");
 	}
 
-	public Command goToAlgaeTwoHeight() {
+	/**
+	 * Moves the elevator to the lower algae removal height
+	 * 
+	 * @return uses {@link #goToLevel()}
+	 */
+	public Command goToLowerAlgaeHeight() {
 		return goToLevel(() -> kAlgaeLevelTwoHeight).withName("Algae Level Three Height");
 	}
 
 	/**
 	 * Moves the elevator to the base height position
 	 * 
-	 * @return
+	 * @return uses {@link #goToLevel()}
 	 */
 	public Command goToBaseHeight() {
 		return goToLevel(() -> 0).withName("Go To Base Height");
 	}
 
-	public Command goToClearanceHeight(double level, double clearanceHeight) {
-		return goToLevel(() -> (level + clearanceHeight)).withName("Level Height with added Clearance");
-	}
-
 	/**
-	 * The other heights when scoring go to a higher height than what is needed to
-	 * score so this lowers it to the proper height
+	 * Moves the elevator to a clearance by taking in a value and adding it to the
+	 * level value
 	 * 
-	 * @return the command
+	 * @param level the level height
+	 * @param clearanceHeight the clearance to add
+	 * @return uses {@link #goToLevel()}
 	 */
-	public Command lowerToScore() {
-		return goToLevel(() -> getPosition() - kToScoreHeightDecrease).withName("Lower Elevator to Score");
+	public Command goToClearanceHeight(double level, double clearanceHeight) { // TODO: IS THIS WORKING??? TEST
+		return goToLevel(() -> (level + clearanceHeight)).withName("Level Height with added Clearance");
 	}
 
 	/**
@@ -340,27 +351,5 @@ public class ElevatorSubsystem extends SubsystemBase {
 	 */
 	public Command sysidDynamic(SysIdRoutine.Direction direction) {
 		return m_sysidRoutine.dynamic(direction);
-	}
-
-	/**
-	 * Creates a {@code Command} for testing this {@code ElevatorSubsystem}
-	 * (Levels 0, 1, 0, 3, 2, 4, and 0).
-	 * 
-	 * @param duration the duration of each movement in seconds
-	 * 
-	 * @return a {@code Command} for testing this {@code ElevatorSubsystem}
-	 */
-	public Command testCommand(double duration) {
-		return sequence(
-				startRun(() -> setSpeed(0.2), () -> {// checking setSpeed(double)
-				}).until(() -> getPosition() > 0.2), // should stop when level is > 0.2
-				runOnce(() -> setSpeed(0.0)), new WaitCommand(duration), // should go down due to gravity
-				manualMove(() -> 0.5) // checking manualMove(DoubleSupplier)
-						.until(() -> getPosition() > 0.2), // should stop when level is > 0.2
-				runOnce(() -> setSpeed(0.0)), new WaitCommand(duration), // should go down due to gravity
-				goToLevelOneHeight(), // checking goToLevel(DoubleSupplier)
-				goToLevelThreeHeight(), goToBaseHeight(), new WaitCommand(duration), // should stay at level 3
-				goToLevelTwoHeight(), new WaitCommand(duration), // should stay at level 2
-				goToLevelFourHeight(), goToLevel(() -> 0));
 	}
 }

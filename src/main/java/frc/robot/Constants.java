@@ -1,20 +1,11 @@
 package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
-import static frc.robot.subsystems.PoseEstimationSubsystem.*;
-
-import java.util.Map;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
-import edu.wpi.first.apriltag.AprilTagFieldLayout;
-import edu.wpi.first.apriltag.AprilTagFields;
-import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Transform2d;
-import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Distance;
 
@@ -180,32 +171,33 @@ public class Constants {
 		public static final double kMaxVelocity = 2.75;
 		public static final double kMaxAccel = 2.5;
 		public static final double kTolerance = 0.01;
+
+		public static final double kMaxExtension = Units.inchesToMeters(49.5 + 0.75);
 		public static final double kLevelOneHeight = Units.inchesToMeters(3);
 		public static final double kLevelTwoHeight = Units.inchesToMeters(8);
 		public static final double kLevelThreeHeight = Units.inchesToMeters(29);
 		public static final double kLevelFourHeight = Units.inchesToMeters(48 + 2); // TODO: 72 from carpet
-		public static final double kMaxExtension = Units.inchesToMeters(49.5 + 0.75);
-		// TODO: The amount that the elevator decreases in order to score
-		public static final double kClearanceHeight = Units.inchesToMeters(5.5);
-		public static final double kToScoreHeightDecrease = Units.inchesToMeters(0);
-		public static final double kCoralStationHeight = Units.inchesToMeters(17 + 2); // TODO: Change
+		public static final double kCoralStationHeight = Units.inchesToMeters(17 + 2);
+		public static final double kLevelOneClearanceHeight = Units.inchesToMeters(0.7);
+		// now implemented here
+		public static final double kLevelTwoClearanceHeight = Units.inchesToMeters(0.7);
 
 		public static final double kAlgaeLevelThreeHeight = Units.inchesToMeters(0.25);
 		public static final double kAlgaeLevelTwoHeight = Units.inchesToMeters(14);
-		// public static final double kAlgaeLevelTwoAutoHeight =
-		// Units.inchesToMeters(13.5);
 	}
 
 	public static final class WristConstants {
 		public static final int kWristMotorPort = 27;
 		public static final int kSmartCurrentLimit = 20;
 		public static final int kSecondaryCurrentLimit = 20;
-		public static final int kGrabberAngleLevelFour = 223; // 228 with wrist offset
-		public static final int kGrabberAngleOthers = 221;
-		public static final int kGrabberAngleLevelThree = 240; // 232 with wrist offset
-		public static final double kAlgaeWristHeight = 170;
 
-		public static final double kWristForwardSoftLimit = 274; // Wrist facing down
+		public static final int kGrabberAngleLevelFour = 223; // 228 with wrist offset
+		public static final int kGrabberAngleLevelThree = 240; // 232 with wrist offset
+		public static final int kGrabberAngleLevelOneAndTwo = 221;
+		public static final int kAlgaeAngle = 170;
+		public static final int kBaseAngle = 272; // TODO: 270?
+
+		public static final double kWristForwardSoftLimit = 274; // Wrist facing down //TODO: Redo 0
 		public static final double kWristReverseSoftLimit = 90; // Wrist facing up
 		public static final double kWristOffset = 0.75; // 3.5/260 for offset
 
@@ -214,68 +206,5 @@ public class Constants {
 		public static final double kD = 0;
 
 		public static final double kTolerance = 4;
-	}
-
-	public static final class AutoAlignConstants {
-		/**
-		 * The {@code AprilTagFieldLayout}.
-		 */
-		public static AprilTagFieldLayout kFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
-
-		/**
-		 * The {@code Transform3d} expressing the pose of the first camera relative to
-		 * the pose of the robot.
-		 */
-		public static Transform3d kRobotToCamera1 = new Transform3d(new Translation3d(0.3, 0.0, 0.2),
-				new Rotation3d(0, Units.degreesToRadians(-20), 0));
-
-		/**
-		 * The {@code Transform3d} expressing the pose of the second camera relative to
-		 * the pose of the robot.
-		 */
-		public static Transform3d kRobotToCamera2 = new Transform3d(new Translation3d(-0.5, 0.0, 0.5),
-				new Rotation3d(0, Units.degreesToRadians(0), Units.degreesToRadians(180)));
-
-		/**
-		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
-		 * {@code AprilTag} to align the robot to that {@code AprilTag}.
-		 */
-		static Transform2d[] kRobotToTags = { transform(1.1, 0.0, 180),
-				transform(0.35, 0.0, 180) };
-
-		static Transform2d[] kRobotToStationTags = { transform(1.1, 0.0, 180), transform(0.1, 0, 180) };
-
-		/**
-		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
-		 * {@code AprilTag} to align the robot to the left of that {@code AprilTag}.
-		 */
-		static Transform2d[] kRobotToTagsLeft = { transform(1.1, 0, 180),
-				transform(0.45, -0.185, 180) };
-		// TODO: decrease y to align more to the left
-		/**
-		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
-		 * {@code AprilTag} to align the robot to the right of that {@code AprilTag}.
-		 */
-		static Transform2d[] kRobotToTagsRight = { transform(1.1, 0, 180),
-				transform(0.45, 0.200, 180) };
-		/**
-		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
-		 * {@code AprilTag} to align the robot to the left of that {@code AprilTag}.
-		 */
-		static Transform2d[] kRobotToTagsLeftReady = { transform(1.1, -0.5, 180),
-				transform(0.60, 0.0, 180) };
-
-		/**
-		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
-		 * {@code AprilTag} to align the robot to the right of that {@code AprilTag}.
-		 */
-		static Transform2d[] kRobotToTagsRightReady = { transform(1.1, 0.5, 180),
-				transform(0.60, 0.0, 180) };
-
-		/**
-		 * A {@code Map} storing the distance to travel to score at each scoring level.
-		 */
-		static Map<Integer, Double> kOffsets = Map.of(1, 0.13, 2, 0.13, 3, 0.11, 4, 0.05);
-		// TODO increase to get closer to the tag
 	}
 }

@@ -1,7 +1,6 @@
 package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.*;
-import static edu.wpi.first.wpilibj2.command.Commands.*;
 import static frc.robot.Constants.CheeseStickConstants.*;
 
 import edu.wpi.first.wpilibj.RobotBase;
@@ -14,7 +13,6 @@ import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
 
 public class CheeseStickSubsystem extends SubsystemBase {
 	private final Servo m_servo = new Servo(kServoPort);
@@ -55,10 +53,6 @@ public class CheeseStickSubsystem extends SubsystemBase {
 		return runOnce(() -> m_servo.set(kReleaseDistance)).withName("Servo Release");
 	}
 
-	public Command release(double duration) {
-		return run(() -> m_servo.set(kReleaseDistance)).withName("Servo Release").withTimeout(duration);
-	}
-
 	/**
 	 * Returns a command to command the servo to rotate clockwise. This is pushed by
 	 * springs and extends the cheese stock. Does not wait
@@ -68,20 +62,5 @@ public class CheeseStickSubsystem extends SubsystemBase {
 	 */
 	public Command grab() {
 		return runOnce(() -> m_servo.set(1)).withName("Servo Grab");
-	}
-
-	/**
-	 * Creates a {@code Command} for testing this {@code CheeseStickSubsystem}.
-	 * 
-	 * @param duration the duration of each movement in seconds
-	 * 
-	 * @return a {@code Command} for testing this {@code CheeseStickSubsystem}
-	 */
-	public Command testCommand(double duration) {
-		return sequence(
-				new WaitCommand(duration), grab(),
-				new WaitCommand(duration), release(),
-				new WaitCommand(duration), grab(),
-				new WaitCommand(duration), release());
 	}
 }

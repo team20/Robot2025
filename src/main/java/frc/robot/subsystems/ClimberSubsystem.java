@@ -65,12 +65,22 @@ public class ClimberSubsystem extends SubsystemBase {
 		}).withName("Manual Climber");
 	}
 
+	/**
+	 * Retracts the climber by using a PID and going to pos 0
+	 * 
+	 * @return the command
+	 */
 	public Command retract() {
 		return run(() -> {
 			m_climberClosedLoopController.setReference(0, ControlType.kPosition);
 		}).until(() -> Math.abs(encoder.getPosition()) < kTolerance).withName("Climber Retract");
 	}
 
+	/**
+	 * Deploys the climber to preperation position by using a PID and going to -400
+	 * 
+	 * @return the command
+	 */
 	public Command deploy() {
 		return run(() -> {
 			m_climberClosedLoopController.setReference(-400, ControlType.kPosition);
