@@ -151,13 +151,24 @@ public class CommandComposer {
 	}
 
 	/**
-	 * Drives incredibly slow forward (elevator has to be forward)
+	 * Drives incredibly slow forward (from the center to the elevator)
 	 * 
 	 * @return {@link frc.robot.subsystems.DriveSubsystem#driveCommand()} at 0.25
 	 *         speed
 	 */
-	public static Command leave() {
+	public static Command leaveForward() {
 		return m_driveSubsystem.driveCommand(() -> 0.25, () -> 0, () -> 0, () -> true).withTimeout(10)
+				.withName("Leave Auto");
+	}
+
+	/**
+	 * Drives incredibly slow backward (from the center to the algae gripper)
+	 * 
+	 * @return {@link frc.robot.subsystems.DriveSubsystem#driveCommand()} at -0.25
+	 *         speed
+	 */
+	public static Command leaveBackward() {
+		return m_driveSubsystem.driveCommand(() -> -0.25, () -> 0, () -> 0, () -> true).withTimeout(10)
 				.withName("Leave Auto");
 	}
 
