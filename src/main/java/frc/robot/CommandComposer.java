@@ -13,6 +13,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.Constants.AutoConstants;
 import frc.robot.commands.DriveCommand;
 import frc.robot.subsystems.AlgaeGrabberSubsystem;
 import frc.robot.subsystems.ArduinoSubsystem;
@@ -240,6 +241,12 @@ public class CommandComposer {
 						new Pose2d(5 + 0.0, 1 + sideLength, Rotation2d.kCW_90deg)),
 				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance,
 						new Pose2d(5 + 0, 1 + 0, Rotation2d.kZero)));
+	}
+
+	public static Command moveToTag(int id, double positionTolerance, double rotationTolerance, Transform2d offset,
+			double timeout) {
+		Pose2d tagPos = AutoConstants.kFieldLayout.getTagPose(id).get().toPose2d().plus(offset);
+		return new DriveCommand(m_driveSubsystem, positionTolerance, rotationTolerance, tagPos).withTimeout(timeout);
 	}
 
 }

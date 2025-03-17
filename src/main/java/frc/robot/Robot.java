@@ -21,6 +21,7 @@ import org.photonvision.simulation.SimCameraProperties;
 import com.ctre.phoenix6.SignalLogger;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.net.WebServer;
 import edu.wpi.first.wpilibj.Alert;
@@ -193,6 +194,17 @@ public class Robot extends TimedRobot {
 						sequence(
 								CommandComposer.moveStraight(5, 0.1, 10),
 								CommandComposer.moveStraight(-5, 0.1, 10)));
+
+		for (int i = 17; i <= 22; i++) {
+			for (int n = -1; n <= 1; n += 2) {
+				m_testingChooser
+						.addOption(
+								"align to tag " + i + (n == -1 ? " left" : " right"),
+								CommandComposer.moveToTag(
+										i, distanceTolerance, angleToleranceInDegrees,
+										new Transform2d(0.75, n * 0.1643126, Rotation2d.fromDegrees(180)), 3));
+			}
+		}
 
 	}
 
