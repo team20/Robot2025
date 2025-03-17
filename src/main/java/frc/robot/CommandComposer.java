@@ -28,6 +28,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SelectCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.commands.DriveCommand;
 import frc.robot.commands.PathDriveCommand;
@@ -636,31 +637,91 @@ public class CommandComposer {
 				.toArray(new Transform2d[0]);
 	}
 
-	private static Command select(Command commandRedAlliance, Command commandBlueAlliance) {
+	private static Command select(Command commandRedAlliance, Command commandBlueAlliance, boolean safetyStop) {
 		return new SelectCommand<Object>(Map
 				.of(Alliance.Red, commandRedAlliance, Alliance.Blue, commandBlueAlliance),
 				() -> {
 					Alliance alliance = DriverStation.getAlliance().get();
 					var middle = kFieldLayout.getFieldLength() / 2;
-					try {
-						var confidence = m_poseEstimationSubsystem.confidence();
-						if (confidence < 0.3)
-							return alert("Pose Confidence (" + confidence + ") Too Low!");
-						var x = m_poseEstimationSubsystem.getEstimatedPose().getX();
-						if ((alliance == DriverStation.Alliance.Blue && x > middle)
-								|| (alliance == DriverStation.Alliance.Red && x < middle)) {
-							return alert("Strange Robot Position (" + alliance + " Alliance)!");
+					if (safetyStop)
+						try {
+							var confidence = m_poseEstimationSubsystem.confidence();
+							if (confidence < 0.3)
+								return alert("Pose Confidence (" + confidence + ") Too Low!");
+							var x = m_poseEstimationSubsystem.getEstimatedPose().getX();
+							if ((alliance == DriverStation.Alliance.Blue && x > middle)
+									|| (alliance == DriverStation.Alliance.Red && x < middle)) {
+								return alert("Strange Robot Position (" + alliance + " Alliance)!");
+							}
+						} catch (Exception e) {
 						}
-					} catch (Exception e) {
-					}
 					return alliance;
 				});
+	}
+
+	private static Command select(Command commandRedAlliance, Command commandBlueAlliance) {
+		return select(commandRedAlliance, commandBlueAlliance, true);
 	}
 
 	private static Alert alert(String text) {
 		var a = new Alert(text, AlertType.kError);
 		a.set(true);
 		return a;
+	}
+
+	public static Command getScoringTestNorth(int level, double distance, double waitTime,
+			double intermediateDistanceTolerance) {
+		return select(
+				getScoringTestNorthRed(level, distance, waitTime, intermediateDistanceTolerance),
+				getScoringTestNorthBlue(level, distance, waitTime, intermediateDistanceTolerance), false);
+	}
+
+	public static Command getScoringTestSouth(int level, double distance, double waitTime,
+			double intermediateDistanceTolerance) {
+		return select(
+				getScoringTestSouthRed(level, distance, waitTime, intermediateDistanceTolerance),
+				getScoringTestSouthBlue(level, distance, waitTime, intermediateDistanceTolerance), false);
+	}
+
+	private static Command getScoringTestNorthRed(int level, double distance, double waitTime,
+			double intermediateDistanceTolerance) {
+		return getScoringTest(2, level, distance, waitTime, intermediateDistanceTolerance, 8);
+	}
+
+	private static Command getScoringTestNorthBlue(int level, double distance, double waitTime,
+			double intermediateDistanceTolerance) {
+		return getScoringTest(13, level, distance, waitTime, intermediateDistanceTolerance, 19);
+	}
+
+	private static Command getScoringTestSouthRed(int level, double distance, double waitTime,
+			double intermediateDistanceTolerance) {
+		return getScoringTest(1, level, distance, waitTime, intermediateDistanceTolerance, 6);
+	}
+
+	private static Command getScoringTestSouthBlue(int level, double distance, double waitTime,
+			double intermediateDistanceTolerance) {
+		return getScoringTest(12, level, distance, waitTime, intermediateDistanceTolerance, 17);
+	}
+
+	private static Command getScoringTest(int stationTagID, int level, double distance, double waitTime,
+			double intermediateDistanceTolerance, int... tagIDs) {
+		SequentialCommandGroup c = new SequentialCommandGroup();
+		for (var tagID : tagIDs)
+			c.addCommands(
+					sequence(
+							toStation(
+									stationTagID, kForwrdAdjustmentCoralStation, intermediateDistanceTolerance,
+									kRobotToTags),
+							parallel(m_wristSubsystem.goToAngle(270), new WaitCommand(waitTime)),
+							score(toTag(tagID, kRobotToTagsLeft), goToBase(), level),
+							moveStraight(-distance, intermediateDistanceTolerance, 20),
+							toStation(
+									stationTagID, kForwrdAdjustmentCoralStation, intermediateDistanceTolerance,
+									kRobotToTags),
+							parallel(m_wristSubsystem.goToAngle(270), new WaitCommand(waitTime)),
+							score(toTag(tagID, kRobotToTagsRight), goToBase(), level),
+							moveStraight(-distance, intermediateDistanceTolerance, 20)));
+		return c;
 	}
 
 }

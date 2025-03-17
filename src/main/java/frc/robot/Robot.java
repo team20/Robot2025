@@ -106,8 +106,8 @@ public class Robot extends TimedRobot {
 
 	public Robot() {
 		// TODO: Please configure cameras correctly and then enable BackCamera.
-		addCamera("FrontCamera", kRobotToCamera1);
-		// addCamera("BackCamera", kRobotToCamera2);
+		addCamera("BackCamera", kRobotToCamera1); // TODO: check camera names.
+		// addCamera("FrontCamera", kRobotToCamera2);
 		SignalLogger.start();
 		WebServer.start(5800, Filesystem.getDeployDirectory().getPath());
 		CommandComposer.setSubsystems(
@@ -182,6 +182,14 @@ public class Robot extends TimedRobot {
 				.addOption(
 						"Pick Up and Score at Level 4 (Right)",
 						score(toClosestTag(kLevelOffset.get(4), 0, kRobotToTagsRight), goToBase(), 4));
+		m_testingChooser
+				.addOption(
+						"Scoring Test North (Level 3)",
+						getScoringTestNorth(3, 0.5, 1.0, 0.1));
+		m_testingChooser
+				.addOption(
+						"Scoring Test South (Level 3)",
+						getScoringTestSouth(3, 0.5, 1.0, 0.1));
 		m_testingChooser
 				.addOption(
 						"Reposition the Robot in Simulation",
