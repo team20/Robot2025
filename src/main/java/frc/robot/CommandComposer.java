@@ -14,6 +14,8 @@ import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
+import com.ctre.phoenix6.signals.NeutralModeValue;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
@@ -106,7 +108,7 @@ public class CommandComposer {
 			case 4:
 				return score(
 						align, pickup, kLevelFourHeight, kGrabberAngleLevelFour,
-						m_wristSubsystem.goToAngle(210));
+						m_wristSubsystem.goToAngle(228)); // TODO: Change to 210
 			case 3:
 				return score(align, pickup, kLevelThreeHeight, kGrabberAngleLevelThree);
 			case 2:
@@ -173,7 +175,7 @@ public class CommandComposer {
 				m_cheeseStickSubsystem.grab(),
 				removeAlgaeLevelTwo(),
 				parallel(
-						m_wristSubsystem.goToAngle(255),
+						m_wristSubsystem.goToAngle(268),
 						moveStraight(-0.5, 0.01, 1)));
 	}
 
@@ -191,15 +193,39 @@ public class CommandComposer {
 						.withName("Middle Score and Algae Blue");
 	}
 
-	// static Command getMiddleScoreAndAlgaeRed() {
-	// return getMiddleScoreAndAlgae(toTag(10, kRobotToTagsRight), toTag(10,
-	// kRobotToTags))
-	// .withName("Middle Score and Algae Red");
-	// }
+	static Command getMiddleScoreAndAlgaePracticeField() {
+		return getMiddleScoreAndAlgae(toTag(6, kRobotToTagsLeft), toTag(6, kRobotToTags))
+				.withName("Middle Score and Algae Practice Field (6)");
+	}
 
 	public static Command leave() {
-		return m_driveSubsystem.driveCommand(() -> 0.25, () -> 0, () -> 0, () -> true).withTimeout(10)
+		return m_driveSubsystem.driveCommand(() -> -0.25, () -> 0, () -> 0, () -> true).withTimeout(10)
 				.withName("Leave Auto");
+	}
+
+	public static Command getTwoScore(Command align1, int coralStationAlign, Command align2) {
+		return sequence(
+				score(align1, 4),
+				m_cheeseStickSubsystem.grab(),
+				toStation(coralStationAlign),
+				waitSeconds(2),
+				pickupAtCoralStation(),
+				score(align2, kGrabberAngleLevelFour),
+				parallel(
+						m_wristSubsystem.goToAngle(270),
+						moveStraight(-0.5, 0.01, 1)));
+	}
+
+	public static Command getTwoScoreRedLeftSide() {
+		return getTwoScore(toTag(11, kRobotToTagsRight), 1, toTag(6, kRobotToTagsLeft))
+				.withName("Red-Left | Two Score ");
+	}
+
+	public static Command toStation(int tagID) {
+		return parallel(
+				toTag(tagID, kRobotToStationTags),
+				prepareForCoralPickup()).withName("Align to Station");
+
 	}
 
 	public static Command prepareForCoralPickup() {
@@ -219,6 +245,12 @@ public class CommandComposer {
 				m_cheeseStickSubsystem.release(),
 				m_elevatorSubsystem.goToCoralStationHeight(),
 				m_cheeseStickSubsystem.grab()).withName("Pick Up At Coral Station");
+	}
+
+	public static Command retractClimber() {
+		return parallel(m_climberSubsystem.retract(), m_driveSubsystem.setNeutralMode(NeutralModeValue.Coast).asProxy())
+				.finallyDo(() -> m_driveSubsystem.setDriveMotorNeutralMode(NeutralModeValue.Brake))
+				.withName("Retract Climber and Drive Coast");
 	}
 
 	public static Command testAbsoluteOrientation(double duration) {

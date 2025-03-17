@@ -166,6 +166,10 @@ public class Robot extends TimedRobot {
 						"3 Score South (Level 3)",
 						// TODO: Optimize
 						CommandComposer.get3ScoreSouth(3, 0.5, 1.0, 0.1));
+		m_autoSelector.addOption("Middle and Algae Red", CommandComposer.getMiddleScoreAndAlgaeRed());
+		m_autoSelector
+				.addOption("Middle and Algae Practice Field", CommandComposer.getMiddleScoreAndAlgaePracticeField());
+		m_autoSelector.addOption("Two Score Red Left Side", CommandComposer.getTwoScoreRedLeftSide());
 	}
 
 	public void addTestingCommands() {
@@ -297,6 +301,7 @@ public class Robot extends TimedRobot {
 		m_driverController.R1().whileTrue(
 				toClosestTag(kRobotToTagsRight).withName("toClosestTag(kRobotToTagsRight)"));
 		m_driverController.options().onTrue(m_driveSubsystem.resetHeading());
+		m_driverController.square().onTrue(m_driveSubsystem.toggleCoastMode());
 	}
 
 	public void bindElevatorControls() {
@@ -321,8 +326,6 @@ public class Robot extends TimedRobot {
 		m_operatorController.L1().and(m_operatorController.cross()).onTrue(CommandComposer.goToBase());
 		m_operatorController.touchpad().onTrue(m_elevatorSubsystem.stopMotor());
 		m_operatorController.create().onTrue(m_elevatorSubsystem.resetTheEncoder());
-
-		m_driverController.square().onTrue(CommandComposer.releaseFlickAndDriveBack());
 	}
 
 	public void bindAlgaeControls() {
@@ -352,9 +355,9 @@ public class Robot extends TimedRobot {
 		// m_climberSubsystem.setDefaultCommand(m_climberSubsystem.manualMove(() ->
 		// m_driverController.getRightY()));
 		m_driverController.triangle().onTrue(m_climberSubsystem.deploy());
-		m_driverController.cross().onTrue(m_climberSubsystem.retract());
+		m_driverController.cross().onTrue(CommandComposer.retractClimber());
 
-		m_operatorController.povUp().onTrue(m_climberSubsystem.retract());
+		m_operatorController.povUp().onTrue(CommandComposer.retractClimber());
 		m_operatorController.povDown().onTrue(m_climberSubsystem.deploy());
 	}
 

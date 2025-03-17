@@ -57,7 +57,7 @@ public class Constants {
 		public static final double kP = 0.75;
 		public static final double kI = 0;
 		public static final double kD = 0;
-
+		public static final double kTolerance = 1;
 		public static final int kSmartCurrentLimit = 50;
 		public static final int kSecondaryCurrentLimit = kSmartCurrentLimit + 15;
 	}
@@ -201,14 +201,14 @@ public class Constants {
 		public static final int kWristMotorPort = 27;
 		public static final int kSmartCurrentLimit = 20;
 		public static final int kSecondaryCurrentLimit = 20;
-		public static final int kGrabberAngleLevelFour = 223;
+		public static final int kGrabberAngleLevelFour = 223; // 228 with wrist offset
 		public static final int kGrabberAngleOthers = 221;
-		public static final int kGrabberAngleLevelThree = 240;
+		public static final int kGrabberAngleLevelThree = 240; // 232 with wrist offset
 		public static final double kAlgaeWristHeight = 170;
 
 		public static final double kWristForwardSoftLimit = 274; // Wrist facing down
 		public static final double kWristReverseSoftLimit = 90; // Wrist facing up
-		public static final double kWristOffset = 0.75 + (3.5 / 360.0); // angle offset
+		public static final double kWristOffset = 0.75; // 3.5/260 for offset
 
 		public static final double kP = 0.01;
 		public static final double kI = 0.0;
@@ -244,6 +244,8 @@ public class Constants {
 		static Transform2d[] kRobotToTags = { transform(1.1, 0.0, 180),
 				transform(0.60, 0.0, 180) };
 
+		static Transform2d[] kRobotToStationTags = { transform(1.1, 0.0, 180), transform(0.1, 0, 180) };
+
 		/**
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
 		 * {@code AprilTag} to align the robot to the left of that {@code AprilTag}.
@@ -259,7 +261,8 @@ public class Constants {
 		 * {@code AprilTag} to align the robot to the right of that {@code AprilTag}.
 		 */
 		static Transform2d[] kRobotToTagsRight = { transform(1.1, 0, 180),
-				transform(0.60, 0.195, 180) };
+				transform(0.54, 0.200, 180) };
+		// transform(0.60, 0.195, 180) };
 		// transform(0.45, 0.255, 180) }; TODO: Natalie and Nitya need to check
 		// decrease y to align more to the left
 		// no need to change x because of kLevelOffset
