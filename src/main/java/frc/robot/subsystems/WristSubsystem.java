@@ -48,12 +48,10 @@ public class WristSubsystem extends SubsystemBase {
 	private final SparkAbsoluteEncoderSim m_absoluteEncoderSim;
 	private final SingleJointedArmSim m_wristModel;
 	private final MechanismLigament2d m_wrist = new MechanismLigament2d("wrist", Units.inchesToMeters(9), 0);
-	private final ElevatorSubsystem m_elevatorSubsystem;
 
 	/** Creates a new WristSubsystem. */
-	public WristSubsystem(ElevatorSubsystem elevatorSubsystem) {
-		m_elevatorSubsystem = elevatorSubsystem;
-		elevatorSubsystem.getWristMount().append(m_wrist);
+	public WristSubsystem(MechanismLigament2d wristMount) {
+		wristMount.append(m_wrist);
 		var config = new SparkMaxConfig();
 		config
 				.inverted(true)
@@ -128,9 +126,9 @@ public class WristSubsystem extends SubsystemBase {
 	@Override
 	public void periodic() {
 		// Negate to make angle CCW+, subtract 180 to get 0 degrees in the right place
-		double angle = RobotBase.isReal() ? getAngle() : m_absoluteEncoderSim.getPosition();
-		SmartDashboard.putNumber("Wrist/Current Angle", angle);
+		double angle = getAngle();
 		m_wrist.setAngle(-angle - 180);
+		SmartDashboard.putNumber("Wrist/Current Angle", angle);
 	}
 
 	/**

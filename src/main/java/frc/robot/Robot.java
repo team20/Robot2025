@@ -61,7 +61,7 @@ public class Robot extends TimedRobot {
 	private final DriveSubsystem m_driveSubsystem = new DriveSubsystem();
 	private final ElevatorSubsystem m_elevatorSubsystem = new ElevatorSubsystem(
 			m_mechanism.getRoot("anchor", Units.inchesToMeters(23), 0));
-	private final WristSubsystem m_wristSubsystem = new WristSubsystem(m_elevatorSubsystem);
+	private final WristSubsystem m_wristSubsystem = new WristSubsystem(m_elevatorSubsystem.getWristMount());
 	private final CheeseStickSubsystem m_cheeseStickSubsystem = new CheeseStickSubsystem(
 			m_wristSubsystem.getCheeseStickMount());
 	private final ArduinoSubsystem m_arduinoSubsystem = new ArduinoSubsystem();

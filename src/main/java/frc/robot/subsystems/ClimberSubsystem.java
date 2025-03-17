@@ -77,7 +77,7 @@ public class ClimberSubsystem extends SubsystemBase {
 	}
 
 	/**
-	 * Deploys the climber to preperation position by using a PID and going to -400
+	 * Deploys the climber to preparation position by using a PID and going to -400
 	 * 
 	 * @return the command
 	 */

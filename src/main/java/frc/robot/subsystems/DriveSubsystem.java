@@ -7,7 +7,6 @@ package frc.robot.subsystems;
 import static edu.wpi.first.units.Units.*;
 import static frc.robot.Constants.DriveConstants.*;
 
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
@@ -49,6 +48,7 @@ public class DriveSubsystem extends SubsystemBase {
 			kFrontLeftLocation, kFrontRightLocation, kBackLeftLocation, kBackRightLocation);
 	private final SwerveDriveOdometry m_odometry;
 	private final AHRS m_gyro = new AHRS(NavXComType.kUSB1);
+	private boolean m_shouldBeCoast = true;
 	private final SimDouble m_gyroSim;
 	// https://docs.wpilib.org/en/latest/docs/software/advanced-controls/system-identification/index.html
 	private final SysIdRoutine m_sysidRoutine;
@@ -128,16 +128,6 @@ public class DriveSubsystem extends SubsystemBase {
 	}
 
 	/**
-	 * Returns the {@code SwerveDriveKinematics} used by this
-	 * {@code DriveSubsystem}.
-	 * 
-	 * @return the {@code SwerveDriveKinematics} used by this {@code DriveSubsystem}
-	 */
-	public SwerveDriveKinematics kinematics() {
-		return m_kinematics;
-	}
-
-	/**
 	 * Returns robot pose.
 	 * 
 	 * @return The pose of the robot.
@@ -164,15 +154,18 @@ public class DriveSubsystem extends SubsystemBase {
 	 * @return The module states, in order of FL, FR, BL, BR
 	 */
 	private SwerveModuleState[] calculateModuleStates(ChassisSpeeds speeds, boolean isFieldRelative) {
-		if (isFieldRelative)
+		if (isFieldRelative) {
 			speeds = ChassisSpeeds.fromFieldRelativeSpeeds(speeds, getHeading());
+		}
 		speeds = ChassisSpeeds.discretize(speeds, 0.03);
 		SwerveModuleState[] states = m_kinematics.toSwerveModuleStates(speeds);
 		SwerveDriveKinematics.desaturateWheelSpeeds(states, kTeleopDriveMaxSpeed);
 		double[] moduleAngles = { m_frontLeft.getModuleAngle(), m_frontRight.getModuleAngle(),
 				m_backLeft.getModuleAngle(), m_backRight.getModuleAngle() };
-		for (int i = 0; i < states.length; i++) // Optimize target module states
+		for (int i = 0; i < states.length; i++) {
+			// Optimize target module states
 			states[i].optimize(Rotation2d.fromDegrees(moduleAngles[i]));
+		}
 		return states;
 	}
 
@@ -215,6 +208,9 @@ public class DriveSubsystem extends SubsystemBase {
 	}
 
 	public void setDriveMotorNeutralMode(NeutralModeValue mode) {
+		// If we just set the motors to brake, when toggling, it should then switch to
+		// coast
+		m_shouldBeCoast = mode == NeutralModeValue.Brake;
 		m_frontLeft.setNeutralMode(mode);
 		m_frontRight.setNeutralMode(mode);
 		m_backLeft.setNeutralMode(mode);
@@ -278,21 +274,19 @@ public class DriveSubsystem extends SubsystemBase {
 	 * @return the command
 	 */
 	public Command toggleCoastMode() {
-		AtomicBoolean shouldBeCoast = new AtomicBoolean(true);
 		return runOnce(() -> {
 			NeutralModeValue mode;
-			if (shouldBeCoast.get()) {
+			if (m_shouldBeCoast) {
 				mode = NeutralModeValue.Coast;
 			} else {
 				mode = NeutralModeValue.Brake;
 			}
-			shouldBeCoast.set(!shouldBeCoast.get());
 			setDriveMotorNeutralMode(mode);
 		}).withName("Drive Toggle Coast Mode");
 	}
 
 	/**
-	 * Command to set the robot to coast
+	 * Command to set the neutral mode of the drive motors
 	 * 
 	 * @param mode what mode to set the motors to
 	 * @return the command
@@ -381,5 +375,4 @@ public class DriveSubsystem extends SubsystemBase {
 	public Command sysidDynamic(SysIdRoutine.Direction direction) {
 		return m_sysidRoutine.dynamic(direction);
 	}
-
 }

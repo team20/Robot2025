@@ -243,7 +243,8 @@ public class ElevatorSubsystem extends SubsystemBase {
 	/**
 	 * Moves the elevator to the given height in inches
 	 * 
-	 * @return uses {@link #goToLevel()}
+	 * @return The command.
+	 * @implNote Uses {@link #goToLevel()}.
 	 */
 	public Command goToHeight(int height) {
 		return goToLevel(() -> Units.inchesToMeters(height)).withName("Elevator to Height");
@@ -252,16 +253,18 @@ public class ElevatorSubsystem extends SubsystemBase {
 	/**
 	 * Moves the elevator to the level one position
 	 * 
-	 * @return uses {@link #goToLevel()}
+	 * @return The command.
+	 * @implNote Uses {@link #goToLevel()}.
 	 */
 	public Command goToLevelOneHeight() {
 		return goToLevel(() -> kLevelOneHeight).withName("Elevator to Level 1");
 	}
 
 	/**
-	 * Moves the elevator to the level two positon
+	 * Moves the elevator to the level two position
 	 * 
-	 * @return uses {@link #goToLevel()}
+	 * @return The command.
+	 * @implNote Uses {@link #goToLevel()}.
 	 */
 	public Command goToLevelTwoHeight() {
 		return goToLevel(() -> kLevelTwoHeight).withName("Elevator to Level 2");
@@ -270,7 +273,8 @@ public class ElevatorSubsystem extends SubsystemBase {
 	/**
 	 * Moves the elevator to the level three position
 	 * 
-	 * @return uses {@link #goToLevel()}
+	 * @return The command.
+	 * @implNote Uses {@link #goToLevel()}.
 	 */
 	public Command goToLevelThreeHeight() {
 		return goToLevel(() -> kLevelThreeHeight).withName("Elevator to Level 3");
@@ -279,7 +283,8 @@ public class ElevatorSubsystem extends SubsystemBase {
 	/**
 	 * Moves the elevator to the level four position
 	 * 
-	 * @return uses {@link #goToLevel()}
+	 * @return The command.
+	 * @implNote Uses {@link #goToLevel()}.
 	 */
 	public Command goToLevelFourHeight() {
 		return goToLevel(() -> kLevelFourHeight).withName("Elevator to Level 4");
@@ -288,7 +293,8 @@ public class ElevatorSubsystem extends SubsystemBase {
 	/**
 	 * Moves the elevator to the coral station position
 	 * 
-	 * @return uses {@link #goToLevel()}
+	 * @return The command.
+	 * @implNote Uses {@link #goToLevel()}.
 	 */
 	public Command goToCoralStationHeight() {
 		return goToLevel(() -> kCoralStationHeight).withName("Elevator to Coral Station");
@@ -297,7 +303,8 @@ public class ElevatorSubsystem extends SubsystemBase {
 	/**
 	 * Moves the elevator to upper algae removal height
 	 * 
-	 * @return uses {@link #goToLevel()}
+	 * @return The command.
+	 * @implNote Uses {@link #goToLevel()}.
 	 */
 	public Command goToUpperAlgaeHeight() {
 		return goToLevel(() -> kAlgaeLevelThreeHeight).withName("Algae Level Three Height");
@@ -306,7 +313,8 @@ public class ElevatorSubsystem extends SubsystemBase {
 	/**
 	 * Moves the elevator to the lower algae removal height
 	 * 
-	 * @return uses {@link #goToLevel()}
+	 * @return The command.
+	 * @implNote Uses {@link #goToLevel()}.
 	 */
 	public Command goToLowerAlgaeHeight() {
 		return goToLevel(() -> kAlgaeLevelTwoHeight).withName("Algae Level Three Height");
@@ -315,7 +323,8 @@ public class ElevatorSubsystem extends SubsystemBase {
 	/**
 	 * Moves the elevator to the base height position
 	 * 
-	 * @return uses {@link #goToLevel()}
+	 * @return The command.
+	 * @implNote Uses {@link #goToLevel()}.
 	 */
 	public Command goToBaseHeight() {
 		return goToLevel(() -> 0).withName("Go To Base Height");
@@ -327,7 +336,8 @@ public class ElevatorSubsystem extends SubsystemBase {
 	 * 
 	 * @param level the level height
 	 * @param clearanceHeight the clearance to add
-	 * @return uses {@link #goToLevel()}
+	 * @return The command.
+	 * @implNote Uses {@link #goToLevel()}.
 	 */
 	public Command goToClearanceHeight(double level, double clearanceHeight) { // TODO: IS THIS WORKING??? TEST
 		return goToLevel(() -> (level + clearanceHeight)).withName("Level Height with added Clearance");

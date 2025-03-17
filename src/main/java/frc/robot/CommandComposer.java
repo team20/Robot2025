@@ -64,7 +64,8 @@ public class CommandComposer {
 	/**
 	 * TELEOP | Level 1
 	 * 
-	 * @return uses {@link #scoreLevelInTeleop} to score in level 1
+	 * @return the command
+	 * @implNote uses {@link #scoreLevelInTeleop} to score in level 1
 	 */
 	public static Command scoreLevelOneInTeleop() {
 		return scoreLevelInTeleop(
@@ -76,7 +77,8 @@ public class CommandComposer {
 	/**
 	 * TELEOP | Level 2
 	 * 
-	 * @return uses {@link #scoreLevelInTeleop} to score in level 2
+	 * @return the command
+	 * @implNote uses {@link #scoreLevelInTeleop} to score in level 2
 	 */
 	public static Command scoreLevelTwoInTeleop() {
 		return scoreLevelInTeleop(
@@ -88,7 +90,8 @@ public class CommandComposer {
 	/**
 	 * TELEOP | Level 3 -> NO CLEARANCE
 	 * 
-	 * @return uses {@link #scoreLevelInTeleop} to score in level 3
+	 * @return the command
+	 * @implNote uses {@link #scoreLevelInTeleop} to score in level 3
 	 */
 	public static Command scoreLevelThreeInTeleop() {
 		return sequence(
@@ -102,7 +105,8 @@ public class CommandComposer {
 	/**
 	 * TELEOP | Level 4 -> NO CLEARANCE
 	 * 
-	 * @return uses {@link #scoreLevelInTeleop} to score in level 4
+	 * @return the command
+	 * @implNote uses {@link #scoreLevelInTeleop} to score in level 4
 	 */
 	public static Command scoreLevelFourInTelop() {
 		return sequence(
