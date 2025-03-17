@@ -157,12 +157,12 @@ public class Robot extends TimedRobot {
 				.addOption(
 						"3 Score North (Level 3)",
 						// TODO: Optimize
-						CommandComposer.get3ScoreNorth(3, 0.5, 1.0, 0.1));
+						CommandComposer.get3ScoreNorth(3, 0.5, 1.0, 0.4));
 		m_autoSelector
 				.addOption(
 						"3 Score South (Level 3)",
 						// TODO: Optimize
-						CommandComposer.get3ScoreSouth(3, 0.5, 1.0, 0.1));
+						CommandComposer.get3ScoreSouth(3, 0.5, 1.0, 0.4));
 	}
 
 	public void addTestingCommands() {
@@ -307,10 +307,7 @@ public class Robot extends TimedRobot {
 						m_driveSubsystem.testCommand(kDriveMinSpeed, kTurnMinAngularSpeed, 1.0));
 		m_testingChooser
 				.addOption(
-						"Fastest Forward/Backward Movement Test (5m)",
-						sequence(
-								CommandComposer.moveStraight(5, 0.01, 1),
-								CommandComposer.moveStraight(-5, 0.01, 1)));
+						"Fastest Forward/Backward Movement Test (5m)", forwardBackwardSpeedTest(5, 5, 0.01, 1));
 		m_testingChooser
 				.addOption(
 						"Fastest Rotation Test (5 rotations)",

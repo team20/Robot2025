@@ -689,4 +689,16 @@ public class CommandComposer {
 		return c;
 	}
 
+	public static Command forwardBackwardSpeedTest(int iterations, double displacement, double distanceTolerance,
+			double angleToleranceInDegrees) {
+		SequentialCommandGroup g = new SequentialCommandGroup();
+		for (int i = 0; i < iterations; i++)
+			g.addCommands(
+					CommandComposer.moveStraight(displacement, distanceTolerance, angleToleranceInDegrees),
+					new WaitCommand(1.0),
+					CommandComposer.moveStraight(-displacement, distanceTolerance, angleToleranceInDegrees),
+					new WaitCommand(1.0));
+		return g;
+	}
+
 }
