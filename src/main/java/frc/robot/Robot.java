@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import static edu.wpi.first.wpilibj2.command.Commands.*;
 import static frc.robot.CommandComposer.*;
 import static frc.robot.Constants.AlgaeConstants.*;
 import static frc.robot.Constants.ClimberConstants.*;
@@ -42,6 +43,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+import frc.robot.Constants.AutoConstants;
 import frc.robot.subsystems.AlgaeGrabberSubsystem;
 import frc.robot.subsystems.ArduinoSubsystem;
 import frc.robot.subsystems.ArduinoSubsystem.StatusCode;
@@ -50,6 +52,9 @@ import frc.robot.subsystems.ClimberSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.WristSubsystem;
+import frc.robot.subsystems.vision.VisionIOPhotonVision;
+import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
+import frc.robot.subsystems.vision.VisionSubsystem;
 
 public class Robot extends TimedRobot {
 	private Command m_autonomousCommand;
@@ -65,9 +70,12 @@ public class Robot extends TimedRobot {
 	private final CheeseStickSubsystem m_cheeseStickSubsystem = new CheeseStickSubsystem(
 			m_wristSubsystem.getCheeseStickMount());
 	private final ArduinoSubsystem m_arduinoSubsystem = new ArduinoSubsystem();
+	private final VisionSubsystem m_visionSubsystem;
+
 	private final CommandPS5Controller m_driverController = new CommandPS5Controller(kDriverControllerPort);
 	private final CommandPS5Controller m_operatorController = new CommandPS5Controller(kOperatorControllerPort);
 	private final PowerDistribution m_pdh = new PowerDistribution();
+
 	SimCameraProperties cameraProp = new SimCameraProperties() {
 		{
 			setCalibration(640, 480, Rotation2d.fromDegrees(100));
@@ -87,6 +95,17 @@ public class Robot extends TimedRobot {
 	public Robot() {
 		SignalLogger.start();
 		WebServer.start(5800, Filesystem.getDeployDirectory().getPath());
+
+		if (isReal()) {
+			m_visionSubsystem = new VisionSubsystem(m_driveSubsystem,
+					new VisionIOPhotonVision("FrontCamera",
+							AutoConstants.kRobotToCamera1));
+		} else {
+			m_visionSubsystem = new VisionSubsystem(
+					m_driveSubsystem,
+					new VisionIOPhotonVisionSim(
+							"FrontCamera", AutoConstants.kRobotToCamera1, () -> m_driveSubsystem.getPose()));
+		}
 		CommandComposer.setSubsystems(
 				m_driveSubsystem, m_algaeGrabberSubsystem, m_cheeseStickSubsystem, m_climberSubsystem,
 				m_elevatorSubsystem, m_wristSubsystem, m_arduinoSubsystem);
@@ -104,8 +123,10 @@ public class Robot extends TimedRobot {
 						kClimberMotorPort, "Climber Motor", kWristMotorPort, "Wrist Motor", kFlywheelMotorPort,
 						"Algae Flywheel Motor", kGrabberAnglePort, "Algae Pivot Motor"));
 		DriverStation.startDataLog(DataLogManager.getLog());
+
 		addAutoCommands();
 		addSysIDCommands();
+		addTestingCommands();
 		bindClimberControls();
 		bindDriveControls();
 		bindElevatorControls();
@@ -153,6 +174,26 @@ public class Robot extends TimedRobot {
 				.addOption("SysId Elevator Dynamic Forward", m_elevatorSubsystem.sysidDynamic(Direction.kForward));
 		m_testingChooser
 				.addOption("SysId Elevator Dynamic Reverse", m_elevatorSubsystem.sysidDynamic(Direction.kReverse));
+	}
+
+	public void addTestingCommands() {
+
+		double distanceTolerance = 0.01;
+		double angleToleranceInDegrees = 1;
+
+		m_testingChooser
+				.addOption(
+						"Check PID Constants for Driving (5'x5' Square)",
+						CommandComposer
+								.moveOnSquare(Units.feetToMeters(5), distanceTolerance, angleToleranceInDegrees, 16));
+
+		m_testingChooser
+				.addOption(
+						"Fastest Forward/Backward Movement Test (5m)",
+						sequence(
+								CommandComposer.moveStraight(5, 0.1, 10),
+								CommandComposer.moveStraight(-5, 0.1, 10)));
+
 	}
 
 	public void bindDriveControls() {

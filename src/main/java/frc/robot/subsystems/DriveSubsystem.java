@@ -17,15 +17,18 @@ import com.studica.frc.AHRS.NavXComType;
 
 import edu.wpi.first.hal.SimDouble;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
@@ -38,34 +41,38 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.ControllerConstants;
 import frc.robot.SwerveModule;
+import frc.robot.subsystems.vision.VisionSubsystem.VisionConsumer;
 
-public class DriveSubsystem extends SubsystemBase {
+public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
 	private final SwerveModule m_frontLeft;
 	private final SwerveModule m_frontRight;
 	private final SwerveModule m_backLeft;
 	private final SwerveModule m_backRight;
-
 	private final SwerveDriveKinematics m_kinematics = new SwerveDriveKinematics(
 			kFrontLeftLocation, kFrontRightLocation, kBackLeftLocation, kBackRightLocation);
-	private final SwerveDriveOdometry m_odometry;
+	private final SwerveDrivePoseEstimator m_poseEstimator;
 	private final AHRS m_gyro = new AHRS(NavXComType.kUSB1);
 	private final SimDouble m_gyroSim;
 	// https://docs.wpilib.org/en/latest/docs/software/advanced-controls/system-identification/index.html
 	private final SysIdRoutine m_sysidRoutine;
-
 	private final StructPublisher<Pose2d> m_posePublisher;
+	private final StructPublisher<Pose2d> m_visionPosePublisher;
 	private final StructPublisher<ChassisSpeeds> m_currentChassisSpeedsPublisher;
 	private final StructArrayPublisher<SwerveModuleState> m_targetModuleStatePublisher;
 	private final StructArrayPublisher<SwerveModuleState> m_currentModuleStatePublisher;
 	private final StructPublisher<Rotation2d> m_targetHeadingPublisher;
-
 	private final PIDController m_orientationController = new PIDController(kRotationP, kRotationI, kRotationD);
 
-	/** Creates a new DriveSubsystem. */
 	public DriveSubsystem() {
 		m_orientationController.enableContinuousInput(-Math.PI, Math.PI);
+
 		m_posePublisher = NetworkTableInstance.getDefault().getStructTopic("/SmartDashboard/Pose", Pose2d.struct)
 				.publish();
+
+		m_visionPosePublisher = NetworkTableInstance.getDefault()
+				.getStructTopic("/SmartDashboard/VisionPose", Pose2d.struct)
+				.publish();
+
 		m_currentChassisSpeedsPublisher = NetworkTableInstance.getDefault()
 				.getStructTopic("/SmartDashboard/Chassis Speeds", ChassisSpeeds.struct)
 				.publish();
@@ -100,7 +107,16 @@ public class DriveSubsystem extends SubsystemBase {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		m_odometry = new SwerveDriveOdometry(m_kinematics, getHeading(), getModulePositions());
+
+		// Initialize pose estimator with kinematics, initial gyro angle, initial module
+		// positions,
+		// and an initial pose (0,0,0)
+		m_poseEstimator = new SwerveDrivePoseEstimator(
+				m_kinematics,
+				getHeading(),
+				getModulePositions(),
+				new Pose2d());
+
 		if (RobotBase.isSimulation()) {
 			m_gyroSim = new SimDeviceSim("navX-Sensor", m_gyro.getPort()).getDouble("Yaw");
 		} else {
@@ -143,7 +159,7 @@ public class DriveSubsystem extends SubsystemBase {
 	 * @return The pose of the robot.
 	 */
 	public Pose2d getPose() {
-		return m_odometry.getPoseMeters();
+		return m_poseEstimator.getEstimatedPosition();
 	}
 
 	/**
@@ -355,7 +371,10 @@ public class DriveSubsystem extends SubsystemBase {
 		m_currentChassisSpeedsPublisher.set(speeds);
 		if (RobotBase.isSimulation())// TODO: Use SysId to get feedforward model for rotation
 			m_gyroSim.set(-Math.toDegrees(speeds.omegaRadiansPerSecond * TimedRobot.kDefaultPeriod) + m_gyro.getYaw());
-		m_posePublisher.set(m_odometry.update(getHeading(), getModulePositions()));
+
+		// Update pose estimator with current heading and module positions
+		Pose2d estimatedPose = m_poseEstimator.update(getHeading(), getModulePositions());
+		m_posePublisher.set(estimatedPose);
 	}
 
 	/**
@@ -403,7 +422,7 @@ public class DriveSubsystem extends SubsystemBase {
 	 * @return runs the command once
 	 */
 	public Command resetOdometry(Pose2d pose) {
-		return runOnce(() -> m_odometry.resetPosition(getHeading(), getModulePositions(), pose))
+		return runOnce(() -> m_poseEstimator.resetPosition(getHeading(), getModulePositions(), pose))
 				.withName("ResetOdometryCommand");
 	}
 
@@ -490,6 +509,14 @@ public class DriveSubsystem extends SubsystemBase {
 	 */
 	public Command sysidDynamic(SysIdRoutine.Direction direction) {
 		return m_sysidRoutine.dynamic(direction);
+	}
+
+	@Override
+	public void accept(Pose2d visionRobotPoseMeters, double timestampSeconds, Matrix<N3, N1> visionMeasurementStdDevs) {
+		m_visionPosePublisher.accept(visionRobotPoseMeters);
+
+		// Update the pose estimator with the vision measurement
+		m_poseEstimator.addVisionMeasurement(visionRobotPoseMeters, timestampSeconds, visionMeasurementStdDevs);
 	}
 
 }

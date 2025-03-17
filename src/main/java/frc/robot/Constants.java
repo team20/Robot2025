@@ -5,7 +5,12 @@ import static edu.wpi.first.units.Units.*;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Distance;
 
@@ -206,5 +211,46 @@ public class Constants {
 		public static final double kD = 0;
 
 		public static final double kTolerance = 4;
+	}
+
+	public static final class AutoConstants {
+		public static AprilTagFieldLayout kFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
+
+		// TODO tune to our bot
+		// from:
+		// https://github.com/FRCTeam3044/2025swervebase/blob/63305be2c48e7f89c1c2cb156e06987dd0aecc72/src/main/java/frc/robot/subsystems/vision/VisionConstants.java
+		public static double maxAmbiguity = 0.2;
+		public static double maxZError = 0.75;
+
+		// Standard deviation baselines, for 1 meter distance and 1 tag
+		// (Adjusted automatically based on distance and # of tags)
+		public static double linearStdDevBaseline = 0.1; // Meters
+		public static double angularStdDevBaseline = 0.06; // Radians
+
+		// Standard deviation multipliers for each camera
+		// (Adjust to trust some cameras more than others)
+		public static double[] cameraStdDevFactors = new double[] {
+				0.8, // Camera 0
+				1.6, // Camera 1
+				1.6 // Camera 2
+		};
+
+		// Multipliers to apply for MegaTag 2 observations
+		public static double linearStdDevMegatag2Factor = 0.5; // More stable than full 3D solve
+		public static double angularStdDevMegatag2Factor = Double.POSITIVE_INFINITY; // No rotation data available
+
+		/**
+		 * The {@code Transform3d} expressing the pose of the first camera relative to
+		 * the pose of the robot.
+		 */
+		public static Transform3d kRobotToCamera1 = new Transform3d(new Translation3d(0.3, 0.0, 0.2),
+				new Rotation3d(0, Units.degreesToRadians(-10), 0));
+
+		/**
+		 * The {@code Transform3d} expressing the pose of the second camera relative to
+		 * the pose of the robot.
+		 */
+		public static Transform3d kRobotToCamera2 = new Transform3d(new Translation3d(-0.5, -0.0, 0.2),
+				new Rotation3d(0, Units.degreesToRadians(-20), Units.degreesToRadians(180)));
 	}
 }
