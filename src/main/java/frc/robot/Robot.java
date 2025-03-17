@@ -159,14 +159,11 @@ public class Robot extends TimedRobot {
 		m_autoSelector
 				.addOption(
 						"3 Score North (Level 3)",
-						// TODO: Optimize
-						CommandComposer.get3ScoreNorth(3, 0.5, 1.0, 0.1));
+						get3ScoreNorth(3, 0.5, 1.0));
 		m_autoSelector
 				.addOption(
 						"3 Score South (Level 3)",
-						// TODO: Optimize
-						CommandComposer.get3ScoreSouth(3, 0.5, 1.0, 0.1));
-		m_autoSelector.addOption("Middle and Algae Red", CommandComposer.getMiddleScoreAndAlgaeRed());
+						get3ScoreSouth(3, 0.5, 1.0));
 		m_autoSelector
 				.addOption("Middle and Algae Practice Field", CommandComposer.getMiddleScoreAndAlgaePracticeField());
 		m_autoSelector.addOption("Two Score Red Left Side", CommandComposer.getTwoScoreRedLeftSide());
@@ -175,44 +172,64 @@ public class Robot extends TimedRobot {
 	public void addTestingCommands() {
 		m_testingChooser
 				.addOption(
+						"Prepare to Score at Level 3",
+						prepareToScore(3, false));
+		m_testingChooser
+				.addOption(
+						"Prepare to Score at Level 4",
+						prepareToScore(4, false));
+		m_testingChooser
+				.addOption(
+						"Prepare to Score at Level 3 (Closest, Left)",
+						prepareToScoreClosest(3, false, kRobotToTagsLeft));
+		m_testingChooser
+				.addOption(
+						"Prepare to Score at Level 3 (Closest, Right)",
+						prepareToScoreClosest(3, false, kRobotToTagsRight));
+		m_testingChooser
+				.addOption(
+						"Prepare to Score at Level 4 (Closest, Left)",
+						prepareToScoreClosest(4, false, kRobotToTagsLeft));
+		m_testingChooser
+				.addOption(
+						"Prepare to Score at Level 4 (Closest, Right)",
+						prepareToScoreClosest(4, false, kRobotToTagsRight));
+		m_testingChooser
+				.addOption(
+						"Score at Level 3 (Closest, Left)",
+						scoreClosest(3, false, kRobotToTagsLeft));
+		m_testingChooser
+				.addOption(
+						"Score at Level 3 (Closest, Right)",
+						scoreClosest(3, false, kRobotToTagsRight));
+		m_testingChooser
+				.addOption(
+						"Score at Level 4 (Closest, Left)",
+						scoreClosest(4, false, kRobotToTagsLeft));
+		m_testingChooser
+				.addOption(
+						"Score at Level 4 (Closest, Right)",
+						scoreClosest(4, false, kRobotToTagsRight));
+		m_testingChooser
+				.addOption(
 						"Pick Up and Score at Level 3 (Left)",
-						score(toClosestTag(kLevelOffset.get(3), 0, kRobotToTagsLeft), goToBase(), 3));
+						scoreClosest(3, true, kRobotToTagsLeft));
 		m_testingChooser
 				.addOption(
 						"Pick Up and Score at Level 3 (Right)",
-						score(toClosestTag(kLevelOffset.get(3), 0, kRobotToTagsRight), goToBase(), 3));
+						scoreClosest(3, true, kRobotToTagsRight));
 		m_testingChooser
 				.addOption(
 						"Pick Up and Score at Level 4 (Left)",
-						score(toClosestTag(kLevelOffset.get(4), 0, kRobotToTagsLeft), goToBase(), 4));
+						scoreClosest(4, true, kRobotToTagsLeft));
 		m_testingChooser
 				.addOption(
 						"Pick Up and Score at Level 4 (Right)",
-						score(toClosestTag(kLevelOffset.get(4), 0, kRobotToTagsRight), goToBase(), 4));
+						scoreClosest(4, true, kRobotToTagsRight));
 		m_testingChooser
 				.addOption(
 						"Reposition the Robot in Simulation",
 						runOnce(() -> repositionSimulatedRobot()));
-		m_testingChooser
-				.addOption(
-						"Prepare to Score at Level 3 (Left)",
-						prepareToScore(
-								toClosestTag(kLevelOffset.get(3), 0, kRobotToTagsLeft), kLevelThreeHeight,
-								kGrabberAngleLevelThree));
-		m_testingChooser
-				.addOption(
-						"Prepare to Score at Level 4 (Left)",
-						prepareToScore(
-								toClosestTag(kLevelOffset.get(4), 0, kRobotToTagsLeft), kLevelFourHeight,
-								kGrabberAngleLevelFour));
-		m_testingChooser
-				.addOption(
-						"Score at Level 3 (Left)",
-						score(toClosestTag(kLevelOffset.get(3), 0, kRobotToTagsLeft), 3));
-		m_testingChooser
-				.addOption(
-						"Score at Level 4 (Left)",
-						score(toClosestTag(kLevelOffset.get(4), 0, kRobotToTagsLeft), 4));
 		m_testingChooser
 				.addOption(
 						"Check All Subsystems",
@@ -319,6 +336,15 @@ public class Robot extends TimedRobot {
 				m_elevatorSubsystem.goToLevelTwoHeight()
 						.andThen(m_wristSubsystem.goToAngle(kGrabberAngleOthers))
 						.withName("Elevator to Level Two and Wrist to Angle"));
+		// m_operatorController.triangle().onTrue(
+		// prepareToScore(4, false)
+		// .withName("Elevator to Level Four and Wrist to Angle"));
+		// m_operatorController.square().onTrue(
+		// prepareToScore(3, false)
+		// .withName("Elevator to Level Three and Wrist to Angle"));
+		// m_operatorController.cross().onTrue(
+		// prepareToScore(2, false)
+		// .withName("Elevator to Level Two and Wrist to Angle"));
 		m_operatorController.circle().onTrue(CommandComposer.scoreLevelOneInTeleop());
 		m_operatorController.L1().and(m_operatorController.triangle()).onTrue(CommandComposer.removeAlgaeLevelThree());
 		m_operatorController.L1().and(m_operatorController.square()).onTrue(CommandComposer.removeAlgaeLevelTwo());
