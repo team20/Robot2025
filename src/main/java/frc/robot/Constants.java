@@ -291,7 +291,7 @@ public class Constants {
 		 * A {@code Map} storing the distance to move forward to score at each scoring
 		 * level.
 		 */
-		static Map<Integer, Double> kLevelOffset = Map.of(
+		static Map<Integer, Double> kLevelForwardAdjustments = Map.of(
 				1, 0.13, // L1
 				2, 0.2, // L2
 				3, 0.2, // L3
@@ -300,17 +300,37 @@ public class Constants {
 		// increase the offset value to get closer to the tag
 
 		/**
+		 * A {@code Map} storing the elevator height for each scoring level.
+		 */
+		static Map<Integer, Double> kLevelElevatorHeights = Map.of(
+				1, Units.inchesToMeters(3), // L1
+				2, Units.inchesToMeters(8), // L2
+				3, Units.inchesToMeters(29), // L3
+				4, Units.inchesToMeters(48 + 2)); // L4
+		// TODO: need to check
+
+		/**
+		 * A {@code Map} storing the wrist angle for each scoring level.
+		 */
+		static Map<Integer, Double> kLevelWristAngles = Map.of(
+				1, 221.0, // L1
+				2, 221.0, // L2
+				3, 240.0, // L3
+				4, 223.0); // L4
+		// TODO: need to check
+
+		/**
 		 * A {@code Map} storing the additional distance to move forward/backward for
 		 * some {@code AprilTag}s (positive: closer to the tag).
 		 */
-		static Map<Integer, Double> kForwardAdjustment = Map.of();
+		static Map<Integer, Double> kTagForwardAdjustments = Map.of();
 		// Map.of(18, 0.015, 22, 0.01);
 
 		/**
 		 * A {@code Map} storing the additional distance to move to left/right for
 		 * some {@code AprilTag}s (positive: strafe left when facing toward the tag).
 		 */
-		static Map<Integer, Double> kSideAdjustment = Map.of();
+		static Map<Integer, Double> kTagSideAdjustments = Map.of();
 		// Map.of(19, -0.02, 21, -0.01, 22, -0.01);
 
 	}

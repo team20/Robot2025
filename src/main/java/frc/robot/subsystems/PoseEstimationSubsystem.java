@@ -233,6 +233,21 @@ public class PoseEstimationSubsystem extends SubsystemBase {
 	}
 
 	/**
+	 * Finds the ID of the {@code AprilTag} that is closest to the robot
+	 * ({@code null} if no such {@code AprilTag}).
+	 * 
+	 * @param angleOfCoverageInDegrees the angular coverage (in degrees) within
+	 *        which {@code AprilTag}s are considered (maximum: 180)
+	 * @param distanceThresholdInMeters the maximum distance (in meters) within
+	 *        which {@code AprilTag}s are considered
+	 * @return the ID of the {@code AprilTag} that is closest to the
+	 *         robot ({@code null} if no such {@code AprilTag})
+	 */
+	public Integer closestTagID(double angleOfCoverageInDegrees, double distanceThresholdInMeters) {
+		return closestTagID(getEstimatedPose(), angleOfCoverageInDegrees, distanceThresholdInMeters);
+	}
+
+	/**
 	 * Determines the ID of the {@code AprilTag} that is closest to the specified
 	 * {@code Pose2d} ({@code null} if no such {@code AprilTag}).
 	 * 
