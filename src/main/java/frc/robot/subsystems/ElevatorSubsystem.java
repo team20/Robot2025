@@ -42,20 +42,20 @@ import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
 public class ElevatorSubsystem extends SubsystemBase {
-	protected final SparkMax m_elevatorMotor = new SparkMax(kElevatorMotorPort, MotorType.kBrushless);
+	private final SparkMax m_elevatorMotor = new SparkMax(kElevatorMotorPort, MotorType.kBrushless);
 	private final RelativeEncoder m_elevatorEncoder = m_elevatorMotor.getEncoder();
 	private final SparkClosedLoopController m_closedLoopController = m_elevatorMotor.getClosedLoopController();
 
-	protected final Timer m_timer = new Timer();
-	protected final ElevatorFeedforward m_ff = new ElevatorFeedforward(kS, kG, kV, kA);
-	protected final TrapezoidProfile m_profile = new TrapezoidProfile(
+	private final Timer m_timer = new Timer();
+	private final ElevatorFeedforward m_ff = new ElevatorFeedforward(kS, kG, kV, kA);
+	private final TrapezoidProfile m_profile = new TrapezoidProfile(
 			new TrapezoidProfile.Constraints(kMaxVelocity, kMaxAccel));
 	// Adjust ramp rate, step voltage, and timeout to make sure elevator doesn't
 	// break
 	private final SysIdRoutine m_sysidRoutine = new SysIdRoutine(
 			new SysIdRoutine.Config(Volts.of(1.5).div(Seconds.of(1)), Volts.of(2), Seconds.of(2)),
 			new SysIdRoutine.Mechanism(m_elevatorMotor::setVoltage, null, this));
-	protected double m_setPosition = 0;
+	private double m_setPosition = 0;
 
 	private final SparkMaxSim m_elevatorMotorSim;
 	private final ElevatorSim m_elevatorModel;
@@ -88,9 +88,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 		resetEncoder();
 		if (RobotBase.isSimulation()) {
 			m_elevatorMotorSim = new SparkMaxSim(m_elevatorMotor, DCMotor.getNEO(1));
-			m_elevatorModel = new ElevatorSim(DCMotor.getNEO(1), kGearRatio,
-					// Units.lbsToKilograms(20),
-					Units.lbsToKilograms(6),
+			m_elevatorModel = new ElevatorSim(DCMotor.getNEO(1), kGearRatio, Units.lbsToKilograms(3),
 					kMetersPerPulleyRotation / (2 * Math.PI), 0,
 					Units.inchesToMeters(90), true, 0);
 		} else {

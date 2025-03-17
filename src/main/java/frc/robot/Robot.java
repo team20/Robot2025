@@ -136,13 +136,11 @@ public class Robot extends TimedRobot {
 		bindWristControls();
 		bindAlgaeControls();
 		bindCheeseStickControls();
-		SmartDashboard.putData("Auto Selector", m_autoSelector);
 		bindAlert(
 				new Alert("Driver Joystick Disconnected!", AlertType.kError), () -> !m_driverController.isConnected());
 		bindAlert(
 				new Alert("Operator Joystick Disconnected!", AlertType.kError),
 				() -> !m_operatorController.isConnected());
-		SmartDashboard.putData("Auto Selector", m_autoSelector);
 		DriverStation.silenceJoystickConnectionWarning(true);
 		SmartDashboard.putData("Testing Chooser", m_testingChooser);
 		SmartDashboard.putData("Auto Selector", m_autoSelector);

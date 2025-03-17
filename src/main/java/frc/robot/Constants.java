@@ -84,16 +84,17 @@ public class Constants {
 		public static final int kBackRightCANCoderPort = 22;
 		public static final int kBackLeftCANCoderPort = 32;
 
-		public static final double kP = 0.04; // TODO: tune it
+		// TODO: Make sure these are tuned (can do with SysId)
+		public static final double kP = 0.09; // TODO: tune it probably to 0.04
 		public static final double kI = 0.0;
 		public static final double kD = 0.001;
 		public static final double kS = 0;
 		public static final double kV = 0.12;
 		public static final double kA = 0.009;
 
-		public static final double kRotationP = 5;
+		public static final double kRotationP = 5; // TODO: tune it
 		public static final double kRotationI = 0.0;
-		public static final double kRotationD = 0.1;
+		public static final double kRotationD = 0.1; // TODO: tune it
 		public static final double kRotationS = 0;
 		public static final double kRotationV = 1.9;
 		public static final double kRotationA = 0.009;
@@ -159,13 +160,11 @@ public class Constants {
 		public static final double kP = 6.0; // 1.1
 		public static final double kI = 0;
 		public static final double kD = 0;
-
 		public static final double kS = 0.05631;
-		public static final double kG = 0.35; // 0.22876 | .43 // TODO: need to check this change by Natalie and Nitya
+		public static final double kG = 0.43;
 		public static final double kV = 5.3794;
 		public static final double kA = 0.74041;
 		public static final double kGearRatio = 10;
-
 		/**
 		 * 24 teeth, 5 mm pitch, one rotation moves 120 mm, 2 stage cascading elevator
 		 * means total height change is 240 mm.
@@ -187,7 +186,7 @@ public class Constants {
 		public static final double kLevelThreeHeight = Units.inchesToMeters(29);
 		public static final double kLevelFourHeight = Units.inchesToMeters(48 + 2);
 		public static final double kMaxExtension = Units.inchesToMeters(49.5 + 0.75);
-		// The amount that the elevator decreases in order to score
+		// TODO: The amount that the elevator decreases in order to score
 		public static final double kClearanceHeight = Units.inchesToMeters(5.5);
 		public static final double kToScoreHeightDecrease = Units.inchesToMeters(0);
 		public static final double kCoralStationHeight = Units.inchesToMeters(17 + 2);
@@ -211,9 +210,9 @@ public class Constants {
 		public static final double kWristReverseSoftLimit = 90; // Wrist facing up
 		public static final double kWristOffset = 0.75 + (3.5 / 360.0); // angle offset
 
-		public static final double kP = 0.01;
+		public static final double kP = 0.015; // TODO: Optimize: 0.01?
 		public static final double kI = 0.0;
-		public static final double kD = 0.003;
+		public static final double kD = 0; // TODO: Optimize: 0.003?
 
 		public static final double kTolerance = 4;
 	}
@@ -243,27 +242,26 @@ public class Constants {
 		 * {@code AprilTag} to align the robot to that {@code AprilTag}.
 		 */
 		static Transform2d[] kRobotToTags = { transform(1.1, 0.0, 180),
-				transform(0.60, 0.0, 180) };
+				transform(0.35, 0.0, 180) };
+		// transform(0.60, 0.0, 180) };
+		// TODO: Optimize
 
 		/**
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
 		 * {@code AprilTag} to align the robot to the left of that {@code AprilTag}.
 		 */
 		static Transform2d[] kRobotToTagsLeft = { transform(1.1, 0, 180),
-				transform(0.60, -0.165, 180) };
-		// transform(0.45, -0.185, 180) }; TODO: need to check
-		// decrease y to align more to the left
-		// no need to change x because of kLevelOffset
-
+				transform(0.45, -0.185, 180) };
+		// transform(0.60, -0.165, 180) };
+		// TODO: decrease y to align more to the left
 		/**
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
 		 * {@code AprilTag} to align the robot to the right of that {@code AprilTag}.
 		 */
 		static Transform2d[] kRobotToTagsRight = { transform(1.1, 0, 180),
-				transform(0.60, 0.195, 180) };
-		// transform(0.45, 0.255, 180) }; TODO: need to check
+				transform(0.54, 0.200, 180) };
+		// transform(0.60, 0.195, 180) };
 		// decrease y to align more to the left
-		// no need to change x because of kLevelOffset
 
 		/**
 		 * The offset for alignment to algaes (positive: closer to algae).

@@ -41,9 +41,9 @@ import frc.robot.subsystems.WristSubsystem;
 
 public class CommandComposer {
 	private static DriveSubsystem m_driveSubsystem;
-	static AlgaeGrabberSubsystem m_algaeGrabberSubsystem;
+	private static AlgaeGrabberSubsystem m_algaeGrabberSubsystem;
 	private static CheeseStickSubsystem m_cheeseStickSubsystem;
-	static ClimberSubsystem m_climberSubsystem;
+	private static ClimberSubsystem m_climberSubsystem;
 	private static ElevatorSubsystem m_elevatorSubsystem;
 	private static WristSubsystem m_wristSubsystem;
 	private static PoseEstimationSubsystem m_poseEstimationSubsystem;
