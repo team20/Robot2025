@@ -18,6 +18,7 @@ import java.util.function.Supplier;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -63,7 +64,7 @@ public class CommandComposer {
 	private static Command scoreLevelInTeleop(double level, double clearanceHeight, Supplier<Command> levelCommand,
 			double wristAngle) {
 		return sequence(
-				m_elevatorSubsystem.goToClearanceHeight(level, clearanceHeight),
+				m_elevatorSubsystem.goToClearanceHeight(level, Units.inchesToMeters(clearanceHeight)),
 				m_wristSubsystem.goToAngle(wristAngle),
 				levelCommand.get());
 	}
@@ -74,7 +75,7 @@ public class CommandComposer {
 	}
 
 	public static Command scoreLevelTwoInTeleop() {
-		return scoreLevelInTeleop(kLevelTwoHeight, 0.4, m_elevatorSubsystem::goToLevelTwoHeight, kGrabberAngleOthers)
+		return scoreLevelInTeleop(kLevelTwoHeight, 0.7, m_elevatorSubsystem::goToLevelTwoHeight, kGrabberAngleOthers)
 				.withName("Score Level Two in Teleop");
 	}
 
@@ -173,8 +174,8 @@ public class CommandComposer {
 				m_cheeseStickSubsystem.grab(),
 				removeAlgaeLevelTwo(),
 				parallel(
-						m_wristSubsystem.goToAngle(240),
-						moveStraight(-0.7, 0.01, 1)));
+						m_wristSubsystem.goToAngle(255),
+						moveStraight(-0.5, 0.01, 1)));
 	}
 
 	static Command getMiddleScoreAndAlgaeRed() {

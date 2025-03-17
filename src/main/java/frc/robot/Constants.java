@@ -84,7 +84,6 @@ public class Constants {
 		public static final int kBackRightCANCoderPort = 22;
 		public static final int kBackLeftCANCoderPort = 32;
 
-		// TODO: Make sure these are tuned (can do with SysId)
 		public static final double kP = 0.04; // TODO: tune it
 		public static final double kI = 0.0;
 		public static final double kD = 0.001;
@@ -150,7 +149,7 @@ public class Constants {
 		public static final double kTurnP = 5;
 		public static final double kTurnI = 0;
 		public static final double kTurnD = 0.1;
-		public static final double kTurnMaxAcceleration = 2 * kTurnMaxAngularSpeed; // TODO: kTurnMaxAngularSpeed in 0.5
+		public static final double kTurnMaxAcceleration = 2 * kTurnMaxAngularSpeed; // kTurnMaxAngularSpeed in 0.5
 	}
 
 	public static final class ElevatorConstants {
@@ -252,7 +251,7 @@ public class Constants {
 		 */
 		static Transform2d[] kRobotToTagsLeft = { transform(1.1, 0, 180),
 				transform(0.60, -0.165, 180) };
-		// transform(0.45, -0.185, 180) }; TODO: Natalie and Nitya need to check
+		// transform(0.45, -0.185, 180) }; TODO: need to check
 		// decrease y to align more to the left
 		// no need to change x because of kLevelOffset
 
@@ -262,14 +261,14 @@ public class Constants {
 		 */
 		static Transform2d[] kRobotToTagsRight = { transform(1.1, 0, 180),
 				transform(0.60, 0.195, 180) };
-		// transform(0.45, 0.255, 180) }; TODO: Natalie and Nitya need to check
+		// transform(0.45, 0.255, 180) }; TODO: need to check
 		// decrease y to align more to the left
 		// no need to change x because of kLevelOffset
 
 		/**
 		 * The offset for alignment to algaes (positive: closer to algae).
 		 */
-		static double kForwrdAdjustmentAlgaeRemoval = 0.25; // TODO: Natalie and Nitya need to check
+		static double kForwrdAdjustmentAlgaeRemoval = 0.25; // TODO: need to check
 
 		/**
 		 * The offset for alignment to coral stations (positive: closer to station).
@@ -299,7 +298,7 @@ public class Constants {
 				2, 0.2, // L2
 				3, 0.2, // L3
 				4, 0.05); // L4
-		// TODO: Natalie and Nitya need to check
+		// TODO: need to check
 		// increase the offset value to get closer to the tag
 
 		/**

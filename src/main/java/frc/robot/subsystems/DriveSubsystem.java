@@ -227,7 +227,7 @@ public class DriveSubsystem extends SubsystemBase {
 		m_currentModuleStatePublisher.set(states);
 		var speeds = m_kinematics.toChassisSpeeds(states);
 		m_currentChassisSpeedsPublisher.set(speeds);
-		if (RobotBase.isSimulation())// TODO: Use SysId to get feedforward model for rotation
+		if (RobotBase.isSimulation())
 			m_gyroSim.set(-Math.toDegrees(speeds.omegaRadiansPerSecond * TimedRobot.kDefaultPeriod) + m_gyro.getYaw());
 		m_posePublisher.set(m_odometry.update(getHeading(), getModulePositions()));
 	}
