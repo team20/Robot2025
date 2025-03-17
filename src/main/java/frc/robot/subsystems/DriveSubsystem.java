@@ -200,10 +200,7 @@ public class DriveSubsystem extends SubsystemBase {
 	 */
 	public void drive(double vxMetersPerSecond, double vyMetersPerSecond, double omegaRadiansPerSecond,
 			boolean isFieldRelative) {
-		setModuleStates(
-				calculateModuleStates(
-						chassisSpeeds(vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond),
-						isFieldRelative));
+		drive(new ChassisSpeeds(vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond), isFieldRelative);
 	}
 
 	/**
@@ -236,8 +233,7 @@ public class DriveSubsystem extends SubsystemBase {
 	 *        the robot face forward (+X direction).
 	 * @param strafeOrientation Strafe orientation supplier. Positive values make
 	 *        the robot face left (+Y direction).
-	 * @return a {@code ChassisSpeeds} instance to drive the robot with joystick
-	 *         input
+	 * @return The field relative chassis speed for the robot.
 	 */
 	public ChassisSpeeds chassisSpeeds(DoubleSupplier forwardSpeed, DoubleSupplier strafeSpeed,
 			DoubleSupplier forwardOrientation, DoubleSupplier strafeOrientation, DoubleSupplier rotation) {
@@ -251,94 +247,12 @@ public class DriveSubsystem extends SubsystemBase {
 					.calculate(getHeading().getRadians(), angle.getRadians());
 			m_targetHeadingPublisher.set(angle);
 		}
-		return chassisSpeeds(forwardSpeed, strafeSpeed, omegaRadiansPerSecond);
-	}
-
-	/**
-	 * Creates a {@code ChassisSpeeds} instance to drive the robot with joystick
-	 * input.
-	 *
-	 * @param forwardSpeed Forward speed supplier. Positive values make the robot
-	 *        go forward (+X direction).
-	 * @param strafeSpeed Strafe speed supplier. Positive values make the robot
-	 *        go to the left (+Y direction).
-	 * @param forwardOrientation Forward orientation supplier. Positive values make
-	 *        the robot face forward (+X direction).
-	 * @param strafeOrientation Strafe orientation supplier. Positive values make
-	 *        the robot face left (+Y direction).
-	 * @return a {@code ChassisSpeeds} instance to drive the robot with joystick
-	 *         input
-	 */
-	public ChassisSpeeds chassisSpeeds(DoubleSupplier forwardSpeed, DoubleSupplier strafeSpeed,
-			DoubleSupplier forwardOrientation, DoubleSupplier strafeOrientation) {
-		var orientation = new Translation2d(forwardOrientation.getAsDouble(), strafeOrientation.getAsDouble());
-		double omegaRadiansPerSecond = 0;
-		if (orientation.getNorm() > 0.05) {
-			var angle = orientation.getAngle();
-			omegaRadiansPerSecond = m_orientationController
-					.calculate(getHeading().getRadians(), angle.getRadians());
-			m_targetHeadingPublisher.set(angle);
-		}
-		return chassisSpeeds(forwardSpeed, strafeSpeed, omegaRadiansPerSecond);
-	}
-
-	/**
-	 * Creates a {@code ChassisSpeeds} instance to drive the robot with joystick
-	 * input.
-	 *
-	 * @param forwardSpeed Forward speed supplier. Positive values make the robot
-	 *        go forward (+X direction).
-	 * @param strafeSpeed Strafe speed supplier. Positive values make the robot
-	 *        go to the left (+Y direction).
-	 * @param rotation Rotation supplier. Positive values make
-	 *        the robot rotate left (CCW direction).
-	 * @return a {@code ChassisSpeeds} instance to drive the robot with joystick
-	 *         input
-	 */
-	public static ChassisSpeeds chassisSpeeds(DoubleSupplier forwardSpeed, DoubleSupplier strafeSpeed,
-			DoubleSupplier rotation) {
-		double omegaRadiansPerSecond = MathUtil.applyDeadband(rotation.getAsDouble(), ControllerConstants.kDeadzone);
-		omegaRadiansPerSecond = Math.signum(omegaRadiansPerSecond) * Math.pow(omegaRadiansPerSecond, 2)
-				* kTeleopTurnMaxAngularSpeed;
-		return chassisSpeeds(forwardSpeed, strafeSpeed, omegaRadiansPerSecond);
-	}
-
-	/**
-	 * Creates a {@code ChassisSpeeds} instance to drive the robot with joystick
-	 * input.
-	 *
-	 * @param forwardSpeed Forward speed supplier. Positive values make the robot
-	 *        go forward (+X direction).
-	 * @param strafeSpeed Strafe speed supplier. Positive values make the robot
-	 *        go to the left (+Y direction).
-	 * @param omegaRadiansPerSecond angular velocity in radians per second
-	 * @return a {@code ChassisSpeeds} instance to drive the robot with joystick
-	 *         input
-	 */
-	static ChassisSpeeds chassisSpeeds(DoubleSupplier forwardSpeed, DoubleSupplier strafeSpeed,
-			double omegaRadiansPerSecond) {
 		double vxMetersPerSecond = MathUtil.applyDeadband(forwardSpeed.getAsDouble(), ControllerConstants.kDeadzone);
 		vxMetersPerSecond = Math.signum(vxMetersPerSecond) * Math.pow(vxMetersPerSecond, 2) * kTeleopDriveMaxSpeed;
 
 		double vyMetersPerSecond = MathUtil.applyDeadband(strafeSpeed.getAsDouble(), ControllerConstants.kDeadzone);
 		vyMetersPerSecond = Math.signum(vyMetersPerSecond) * Math.pow(vyMetersPerSecond, 2) * kTeleopDriveMaxSpeed;
 
-		return chassisSpeeds(vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond);
-	}
-
-	/**
-	 * Constructs a {@code ChassisSpeeds} object.
-	 *
-	 * @param vxMetersPerSecond forward velocity in meters per second
-	 * @param vyMetersPerSecond sideways velocity in meters per second
-	 * @param omegaRadiansPerSecond angular velocity in radians per second
-	 */
-	public static ChassisSpeeds chassisSpeeds(double vxMetersPerSecond, double vyMetersPerSecond,
-			double omegaRadiansPerSecond) {
-		vxMetersPerSecond = MathUtil.clamp(vxMetersPerSecond, -kTeleopDriveMaxSpeed, kTeleopDriveMaxSpeed);
-		vyMetersPerSecond = MathUtil.clamp(vyMetersPerSecond, -kTeleopDriveMaxSpeed, kTeleopDriveMaxSpeed);
-		omegaRadiansPerSecond = MathUtil
-				.clamp(omegaRadiansPerSecond, -kTeleopTurnMaxAngularSpeed, kTeleopTurnMaxAngularSpeed);
 		return new ChassisSpeeds(vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond);
 	}
 
@@ -438,29 +352,6 @@ public class DriveSubsystem extends SubsystemBase {
 	 *        go forward (+X direction).
 	 * @param strafeSpeed Strafe speed supplier. Positive values make the robot
 	 *        go to the left (+Y direction).
-	 * @param forwardOrientation Forward orientation supplier. Positive values make
-	 *        the robot face forward (+X direction).
-	 * @param strafeOrientation Strafe orientation supplier. Positive values make
-	 *        the robot face left (+Y direction).
-	 * @param isRobotRelative Supplier for determining if driving should be robot
-	 *        relative.
-	 * @return A command to drive the robot.
-	 */
-	public Command driveCommand(DoubleSupplier forwardSpeed, DoubleSupplier strafeSpeed,
-			DoubleSupplier forwardOrientation, DoubleSupplier strafeOrientation, BooleanSupplier isRobotRelative) {
-		return run(
-				() -> drive(
-						chassisSpeeds(forwardSpeed, strafeSpeed, forwardOrientation, strafeOrientation),
-						!isRobotRelative.getAsBoolean())).withName("DefaultDriveCommand");
-	}
-
-	/**
-	 * Creates a {@code Command} to drive the robot with joystick input.
-	 *
-	 * @param forwardSpeed Forward speed supplier. Positive values make the robot
-	 *        go forward (+X direction).
-	 * @param strafeSpeed Strafe speed supplier. Positive values make the robot
-	 *        go to the left (+Y direction).
 	 * @param rotation Rotation supplier. Positive values make
 	 *        the robot rotate left (CCW direction).
 	 * @return a {@code ChassisSpeeds} instance to drive the robot with joystick
@@ -468,8 +359,7 @@ public class DriveSubsystem extends SubsystemBase {
 	 */
 	public Command driveCommand(DoubleSupplier forwardSpeed, DoubleSupplier strafeSpeed,
 			DoubleSupplier rotation, BooleanSupplier isRobotRelative) {
-		return run(() -> drive(chassisSpeeds(forwardSpeed, strafeSpeed, rotation), !isRobotRelative.getAsBoolean()))
-				.withName("DefaultDriveCommand");
+		return driveCommand(forwardSpeed, strafeSpeed, () -> 0, () -> 0, rotation, isRobotRelative);
 	}
 
 	/**

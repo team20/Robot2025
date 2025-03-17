@@ -125,7 +125,8 @@ public class Robot extends TimedRobot {
 	}
 
 	public void addAutoCommands() {
-		m_autoSelector.addOption("Leave", CommandComposer.leave());
+		m_autoSelector.addOption("Leave Forward", CommandComposer.leaveForward());
+		m_autoSelector.addOption("Leave Backward", CommandComposer.leaveBackward());
 	}
 
 	public void bindAlert(Alert alert, BooleanSupplier event) {
