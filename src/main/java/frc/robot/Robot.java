@@ -220,11 +220,6 @@ public class Robot extends TimedRobot {
 								17, 18, 19, 20, 21, 22));
 		m_testingChooser
 				.addOption(
-						"Movement of 3 Score North (Level 3)",
-						CommandComposer.get3ScoreNorthMovementTest(3, 0.5, 1.0, 0.1));
-
-		m_testingChooser
-				.addOption(
 						"Prepare to Score at Level 3 (Left)",
 						prepareToScore(
 								toClosestTag(kLevelOffset.get(3), 0, kRobotToTagsLeft), kLevelThreeHeight,

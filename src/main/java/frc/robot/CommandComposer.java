@@ -219,41 +219,6 @@ public class CommandComposer {
 				m_cheeseStickSubsystem.grab()).withName("Pick Up At Coral Station");
 	}
 
-	public static Command get3ScoreNorthMovementTest(int level, double distance, double waitTime,
-			double intermediateDistanceTolerance) {
-		return select(
-				get3ScoreNorthRedMovementTest(level, distance, waitTime, intermediateDistanceTolerance),
-				get3ScoreNorthBlueMovementTest(level, distance, waitTime, intermediateDistanceTolerance));
-	}
-
-	private static Command get3ScoreNorthBlueMovementTest(int level, double distance, double waitTime,
-			double intermediateDistanceTolerance) {
-		return sequence(
-				toTag(20, level, intermediateDistanceTolerance, kRobotToTagsRight),
-				moveStraight(-distance, intermediateDistanceTolerance, 20),
-				toTag(13, kForwrdAdjustmentCoralStation, 0.0, intermediateDistanceTolerance, kRobotToTagsRightReady),
-				new WaitCommand(waitTime),
-				toTag(19, level, intermediateDistanceTolerance, kRobotToTagsRight),
-				moveStraight(-distance, intermediateDistanceTolerance, 20),
-				toTag(13, kForwrdAdjustmentCoralStation, 0.0, intermediateDistanceTolerance, kRobotToTagsRightReady),
-				new WaitCommand(waitTime),
-				toTag(19, level, intermediateDistanceTolerance, kRobotToTagsLeft));
-	}
-
-	private static Command get3ScoreNorthRedMovementTest(int level, double distance, double waitTime,
-			double intermediateDistanceTolerance) {
-		return sequence(
-				toTag(9, level, intermediateDistanceTolerance, kRobotToTagsLeft),
-				moveStraight(-distance, intermediateDistanceTolerance, 20),
-				toTag(2, kForwrdAdjustmentCoralStation, 0.0, intermediateDistanceTolerance, kRobotToTagsLeftReady),
-				new WaitCommand(waitTime),
-				toTag(8, level, intermediateDistanceTolerance, kRobotToTagsLeft),
-				moveStraight(-distance, intermediateDistanceTolerance, 20),
-				toTag(2, kForwrdAdjustmentCoralStation, 0.0, intermediateDistanceTolerance, kRobotToTagsLeftReady),
-				new WaitCommand(waitTime),
-				toTag(8, level, intermediateDistanceTolerance, kRobotToTagsRight));
-	}
-
 	public static Command testLeftAlignment(int level, double intermediateDistanceTolerance, double distance,
 			double duration, int... tagIDs) {
 		return sequence(
