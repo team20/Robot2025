@@ -4,6 +4,7 @@ import static frc.robot.Constants.ClimberConstants.*;
 
 import java.util.function.DoubleSupplier;
 
+import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
@@ -26,6 +27,7 @@ public class ClimberSubsystem extends SubsystemBase {
 			.getClosedLoopController();
 	private final DigitalInput m_leftSensor = new DigitalInput(1);
 	private final DigitalInput m_rightSensor = new DigitalInput(2);
+	private RelativeEncoder encoder;
 
 	public ClimberSubsystem() {
 		var config = new SparkMaxConfig();
@@ -33,7 +35,8 @@ public class ClimberSubsystem extends SubsystemBase {
 		config.closedLoop
 				.feedbackSensor(FeedbackSensor.kPrimaryEncoder)
 				.pid(kP, kI, kD);
-		m_motor.getEncoder().setPosition(0);
+		encoder = m_motor.getEncoder();
+		encoder.setPosition(0);
 		m_motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 	}
 
@@ -63,14 +66,14 @@ public class ClimberSubsystem extends SubsystemBase {
 	}
 
 	public Command retract() {
-		return runOnce(() -> {
+		return run(() -> {
 			m_climberClosedLoopController.setReference(0, ControlType.kPosition);
-		}).withName("Climber Retract");
+		}).until(() -> Math.abs(encoder.getPosition()) < kTolerance).withName("Climber Retract");
 	}
 
 	public Command deploy() {
-		return runOnce(() -> {
+		return run(() -> {
 			m_climberClosedLoopController.setReference(-400, ControlType.kPosition);
-		}).withName("Climber Deploy");
+		}).until(() -> Math.abs(-400 - encoder.getPosition()) < kTolerance).withName("Climber Deploy");
 	}
 }

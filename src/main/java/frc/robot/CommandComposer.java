@@ -15,6 +15,8 @@ import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
+import com.ctre.phoenix6.signals.NeutralModeValue;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
@@ -112,7 +114,7 @@ public class CommandComposer {
 			case 4:
 				return score(
 						align, pickup, kLevelFourHeight, kGrabberAngleLevelFour,
-						m_wristSubsystem.goToAngle(210));
+						m_wristSubsystem.goToAngle(228)); // TODO: Change to 210
 			case 3:
 				return score(align, pickup, kLevelThreeHeight, kGrabberAngleLevelThree);
 			case 2:
@@ -169,12 +171,12 @@ public class CommandComposer {
 
 	private static Command getMiddleScoreAndAlgae(Command align1, Command align2) {
 		return sequence(
-				score(align1, 4).withTimeout(6), // L4
-				align2.withTimeout(4.5),
+				score(align1, 4),
+				align2.withTimeout(4),
 				m_cheeseStickSubsystem.grab(),
 				removeAlgaeLevelTwo(),
 				parallel(
-						m_wristSubsystem.goToAngle(255),
+						m_wristSubsystem.goToAngle(268),
 						moveStraight(-0.5, 0.01, 1)));
 	}
 
@@ -193,7 +195,7 @@ public class CommandComposer {
 	}
 
 	public static Command leave() {
-		return m_driveSubsystem.driveCommand(() -> 0.25, () -> 0, () -> 0, () -> true).withTimeout(10)
+		return m_driveSubsystem.driveCommand(() -> -0.25, () -> 0, () -> 0, () -> true).withTimeout(10)
 				.withName("Leave Auto");
 	}
 
@@ -291,6 +293,12 @@ public class CommandComposer {
 										new WaitCommand(duration)))
 						.toList()
 						.toArray(new Command[0]));
+	}
+
+	public static Command retractClimber() {
+		return parallel(m_climberSubsystem.retract(), m_driveSubsystem.setNeutralMode(NeutralModeValue.Coast).asProxy())
+				.finallyDo(() -> m_driveSubsystem.setDriveMotorNeutralMode(NeutralModeValue.Brake))
+				.withName("Retract Climber and Drive Coast");
 	}
 
 	public static Command testAbsoluteOrientation(double duration) {

@@ -6,8 +6,10 @@ package frc.robot;
 
 import static frc.robot.Constants.DriveConstants.*;
 
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.revrobotics.sim.SparkFlexSim;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
@@ -65,6 +67,12 @@ public class SwerveModule {
 			m_driveMotorModel = null;
 			m_steerMotorModel = null;
 		}
+	}
+
+	public void setNeutralMode(NeutralModeValue neutralMode) {
+		var config = new TalonFXConfiguration();
+		config.MotorOutput.NeutralMode = neutralMode;
+		m_driveMotor.getConfigurator().apply(config);
 	}
 
 	/**

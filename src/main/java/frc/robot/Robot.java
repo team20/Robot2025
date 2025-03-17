@@ -368,25 +368,7 @@ public class Robot extends TimedRobot {
 				toClosestTag(kRobotToTagsRight).withName("toClosestTag(kRobotToTagsRight)"));
 		m_driverController.options().onTrue(m_driveSubsystem.resetHeading());
 
-		// m_driverController.square()
-		// .whileTrue(
-		// score(toClosestTag(kRobotToTagsLeft), 2));
-		// m_driverController.cross()
-		// .whileTrue(
-		// score(toClosestTag(kRobotToTagsRight), 2));
-
-		// m_operatorController.povLeft().whileTrue(
-		// CommandComposer.driveWithLeftAlignment(
-		// () -> -m_driverController.getLeftY(),
-		// () -> -m_driverController.getLeftX(),
-		// () -> m_driverController.getL2Axis() - m_driverController.getR2Axis()));
-
-		// m_operatorController.povRight().whileTrue(
-		// CommandComposer.driveWithRightAlignment(
-		// () -> -m_driverController.getLeftY(),
-		// () -> -m_driverController.getLeftX(),
-		// () -> m_driverController.getL2Axis() - m_driverController.getR2Axis()));
-
+		m_driverController.square().onTrue(m_driveSubsystem.toggleCoastMode());
 	}
 
 	public void bindElevatorControls() {
@@ -411,8 +393,6 @@ public class Robot extends TimedRobot {
 		m_operatorController.L1().and(m_operatorController.cross()).onTrue(CommandComposer.goToBase());
 		m_operatorController.touchpad().onTrue(m_elevatorSubsystem.stopMotor());
 		m_operatorController.create().onTrue(m_elevatorSubsystem.resetTheEncoder());
-
-		m_driverController.square().onTrue(CommandComposer.releaseFlickAndDriveBack());
 	}
 
 	public void bindAlgaeControls() {
@@ -442,9 +422,9 @@ public class Robot extends TimedRobot {
 		// m_climberSubsystem.setDefaultCommand(m_climberSubsystem.manualMove(() ->
 		// m_driverController.getRightY()));
 		m_driverController.triangle().onTrue(m_climberSubsystem.deploy());
-		m_driverController.cross().onTrue(m_climberSubsystem.retract());
+		m_driverController.cross().onTrue(CommandComposer.retractClimber());
 
-		m_operatorController.povUp().onTrue(m_climberSubsystem.retract());
+		m_operatorController.povUp().onTrue(CommandComposer.retractClimber());
 		m_operatorController.povDown().onTrue(m_climberSubsystem.deploy());
 	}
 

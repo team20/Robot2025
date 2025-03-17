@@ -8,9 +8,11 @@ import static edu.wpi.first.units.Units.*;
 import static edu.wpi.first.wpilibj2.command.Commands.*;
 import static frc.robot.Constants.DriveConstants.*;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.studica.frc.AHRS;
 import com.studica.frc.AHRS.NavXComType;
 
@@ -59,6 +61,7 @@ public class DriveSubsystem extends SubsystemBase {
 	private final StructPublisher<Rotation2d> m_targetHeadingPublisher;
 
 	private final PIDController m_orientationController = new PIDController(kRotationP, kRotationI, kRotationD);
+	private AtomicBoolean shouldBeCoast = new AtomicBoolean(true);
 
 	/** Creates a new DriveSubsystem. */
 	public DriveSubsystem() {
@@ -216,6 +219,16 @@ public class DriveSubsystem extends SubsystemBase {
 		setModuleStates(calculateModuleStates(chassisSpeeds, isFieldRelative));
 	}
 
+	public void setDriveMotorNeutralMode(NeutralModeValue mode) {
+		// If we just set the motors to brake, when toggling, it should then switch to
+		// coast
+		shouldBeCoast.set(mode == NeutralModeValue.Brake);
+		m_frontLeft.setNeutralMode(mode);
+		m_frontRight.setNeutralMode(mode);
+		m_backLeft.setNeutralMode(mode);
+		m_backRight.setNeutralMode(mode);
+	}
+
 	/**
 	 * Is invoked periodically by the {@link CommandScheduler}. Useful
 	 * for updating subsystem-specific state.
@@ -230,6 +243,23 @@ public class DriveSubsystem extends SubsystemBase {
 		if (RobotBase.isSimulation())
 			m_gyroSim.set(-Math.toDegrees(speeds.omegaRadiansPerSecond * TimedRobot.kDefaultPeriod) + m_gyro.getYaw());
 		m_posePublisher.set(m_odometry.update(getHeading(), getModulePositions()));
+	}
+
+	public Command toggleCoastMode() {
+		return runOnce(() -> {
+			NeutralModeValue mode;
+			if (shouldBeCoast.get()) {
+				mode = NeutralModeValue.Coast;
+			} else {
+				mode = NeutralModeValue.Brake;
+			}
+			shouldBeCoast.set(!shouldBeCoast.get());
+			setDriveMotorNeutralMode(mode);
+		}).withName("Drive Toggle Coast Mode");
+	}
+
+	public Command setNeutralMode(NeutralModeValue mode) {
+		return runOnce(() -> setDriveMotorNeutralMode(mode)).withName("Drive Enable Coast Mode");
 	}
 
 	/**
