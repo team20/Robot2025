@@ -223,23 +223,53 @@ public class CommandComposer {
 						moveStraight(-0.5, 0.01, 1)));
 	}
 
-	static Command getMiddleScoreAndAlgaeRed() {
+	private static Command getMiddleScoreAndAlgaeRed() {
 		return getMiddleScoreAndAlgae(
 				score(10, 4, true, kRobotToTagsRight), // L4 scoring (<10cm errors at intermediate point)
 				toTag(10, kForwrdAdjustmentAlgaeRemoval, kRobotToTags)) // algae removal (<10cm err at i. pnt)
 						.withName("Middle Score and Algae Red");
 	}
 
-	static Command getMiddleScoreAndAlgaeBlue() {
+	private static Command getMiddleScoreAndAlgaeBlue() {
 		return getMiddleScoreAndAlgae(
 				score(21, 4, true, kRobotToTagsRight), // L4 scoring (<10cm errors at intermediate point)
 				toTag(21, kForwrdAdjustmentAlgaeRemoval, kRobotToTags)) // algae removal (<10cm err at i. pnt)
 						.withName("Middle Score and Algae Blue");
 	}
 
+	static Command getMiddleScoreAndAlgaePracticeField() {
+		return getMiddleScoreAndAlgae(toTag(6, kRobotToTagsLeft), toTag(6, kRobotToTags))
+				.withName("Middle Score and Algae Practice Field (6)");
+	}
+
 	public static Command leave() {
 		return m_driveSubsystem.driveCommand(() -> -0.25, () -> 0, () -> 0, () -> true).withTimeout(10)
 				.withName("Leave Auto");
+	}
+
+	public static Command getTwoScore(Command align1, int coralStationAlign, Command align2) {
+		return sequence(
+				score(align1, 4),
+				m_cheeseStickSubsystem.grab(),
+				toStation(coralStationAlign),
+				waitSeconds(2),
+				pickupAtCoralStation(),
+				score(align2, kGrabberAngleLevelFour),
+				parallel(
+						m_wristSubsystem.goToAngle(270),
+						moveStraight(-0.5, 0.01, 1)));
+	}
+
+	public static Command getTwoScoreRedLeftSide() {
+		return getTwoScore(toTag(11, kRobotToTagsRight), 1, toTag(6, kRobotToTagsLeft))
+				.withName("Red-Left | Two Score ");
+	}
+
+	public static Command toStation(int tagID) {
+		return parallel(
+				toTag(tagID, kRobotToStationTags),
+				prepareForCoralPickup()).withName("Align to Station");
+
 	}
 
 	public static Command prepareForCoralPickup() {
@@ -261,18 +291,48 @@ public class CommandComposer {
 				m_cheeseStickSubsystem.grab()).withName("Pick Up At Coral Station");
 	}
 
+	/**
+	 * Returns a {@code Command} to perform a 3-score auto in the north of the
+	 * field.
+	 * 
+	 * @param level the target elevator level
+	 * @param distance the distance to retreat after scoring
+	 * @param waitTime the time to load a coral at the coral station
+	 * @return a {@code Command} to perform a 3-score auto in the north of the
+	 *         field
+	 */
 	public static Command get3ScoreNorth(int level, double distance, double waitTime) {
 		return select(
 				get3ScoreNorthRed(level, distance, waitTime),
 				get3ScoreNorthBlue(level, distance, waitTime));
 	}
 
+	/**
+	 * Returns a {@code Command} to perform a 3-score auto in the south of the
+	 * field.
+	 * 
+	 * @param level the target elevator level
+	 * @param distance the distance to retreat after scoring
+	 * @param waitTime the time to load a coral at the coral station
+	 * @return a {@code Command} to perform a 3-score auto in the south of the
+	 *         field
+	 */
 	public static Command get3ScoreSouth(int level, double distance, double waitTime) {
 		return select(
 				get3ScoreSouthRed(level, distance, waitTime),
 				get3ScoreSouthBlue(level, distance, waitTime));
 	}
 
+	/**
+	 * Returns a {@code Command} to perform a 3-score auto in the north of the
+	 * field as a memeber of the blue alliance.
+	 * 
+	 * @param level the target elevator level
+	 * @param distance the distance to retreat after scoring
+	 * @param waitTime the time to load a coral at the coral station
+	 * @return a {@code Command} to perform a 3-score auto iin the north of the
+	 *         field as a memeber of the blue alliance
+	 */
 	private static Command get3ScoreNorthBlue(int level, double distance, double waitTime) {
 		return sequence(
 				score(20, level, true, kRobotToTagsRight),
@@ -284,6 +344,16 @@ public class CommandComposer {
 				score(19, level, true, kRobotToTagsLeft));
 	}
 
+	/**
+	 * Returns a {@code Command} to perform a 3-score auto in the north of the
+	 * field as a memeber of the red alliance.
+	 * 
+	 * @param level the target elevator level
+	 * @param distance the distance to retreat after scoring
+	 * @param waitTime the time to load a coral at the coral station
+	 * @return a {@code Command} to perform a 3-score auto iin the north of the
+	 *         field as a memeber of the red alliance
+	 */
 	private static Command get3ScoreNorthRed(int level, double distance, double waitTime) {
 		return sequence(
 				score(9, level, true, kRobotToTagsLeft),
@@ -295,6 +365,16 @@ public class CommandComposer {
 				score(8, level, true, kRobotToTagsRight));
 	}
 
+	/**
+	 * Returns a {@code Command} to perform a 3-score auto in the south of the
+	 * field as a memeber of the blue alliance.
+	 * 
+	 * @param level the target elevator level
+	 * @param distance the distance to retreat after scoring
+	 * @param waitTime the time to load a coral at the coral station
+	 * @return a {@code Command} to perform a 3-score auto iin the south of the
+	 *         field as a memeber of the blue alliance
+	 */
 	private static Command get3ScoreSouthBlue(int level, double distance, double waitTime) {
 		return sequence(
 				score(22, level, true, kRobotToTagsLeft),
@@ -306,6 +386,16 @@ public class CommandComposer {
 				score(17, level, true, kRobotToTagsRight));
 	}
 
+	/**
+	 * Returns a {@code Command} to perform a 3-score auto in the south of the
+	 * field as a memeber of the red alliance.
+	 * 
+	 * @param level the target elevator level
+	 * @param distance the distance to retreat after scoring
+	 * @param waitTime the time to load a coral at the coral station
+	 * @return a {@code Command} to perform a 3-score auto iin the south of the
+	 *         field as a memeber of the red alliance
+	 */
 	private static Command get3ScoreSouthRed(int level, double distance, double waitTime) {
 		return sequence(
 				score(11, level, true, kRobotToTagsRight),
@@ -317,12 +407,30 @@ public class CommandComposer {
 				score(6, level, true, kRobotToTagsLeft));
 	}
 
+	/**
+	 * Returns a {@code Command} to align to the specified coral station.
+	 * 
+	 * @param tagID the ID of the {@code AprilTag} attached to the coral station
+	 * @param forwardAdjustment the additional distance to move forward/backward
+	 *        (positive: closer to the tag)
+	 * @param robotToTags the {@code Tranform2d} representing the pose of the
+	 *        target {@code AprilTag} relative to the robot when the robot is
+	 *        aligned
+	 * @return a {@code Command} to align to the specified coral station
+	 */
 	private static Command toStation(int tagID, double forwardAdjustment, Transform2d... robotToTags) {
 		return parallel(
 				toTag(tagID, forwardAdjustment, robotToTags),
 				m_elevatorSubsystem.goToCoralStationHeight());
 	}
 
+	/**
+	 * Returns a {@code Command} to score at the specified level.
+	 * 
+	 * @param prepare a {@code Command} that prepares the robot to score
+	 * @param level the scoring level
+	 * @return a {@code Command} to score at the specified level
+	 */
 	private static Command score(Command prepare, int level) {
 		var c = sequence(prepare, m_cheeseStickSubsystem.release(0.7));
 		return level == 4 ? c.andThen(m_wristSubsystem.goToAngle(kLevelWristAngles.get(level) + 10)) : c;
@@ -352,6 +460,8 @@ public class CommandComposer {
 	 * {@code AprilTag}.
 	 *
 	 * @param tagID the ID of the target {@code AprilTag}
+	 * @param forwardAdjustment the additional distance to move forward/backward
+	 *        (positive: closer to the tag)
 	 * @param robotToTags the {@code Tranform2d} representing the pose of the
 	 *        target {@code AprilTag} relative to the robot when the robot is
 	 *        aligned
@@ -367,6 +477,8 @@ public class CommandComposer {
 	 * {@code AprilTag}.
 	 *
 	 * @param tagID the ID of the target {@code AprilTag}
+	 * @param forwardAdjustment the additional distance to move forward/backward
+	 *        (positive: closer to the tag)
 	 * @param robotToTags the {@code Tranform2d} representing the pose of the
 	 *        target {@code AprilTag} relative to the robot when the robot is
 	 *        aligned
@@ -384,6 +496,8 @@ public class CommandComposer {
 	 * target {@code AprilTag}.
 	 *
 	 * @param tagID the ID of the target {@code AprilTag}
+	 * @param forwardAdjustment the additional distance to move forward/backward
+	 *        (positive: closer to the tag)
 	 * @param robotToTags the {@code Tranform2d} representing the pose of the
 	 *        target {@code AprilTag} relative to the robot when the robot is
 	 *        aligned
@@ -407,6 +521,16 @@ public class CommandComposer {
 		})).toList();
 	}
 
+	/**
+	 * Applies the specified adjustments to the specified {@code Transform2d}.
+	 * 
+	 * @param forwardAdjustment the additional distance to move forward/backward
+	 *        (positive: closer to the tag)
+	 * @param sideAdjustment the additional distance to move to left/right
+	 *        (positive: strafe left when facing toward the tag)
+	 * @param t a {@code Transform2d}
+	 * @return the resulting {@code Transform2d}
+	 */
 	private static Transform2d adjust(double forwardAdjustment, double sideAdjustment, Transform2d t) {
 		return new Transform2d(t.getX() - forwardAdjustment, t.getY() - sideAdjustment, t.getRotation());
 	}
@@ -548,6 +672,42 @@ public class CommandComposer {
 			commands.add(command.andThen(new WaitCommand(.5)));
 		}
 		return sequence(commands.toArray(new Command[0]));
+	}
+
+	/**
+	 * Creates a {@code Command} to automatically align the robot to the target
+	 * {@code AprilTag}.
+	 *
+	 * @param tagID the ID of the target {@code AprilTag}
+	 * @param robotToTags the {@code Tranform2d} representing the pose of the
+	 *        target {@code AprilTag} relative to the robot when the robot is
+	 *        aligned
+	 * @return a {@code Command} to automatically align the robot to the target
+	 *         {@code AprilTag}
+	 */
+	private static Command toTag(int tagID, Transform2d... robotToTags) {
+		return toTag(tagID, 0.16, robotToTags);
+	}
+
+	/**
+	 * Creates a list of {@code Pose2d}s to automatically align the robot to the
+	 * target {@code AprilTag}.
+	 *
+	 * @param tagID the ID of the target {@code AprilTag}
+	 * @param robotToTags the {@code Tranform2d} representing the pose of the
+	 *        target {@code AprilTag} relative to the robot when the robot is
+	 *        aligned
+	 * @return a list of {@code Pose2d}s to automatically align the robot to the
+	 *         target {@code AprilTag}
+	 */
+	public static List<Supplier<Pose2d>> posesToTag(int tagID,
+			Transform2d... robotToTags) {
+		return Arrays.stream(robotToTags).map(r -> (Supplier<Pose2d>) (() -> {
+			Pose2d pose = pose(tagID);
+			if (pose == null)
+				return m_driveSubsystem.getPose();
+			return m_poseEstimationSubsystem.odometryCentricPose(pose.plus(r));
+		})).toList();
 	}
 
 	private static Command select(Command commandRedAlliance, Command commandBlueAlliance, boolean safetyStop) {

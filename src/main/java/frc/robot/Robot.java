@@ -161,6 +161,9 @@ public class Robot extends TimedRobot {
 				.addOption(
 						"3 Score South (Level 3)",
 						CommandComposer.get3ScoreSouth(3, 0.5, 1.0));
+		m_autoSelector
+				.addOption("Middle and Algae Practice Field", CommandComposer.getMiddleScoreAndAlgaePracticeField());
+		m_autoSelector.addOption("Two Score Red Left Side", CommandComposer.getTwoScoreRedLeftSide());
 	}
 
 	public void addTestingCommands() {

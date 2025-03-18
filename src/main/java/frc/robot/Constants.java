@@ -208,7 +208,9 @@ public class Constants {
 
 		public static final double kWristForwardSoftLimit = 274; // Wrist facing down
 		public static final double kWristReverseSoftLimit = 90; // Wrist facing up
-		public static final double kWristOffset = 0.75 + (3.5 / 360.0); // angle offset
+		// public static final double kWristOffset = 0.75 + (3.5 / 360.0); // angle
+		// offset
+		public static final double kWristOffset = 0.75; // 3.5/260 for offset
 
 		public static final double kP = 0.015; // TODO: Optimize: 0.01?
 		public static final double kI = 0.0;
@@ -246,12 +248,15 @@ public class Constants {
 		// transform(0.60, 0.0, 180) };
 		// TODO: Optimize
 
+		static Transform2d[] kRobotToStationTags = { transform(1.1, 0.0, 180), transform(0.1, 0, 180) };
+
 		/**
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
 		 * {@code AprilTag} to align the robot to the left of that {@code AprilTag}.
 		 */
 		static Transform2d[] kRobotToTagsLeft = { transform(1.1, 0, 180),
 				transform(0.45, -0.185, 180) };
+
 		// transform(0.60, -0.165, 180) };
 		// TODO: decrease y to align more to the left
 		/**
