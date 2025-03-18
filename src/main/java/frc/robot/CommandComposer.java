@@ -224,15 +224,15 @@ public class CommandComposer {
 
 	private static Command getMiddleScoreAndAlgaeRed() {
 		return getMiddleScoreAndAlgae(
-				score(10, 4, true, kRobotToTagsRight), // L4 scoring (<10cm errors at intermediate point)
-				toTag(10, kForwrdAdjustmentAlgaeRemoval, kRobotToTags)) // algae removal (<10cm err at i. pnt)
+				score(10, 4, true, kRobotToTagsRight),
+				toTag(10, kForwrdAdjustmentAlgaeRemoval, kRobotToTags))
 						.withName("Middle Score and Algae Red");
 	}
 
 	private static Command getMiddleScoreAndAlgaeBlue() {
 		return getMiddleScoreAndAlgae(
-				score(21, 4, true, kRobotToTagsRight), // L4 scoring (<10cm errors at intermediate point)
-				toTag(21, kForwrdAdjustmentAlgaeRemoval, kRobotToTags)) // algae removal (<10cm err at i. pnt)
+				score(21, 4, true, kRobotToTagsRight),
+				toTag(21, kForwrdAdjustmentAlgaeRemoval, kRobotToTags))
 						.withName("Middle Score and Algae Blue");
 	}
 
@@ -294,116 +294,110 @@ public class CommandComposer {
 	 * Returns a {@code Command} to perform a 3-score auto in the north of the
 	 * field.
 	 * 
-	 * @param level the target elevator level
 	 * @param distance the distance to retreat after scoring
 	 * @param waitTime the time to load a coral at the coral station
 	 * @return a {@code Command} to perform a 3-score auto in the north of the
 	 *         field
 	 */
-	public static Command get3ScoreNorth(int level, double distance, double waitTime) {
+	public static Command get3ScoreNorth(double distance, double waitTime) {
 		return select(
-				get3ScoreNorthRed(level, distance, waitTime),
-				get3ScoreNorthBlue(level, distance, waitTime));
+				get3ScoreNorthRed(distance, waitTime),
+				get3ScoreNorthBlue(distance, waitTime));
 	}
 
 	/**
 	 * Returns a {@code Command} to perform a 3-score auto in the south of the
 	 * field.
 	 * 
-	 * @param level the target elevator level
 	 * @param distance the distance to retreat after scoring
 	 * @param waitTime the time to load a coral at the coral station
 	 * @return a {@code Command} to perform a 3-score auto in the south of the
 	 *         field
 	 */
-	public static Command get3ScoreSouth(int level, double distance, double waitTime) {
+	public static Command get3ScoreSouth(double distance, double waitTime) {
 		return select(
-				get3ScoreSouthRed(level, distance, waitTime),
-				get3ScoreSouthBlue(level, distance, waitTime));
+				get3ScoreSouthRed(distance, waitTime),
+				get3ScoreSouthBlue(distance, waitTime));
 	}
 
 	/**
 	 * Returns a {@code Command} to perform a 3-score auto in the north of the
 	 * field as a memeber of the blue alliance.
 	 * 
-	 * @param level the target elevator level
 	 * @param distance the distance to retreat after scoring
 	 * @param waitTime the time to load a coral at the coral station
 	 * @return a {@code Command} to perform a 3-score auto iin the north of the
 	 *         field as a memeber of the blue alliance
 	 */
-	private static Command get3ScoreNorthBlue(int level, double distance, double waitTime) {
+	private static Command get3ScoreNorthBlue(double distance, double waitTime) {
 		return sequence(
-				score(20, level, true, kRobotToTagsRight),
+				score(20, 4, true, kRobotToTagsRight),
 				toStation(13, kForwrdAdjustmentCoralStation, kRobotToTagsRightReady),
 				parallel(m_wristSubsystem.goToAngle(270), new WaitCommand(waitTime)),
-				score(19, level, true, kRobotToTagsRight),
+				score(19, 4, true, kRobotToTagsRight),
 				toStation(13, kForwrdAdjustmentCoralStation, kRobotToTagsRightReady),
 				parallel(m_wristSubsystem.goToAngle(270), new WaitCommand(waitTime)),
-				score(19, level, true, kRobotToTagsLeft));
+				score(19, 4, true, kRobotToTagsLeft));
 	}
 
 	/**
 	 * Returns a {@code Command} to perform a 3-score auto in the north of the
 	 * field as a memeber of the red alliance.
 	 * 
-	 * @param level the target elevator level
 	 * @param distance the distance to retreat after scoring
 	 * @param waitTime the time to load a coral at the coral station
 	 * @return a {@code Command} to perform a 3-score auto iin the north of the
 	 *         field as a memeber of the red alliance
 	 */
-	private static Command get3ScoreNorthRed(int level, double distance, double waitTime) {
+	private static Command get3ScoreNorthRed(double distance, double waitTime) {
 		return sequence(
-				score(9, level, true, kRobotToTagsLeft),
+				score(9, 4, true, kRobotToTagsLeft),
 				toStation(2, kForwrdAdjustmentCoralStation, kRobotToTagsLeftReady),
 				parallel(m_wristSubsystem.goToAngle(270), new WaitCommand(waitTime)),
-				score(8, level, true, kRobotToTagsLeft),
+				score(8, 4, true, kRobotToTagsLeft),
 				toStation(2, kForwrdAdjustmentCoralStation, kRobotToTagsLeftReady),
 				parallel(m_wristSubsystem.goToAngle(270), new WaitCommand(waitTime)),
-				score(8, level, true, kRobotToTagsRight));
+				score(8, 4, true, kRobotToTagsRight));
 	}
 
 	/**
 	 * Returns a {@code Command} to perform a 3-score auto in the south of the
 	 * field as a memeber of the blue alliance.
 	 * 
-	 * @param level the target elevator level
 	 * @param distance the distance to retreat after scoring
 	 * @param waitTime the time to load a coral at the coral station
 	 * @return a {@code Command} to perform a 3-score auto iin the south of the
 	 *         field as a memeber of the blue alliance
 	 */
-	private static Command get3ScoreSouthBlue(int level, double distance, double waitTime) {
+	private static Command get3ScoreSouthBlue(double distance, double waitTime) {
 		return sequence(
-				score(22, level, true, kRobotToTagsLeft),
+				score(22, 4, true, kRobotToTagsLeft),
 				toStation(12, kForwrdAdjustmentCoralStation, kRobotToTagsLeftReady),
 				parallel(m_wristSubsystem.goToAngle(270), new WaitCommand(waitTime)),
-				score(17, level, true, kRobotToTagsLeft),
+				score(17, 4, true, kRobotToTagsLeft),
 				toStation(12, kForwrdAdjustmentCoralStation, kRobotToTagsLeftReady),
 				parallel(m_wristSubsystem.goToAngle(270), new WaitCommand(waitTime)),
-				score(17, level, true, kRobotToTagsRight));
+				score(17, 4, true, kRobotToTagsRight));
 	}
 
 	/**
 	 * Returns a {@code Command} to perform a 3-score auto in the south of the
 	 * field as a memeber of the red alliance.
 	 * 
-	 * @param level the target elevator level
 	 * @param distance the distance to retreat after scoring
 	 * @param waitTime the time to load a coral at the coral station
 	 * @return a {@code Command} to perform a 3-score auto iin the south of the
 	 *         field as a memeber of the red alliance
 	 */
-	private static Command get3ScoreSouthRed(int level, double distance, double waitTime) {
+	private static Command get3ScoreSouthRed(double distance, double waitTime) {
 		return sequence(
-				score(11, level, true, kRobotToTagsRight),
+				score(11, 4, true, kRobotToTagsRight),
 				toStation(1, kForwrdAdjustmentCoralStation, kRobotToTagsRightReady),
 				parallel(m_wristSubsystem.goToAngle(270), new WaitCommand(waitTime)),
-				score(6, level, true, kRobotToTagsRight),
+				score(6, 4, true, kRobotToTagsRight),
 				toStation(1, kForwrdAdjustmentCoralStation, kRobotToTagsRightReady),
 				parallel(m_wristSubsystem.goToAngle(270), new WaitCommand(waitTime)),
-				score(6, level, true, kRobotToTagsLeft));
+				score(6, 4, true, kRobotToTagsLeft));
 	}
 
 	/**

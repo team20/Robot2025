@@ -108,7 +108,7 @@ public class Robot extends TimedRobot {
 			.addCamera(m_camera2, kRobotToCamera2);
 
 	public Robot() {
-		// TODO: Please configure cameras correctly and then enable BackCamera.
+		// TODO: Configure both cameras correctly and then enable BackCamera.
 		addCamera("FrontCamera", kRobotToCamera1);
 		// addCamera("BackCamera", kRobotToCamera2);
 		SignalLogger.start();
@@ -158,12 +158,12 @@ public class Robot extends TimedRobot {
 		m_autoSelector.addOption("Leave", CommandComposer.leave());
 		m_autoSelector
 				.addOption(
-						"3 Score North (Level 3)",
-						get3ScoreNorth(3, 0.5, 1.0));
+						"3 Score North",
+						get3ScoreNorth(0.5, 1.0));
 		m_autoSelector
 				.addOption(
-						"3 Score South (Level 3)",
-						get3ScoreSouth(3, 0.5, 1.0));
+						"3 Score South",
+						get3ScoreSouth(0.5, 1.0));
 		m_autoSelector
 				.addOption("Middle and Algae Practice Field", CommandComposer.getMiddleScoreAndAlgaePracticeField());
 		m_autoSelector.addOption("Two Score Red Left Side", CommandComposer.getTwoScoreRedLeftSide());
@@ -194,14 +194,6 @@ public class Robot extends TimedRobot {
 				.addOption(
 						"Prepare to Score at Level 4 (Closest, Right)",
 						prepareToScoreClosest(4, false, kRobotToTagsRight));
-		m_testingChooser
-				.addOption(
-						"Score at Level 3 (Closest, Left)",
-						scoreClosest(3, false, kRobotToTagsLeft));
-		m_testingChooser
-				.addOption(
-						"Score at Level 3 (Closest, Right)",
-						scoreClosest(3, false, kRobotToTagsRight));
 		m_testingChooser
 				.addOption(
 						"Score at Level 4 (Closest, Left)",

@@ -104,7 +104,7 @@ public class Constants {
 		public static final double kDriveGearRatio = 6.75;
 		public static final double kSteerGearRatio = 150.0 / 7;
 		public static final double kWheelDiameter = Units.inchesToMeters(4) * 0.95;
-		// TODO: decrease for robot to align closer to coral stations
+		// TODO: Finalize: decrease if overestimates travel distance
 		public static final double kWheelCircumference = Math.PI * kWheelDiameter;
 
 		public static final double kMetersPerMotorRotation = kWheelCircumference / kDriveGearRatio;
@@ -136,13 +136,13 @@ public class Constants {
 		public static final double kTeleopDriveMaxSpeed = 12.0; // 12 meters per second
 		public static final double kTeleopTurnMaxAngularSpeed = Math.toRadians(360 * 5);// 5 rotations per second
 
-		public static final double kDriveMaxSpeed = 12.0; // 12 meters per second TODO: Optimize
-		public static final double kDriveMinSpeed = 0.2; // 0.2 meters per second TODO: Optimize
-		public static final double kTurnMaxAngularSpeed = Math.toRadians(360); // 1 rotation per second TODO: Optimize
+		public static final double kDriveMaxSpeed = 12.0; // 12 meters per second
+		public static final double kDriveMinSpeed = 0.2; // 0.2 meters per second
+		public static final double kTurnMaxAngularSpeed = Math.toRadians(360); // 1 rotation per second
 		public static final double kTurnMinAngularSpeed = Math.toRadians(0); // 0 degree per second
 
 		// DriveCommand.java Constants
-		public static final double kDriveP = 5;
+		public static final double kDriveP = 5; // TODO: Optimize: up to 12?
 		public static final double kDriveI = 0;
 		public static final double kDriveD = 0;
 		public static final double kDriveMaxAcceleration = 2 * kDriveMaxSpeed; // kDriveMaxSpeed in 0.5 sec
@@ -210,9 +210,9 @@ public class Constants {
 		public static final double kWristReverseSoftLimit = 90; // Wrist facing up
 		public static final double kWristOffset = 0.75; // 3.5/260 for offset
 
-		public static final double kP = 0.01;
+		public static final double kP = 0.01; // TODO: Finalize
 		public static final double kI = 0.0;
-		public static final double kD = 0.003;
+		public static final double kD = 0.003; // TODO: Finalize
 
 		public static final double kTolerance = 4;
 	}
@@ -229,6 +229,7 @@ public class Constants {
 		 */
 		public static Transform3d kRobotToCamera1 = new Transform3d(new Translation3d(0.3, 0.0, 0.2),
 				new Rotation3d(0, Units.degreesToRadians(-20), 0));
+		// TODO: Finalize
 
 		/**
 		 * The {@code Transform3d} expressing the pose of the second camera relative to
@@ -236,44 +237,50 @@ public class Constants {
 		 */
 		public static Transform3d kRobotToCamera2 = new Transform3d(new Translation3d(-0.5, 0.0, 0.5),
 				new Rotation3d(0, Units.degreesToRadians(0), Units.degreesToRadians(180)));
+		// TODO: Finalize
 
 		/**
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
 		 * {@code AprilTag} to align the robot to that {@code AprilTag}.
 		 */
 		static Transform2d[] kRobotToTags = { transform(1.1, 0.0, 180),
-				transform(0.35, 0.0, 180) };
-		// transform(0.60, 0.0, 180) };
-		// TODO: Optimize
+				transform(0.60, 0.0, 180) };
+		// transform(0.35, 0.0, 180) };
+		// TODO: Check
 
 		static Transform2d[] kRobotToStationTags = { transform(1.1, 0.0, 180), transform(0.1, 0, 180) };
+
 		/**
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
 		 * {@code AprilTag} to align the robot to the left of that {@code AprilTag}.
 		 */
 		static Transform2d[] kRobotToTagsLeft = { transform(1.1, 0, 180),
-				transform(0.45, -0.185, 180) };
+				transform(0.60, -0.165, 180) };
 		// transform(0.60, -0.165, 180) };
-		// TODO: decrease y to align more to the left
+		// transform(0.45, -0.185, 180) };
+		// TODO: Check: decrease y to align more to the left
 
 		/**
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
 		 * {@code AprilTag} to align the robot to the right of that {@code AprilTag}.
 		 */
 		static Transform2d[] kRobotToTagsRight = { transform(1.1, 0, 180),
-				transform(0.54, 0.200, 180) };
+				transform(0.60, 0.195, 180) };
 		// transform(0.60, 0.195, 180) };
-		// decrease y to align more to the left
+		// transform(0.54, 0.200, 180) };
+		// TODO: Check: decrease y to align more to the left
 
 		/**
 		 * The offset for alignment to algaes (positive: closer to algae).
 		 */
-		static double kForwrdAdjustmentAlgaeRemoval = 0.25; // TODO: need to check
+		static double kForwrdAdjustmentAlgaeRemoval = 0.25;
+		// TODO: Check
 
 		/**
 		 * The offset for alignment to coral stations (positive: closer to station).
 		 */
-		static double kForwrdAdjustmentCoralStation = 0.1; // TODO: increase for robot to align more closely to station
+		static double kForwrdAdjustmentCoralStation = 0.1;
+		// TODO: Check
 
 		/**
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
@@ -298,7 +305,7 @@ public class Constants {
 				2, 0.2, // L2
 				3, 0.2, // L3
 				4, 0.05); // L4
-		// TODO: need to check
+		// TODO: Check
 		// increase the offset value to get closer to the tag
 
 		/**
@@ -309,7 +316,7 @@ public class Constants {
 				2, Units.inchesToMeters(8), // L2
 				3, Units.inchesToMeters(29), // L3
 				4, Units.inchesToMeters(48 + 2)); // L4
-		// TODO: need to check
+		// TODO: Check
 
 		/**
 		 * A {@code Map} storing the wrist angle for each scoring level.
@@ -319,7 +326,7 @@ public class Constants {
 				2, 221.0, // L2
 				3, 240.0, // L3
 				4, 223.0); // L4
-		// TODO: need to check
+		// TODO: Check
 
 		/**
 		 * A {@code Map} storing the additional distance to move forward/backward for
