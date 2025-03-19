@@ -7,7 +7,9 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
@@ -224,15 +226,14 @@ public class Constants {
 
 		// Standard deviation baselines, for 1 meter distance and 1 tag
 		// (Adjusted automatically based on distance and # of tags)
-		public static double linearStdDevBaseline = 0.1; // Meters
+		public static double linearStdDevBaseline = 0.1; // Meters | 0.02
 		public static double angularStdDevBaseline = 0.06; // Radians
 
 		// Standard deviation multipliers for each camera
 		// (Adjust to trust some cameras more than others)
 		public static double[] cameraStdDevFactors = new double[] {
-				0.8, // Camera 0
-				1.6, // Camera 1
-				1.6 // Camera 2
+				0.8, // Camera 0 | 1
+				1.6, // Camera 1 | 1
 		};
 
 		// Multipliers to apply for MegaTag 2 observations
@@ -252,5 +253,8 @@ public class Constants {
 		 */
 		public static Transform3d kRobotToCamera2 = new Transform3d(new Translation3d(-0.5, -0.0, 0.2),
 				new Rotation3d(0, Units.degreesToRadians(-20), Units.degreesToRadians(180)));
+
+		public static Transform2d kCameraToTwentyOne = new Transform2d(0.75, 0.1643126,
+				Rotation2d.fromDegrees(180));
 	}
 }

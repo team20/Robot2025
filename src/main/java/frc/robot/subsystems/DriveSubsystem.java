@@ -7,6 +7,8 @@ package frc.robot.subsystems;
 import static edu.wpi.first.units.Units.*;
 import static frc.robot.Constants.DriveConstants.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
@@ -17,7 +19,6 @@ import com.studica.frc.AHRS.NavXComType;
 
 import edu.wpi.first.hal.SimDouble;
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -27,8 +28,6 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.numbers.N1;
-import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
@@ -41,9 +40,9 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.ControllerConstants;
 import frc.robot.SwerveModule;
-import frc.robot.subsystems.vision.VisionSubsystem.VisionConsumer;
+import frc.robot.subsystems.vision.Camera;
 
-public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
+public class DriveSubsystem extends SubsystemBase {
 	private final SwerveModule m_frontLeft;
 	private final SwerveModule m_frontRight;
 	private final SwerveModule m_backLeft;
@@ -56,23 +55,18 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
 	// https://docs.wpilib.org/en/latest/docs/software/advanced-controls/system-identification/index.html
 	private final SysIdRoutine m_sysidRoutine;
 	private final StructPublisher<Pose2d> m_posePublisher;
-	private final StructPublisher<Pose2d> m_visionPosePublisher;
 	private final StructPublisher<ChassisSpeeds> m_currentChassisSpeedsPublisher;
 	private final StructArrayPublisher<SwerveModuleState> m_targetModuleStatePublisher;
 	private final StructArrayPublisher<SwerveModuleState> m_currentModuleStatePublisher;
 	private final StructPublisher<Rotation2d> m_targetHeadingPublisher;
 	private final PIDController m_orientationController = new PIDController(kRotationP, kRotationI, kRotationD);
+	private final List<Camera> m_cameras = new ArrayList<>();
 
 	public DriveSubsystem() {
 		m_orientationController.enableContinuousInput(-Math.PI, Math.PI);
 
 		m_posePublisher = NetworkTableInstance.getDefault().getStructTopic("/SmartDashboard/Pose", Pose2d.struct)
 				.publish();
-
-		m_visionPosePublisher = NetworkTableInstance.getDefault()
-				.getStructTopic("/SmartDashboard/VisionPose", Pose2d.struct)
-				.publish();
-
 		m_currentChassisSpeedsPublisher = NetworkTableInstance.getDefault()
 				.getStructTopic("/SmartDashboard/Chassis Speeds", ChassisSpeeds.struct)
 				.publish();
@@ -122,6 +116,10 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
 		} else {
 			m_gyroSim = null;
 		}
+	}
+
+	public void addCamera(Camera camera) {
+		m_cameras.add(camera);
 	}
 
 	/**
@@ -373,6 +371,9 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
 			m_gyroSim.set(-Math.toDegrees(speeds.omegaRadiansPerSecond * TimedRobot.kDefaultPeriod) + m_gyro.getYaw());
 
 		// Update pose estimator with current heading and module positions
+		for (var camera : m_cameras) {
+			camera.updatePoseEstimator(m_poseEstimator);
+		}
 		Pose2d estimatedPose = m_poseEstimator.update(getHeading(), getModulePositions());
 		m_posePublisher.set(estimatedPose);
 	}
@@ -510,13 +511,4 @@ public class DriveSubsystem extends SubsystemBase implements VisionConsumer {
 	public Command sysidDynamic(SysIdRoutine.Direction direction) {
 		return m_sysidRoutine.dynamic(direction);
 	}
-
-	@Override
-	public void accept(Pose2d visionRobotPoseMeters, double timestampSeconds, Matrix<N3, N1> visionMeasurementStdDevs) {
-		m_visionPosePublisher.accept(visionRobotPoseMeters);
-
-		// Update the pose estimator with the vision measurement
-		m_poseEstimator.addVisionMeasurement(visionRobotPoseMeters, timestampSeconds, visionMeasurementStdDevs);
-	}
-
 }

@@ -1,6 +1,7 @@
 package frc.robot;
 
 import static edu.wpi.first.wpilibj2.command.Commands.*;
+import static frc.robot.Constants.AutoConstants.*;
 import static frc.robot.Constants.ElevatorConstants.*;
 import static frc.robot.Constants.WristConstants.*;
 
@@ -13,7 +14,6 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.Constants.AutoConstants;
 import frc.robot.commands.DriveCommand;
 import frc.robot.subsystems.AlgaeGrabberSubsystem;
 import frc.robot.subsystems.ArduinoSubsystem;
@@ -218,34 +218,9 @@ public class CommandComposer {
 		});
 	}
 
-	/**
-	 * Returns a {@code Command} for moving the robot on a square.
-	 * 
-	 * @param sideLength the side length of the square in meters
-	 * @param distanceTolerance the distance error in meters which is tolerable
-	 * @param angleTolerance the angle error in degrees which is tolerable
-	 * @param timeout the maximum amount of the time given to the {@code Command}
-	 * 
-	 * @return a {@code Command} for moving the robot on a circle
-	 */
-	public static Command moveOnSquare(double sideLength, double distanceTolerance,
-			double angleTolerance, double timeout) {
-		return sequence(
-				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance,
-						new Pose2d(5 + 0, 1 + 0, Rotation2d.kZero)),
-				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance,
-						new Pose2d(5 + sideLength, 1 + 0, Rotation2d.kCCW_90deg)),
-				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance,
-						new Pose2d(5 + sideLength, 1 + sideLength, Rotation2d.k180deg)),
-				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance,
-						new Pose2d(5 + 0.0, 1 + sideLength, Rotation2d.kCW_90deg)),
-				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance,
-						new Pose2d(5 + 0, 1 + 0, Rotation2d.kZero)));
-	}
-
 	public static Command moveToTag(int id, double positionTolerance, double rotationTolerance, Transform2d offset,
 			double timeout) {
-		Pose2d tagPos = AutoConstants.kFieldLayout.getTagPose(id).get().toPose2d().plus(offset);
+		Pose2d tagPos = kFieldLayout.getTagPose(id).get().toPose2d().plus(offset);
 		return new DriveCommand(m_driveSubsystem, positionTolerance, rotationTolerance, tagPos).withTimeout(timeout);
 	}
 
