@@ -449,7 +449,6 @@ public class DriveSubsystem extends SubsystemBase {
 	 */
 	public Command testCommand(double speed, double rotionalSpeed, double duration) {
 		return sequence(
-				resetOdometry(Pose2d.kZero),
 				run(() -> drive(speed, 0, 0, false)).withTimeout(duration),
 				run(() -> drive(-speed, 0, 0, false)).withTimeout(duration),
 				run(() -> drive(0, speed, 0, false)).withTimeout(duration),

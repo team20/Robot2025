@@ -146,6 +146,7 @@ public class Constants {
 		public static final double kDriveI = 0;
 		public static final double kDriveD = 0;
 		public static final double kDriveMaxAcceleration = 2 * kDriveMaxSpeed; // kDriveMaxSpeed in 0.5 sec
+		// TODO: Optimize: up to 8?
 
 		public static final double kTurnP = 5;
 		public static final double kTurnI = 0;
