@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import static edu.wpi.first.math.util.Units.*;
 import static edu.wpi.first.wpilibj2.command.Commands.*;
 import static frc.robot.CommandComposer.*;
 import static frc.robot.Constants.AlgaeConstants.*;
@@ -247,21 +248,16 @@ public class Robot extends TimedRobot {
 				.addOption(
 						"Check DriveSubsystem (F/B/L/R/LR/RR and F/B while rotating)",
 						m_driveSubsystem.testCommand(0.5, Math.toRadians(45), 1.0));
-		m_testingChooser
-				.addOption(
-						"Check Absolute Orientation",
-						testAbsoluteOrientation(2));
 		double distanceTolerance = 0.01;
 		double angleToleranceInDegrees = 1;
 		m_testingChooser
 				.addOption(
-						"Check PID Constants for Driving (5'x5' Square)",
-						CommandComposer
-								.moveOnSquare(Units.feetToMeters(5), distanceTolerance, angleToleranceInDegrees, 16));
+						"Check kWheelDiameter (F/B 6 feet)",
+						moveForwardBackward(feetToMeters(6), distanceTolerance, angleToleranceInDegrees));
 		m_testingChooser
 				.addOption(
-						"Check kDriveGearRatio and kWheelDiameter (F/B 6 feet)",
-						CommandComposer.moveForwardBackward(6, distanceTolerance, angleToleranceInDegrees));
+						"Check PID Constants for Driving (5'x5' Square)",
+						moveOnSquare(feetToMeters(5), distanceTolerance, angleToleranceInDegrees, 16));
 		m_testingChooser
 				.addOption(
 						"Slowest Movement Test (F/B/L/R/LR/RR and F/B while rotating)",
@@ -317,26 +313,26 @@ public class Robot extends TimedRobot {
 		RobotModeTriggers.disabled().onTrue(m_elevatorSubsystem.stopMotor());
 		m_operatorController.axisMagnitudeGreaterThan(PS5Controller.Axis.kLeftY.value, kDeadzone)
 				.whileTrue(m_elevatorSubsystem.manualMove(() -> -m_operatorController.getLeftY()));
-		m_operatorController.triangle().onTrue(
-				m_elevatorSubsystem.goToLevelFourHeight().andThen(m_wristSubsystem.goToAngle(kGrabberAngleLevelFour))
-						.withName("Elevator to Level Four and Wrist to Angle"));
-		m_operatorController.square().onTrue(
-				m_elevatorSubsystem.goToLevelThreeHeight()
-						.andThen(m_wristSubsystem.goToAngle(kGrabberAngleLevelThree))
-						.withName("Elevator to Level Three and Wrist to Angle"));
-		m_operatorController.cross().onTrue(
-				m_elevatorSubsystem.goToLevelTwoHeight()
-						.andThen(m_wristSubsystem.goToAngle(kGrabberAngleOthers))
-						.withName("Elevator to Level Two and Wrist to Angle"));
 		// m_operatorController.triangle().onTrue(
-		// prepareToScore(4, false)
+		// m_elevatorSubsystem.goToLevelFourHeight().andThen(m_wristSubsystem.goToAngle(kGrabberAngleLevelFour))
 		// .withName("Elevator to Level Four and Wrist to Angle"));
 		// m_operatorController.square().onTrue(
-		// prepareToScore(3, false)
+		// m_elevatorSubsystem.goToLevelThreeHeight()
+		// .andThen(m_wristSubsystem.goToAngle(kGrabberAngleLevelThree))
 		// .withName("Elevator to Level Three and Wrist to Angle"));
 		// m_operatorController.cross().onTrue(
-		// prepareToScore(2, false)
+		// m_elevatorSubsystem.goToLevelTwoHeight()
+		// .andThen(m_wristSubsystem.goToAngle(kGrabberAngleOthers))
 		// .withName("Elevator to Level Two and Wrist to Angle"));
+		m_operatorController.triangle().onTrue(
+				prepareToScore(4, false)
+						.withName("Elevator to Level Four and Wrist to Angle"));
+		m_operatorController.square().onTrue(
+				prepareToScore(3, false)
+						.withName("Elevator to Level Three and Wrist to Angle"));
+		m_operatorController.cross().onTrue(
+				prepareToScore(2, false)
+						.withName("Elevator to Level Two and Wrist to Angle"));
 		m_operatorController.circle().onTrue(CommandComposer.scoreLevelOneInTeleop());
 		m_operatorController.L1().and(m_operatorController.triangle()).onTrue(CommandComposer.removeAlgaeLevelThree());
 		m_operatorController.L1().and(m_operatorController.square()).onTrue(CommandComposer.removeAlgaeLevelTwo());

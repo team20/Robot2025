@@ -1,6 +1,5 @@
 package frc.robot;
 
-import static edu.wpi.first.math.util.Units.*;
 import static edu.wpi.first.wpilibj2.command.Commands.*;
 import static frc.robot.Constants.AutoAlignConstants.*;
 import static frc.robot.Constants.ElevatorConstants.*;
@@ -10,8 +9,6 @@ import static frc.robot.subsystems.PoseEstimationSubsystem.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BooleanSupplier;
-import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
 import com.ctre.phoenix6.signals.NeutralModeValue;
@@ -25,7 +22,6 @@ import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SelectCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
@@ -534,37 +530,21 @@ public class CommandComposer {
 				.withName("Retract Climber and Drive Coast");
 	}
 
-	public static Command testAbsoluteOrientation(double duration) {
-		DoubleSupplier z = () -> 0;
-		BooleanSupplier f = () -> false;
-		return sequence(
-				m_driveSubsystem.driveCommand(z, z, z, () -> 1, z, f).withTimeout(duration), // 90 degrees
-				m_driveSubsystem.driveCommand(z, z, () -> -1, z, z, f).withTimeout(duration), // 180 degrees
-				m_driveSubsystem.driveCommand(z, z, z, () -> -1, z, f).withTimeout(duration), // 270 degrees
-				m_driveSubsystem.driveCommand(z, z, () -> 1, () -> 1, z, f).withTimeout(duration), // 45 degrees
-				m_driveSubsystem.driveCommand(z, z, () -> 1, z, z, f).withTimeout(duration)); // 0 degrees
-	}
-
 	/**
 	 * Returns a {@code Command} for moving forward and then backward.
 	 * 
-	 * @param distanceInFeet the distance in feet
+	 * @param distance the distance in meters
 	 * @param distanceTolerance the distance error in meters which is tolerable
 	 * @param angleTolerance the angle error in degrees which is tolerable
 	 * 
 	 * @return a {@code Command} for moving forward and then backward.
 	 */
-	public static Command moveForwardBackward(double distanceInFeet, double distanceTolerance,
+	public static Command moveForwardBackward(double distance, double distanceTolerance,
 			double angleTolerance) {
 		return sequence(
-				m_driveSubsystem.resetOdometry(Pose2d.kZero),
-				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance, Pose2d.kZero),
-				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance,
-						new Pose2d(feetToMeters(distanceInFeet), 0, Rotation2d.kZero)),
-				Commands.waitSeconds(2),
-				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance, Pose2d.kZero),
-				Commands.waitSeconds(1),
-				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance, Pose2d.kZero));
+				moveStraight(distance, distanceTolerance, angleTolerance),
+				waitSeconds(2),
+				moveStraight(-distance, distanceTolerance, angleTolerance));
 	}
 
 	/**
@@ -596,18 +576,10 @@ public class CommandComposer {
 	 */
 	public static Command moveOnSquare(double sideLength, double distanceTolerance,
 			double angleTolerance, double timeout) {
-		return sequence(
-				m_driveSubsystem.resetOdometry(Pose2d.kZero),
-				new DriveCommand(m_driveSubsystem,
-						distanceTolerance, angleTolerance, Pose2d.kZero),
-				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance,
-						new Pose2d(sideLength, 0, Rotation2d.kCCW_90deg)),
-				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance,
-						new Pose2d(sideLength, sideLength, Rotation2d.k180deg)),
-				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance,
-						new Pose2d(0.0, sideLength, Rotation2d.kCW_90deg)),
-				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance, Pose2d.kZero),
-				new DriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance, Pose2d.kZero));
+		Supplier<Pose2d> s = () -> m_driveSubsystem.getPose()
+				.plus(transform(sideLength, 0, 90));
+		return new PathDriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance, distanceTolerance,
+				angleTolerance, List.of(s, s, s, s));
 	}
 
 	/**
