@@ -166,7 +166,9 @@ public class Robot extends TimedRobot {
 						"3 Score South",
 						get3ScoreSouth(0.5, 1.0));
 		m_autoSelector
-				.addOption("Middle and Algae Practice Field", CommandComposer.getMiddleScoreAndAlgaePracticeField());
+				.addOption(
+						"Middle and Algae Practice Field",
+						CommandComposer.getMiddleScoreAndAlgaePracticeField());
 		m_autoSelector.addOption("Two Score Red Left Side", CommandComposer.getTwoScoreRedLeftSide());
 	}
 
@@ -198,27 +200,27 @@ public class Robot extends TimedRobot {
 		m_testingChooser
 				.addOption(
 						"Score at Level 4 (Closest, Left)",
-						scoreClosest(4, false, kRobotToTagsLeft));
+						scoreClosest(4, false, 0.5, kRobotToTagsLeft));
 		m_testingChooser
 				.addOption(
 						"Score at Level 4 (Closest, Right)",
-						scoreClosest(4, false, kRobotToTagsRight));
+						scoreClosest(4, false, 0.5, kRobotToTagsRight));
 		m_testingChooser
 				.addOption(
 						"Pick Up and Score at Level 3 (Left)",
-						scoreClosest(3, true, kRobotToTagsLeft));
+						scoreClosest(3, true, 0.5, kRobotToTagsLeft));
 		m_testingChooser
 				.addOption(
 						"Pick Up and Score at Level 3 (Right)",
-						scoreClosest(3, true, kRobotToTagsRight));
+						scoreClosest(3, true, 0.5, kRobotToTagsRight));
 		m_testingChooser
 				.addOption(
 						"Pick Up and Score at Level 4 (Left)",
-						scoreClosest(4, true, kRobotToTagsLeft));
+						scoreClosest(4, true, 0.5, kRobotToTagsLeft));
 		m_testingChooser
 				.addOption(
 						"Pick Up and Score at Level 4 (Right)",
-						scoreClosest(4, true, kRobotToTagsRight));
+						scoreClosest(4, true, 0.5, kRobotToTagsRight));
 		m_testingChooser
 				.addOption(
 						"Reposition the Robot in Simulation",
