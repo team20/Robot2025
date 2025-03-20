@@ -180,6 +180,20 @@ public class Robot extends TimedRobot {
 	public void addTestingCommands() {
 		m_testingChooser
 				.addOption(
+						"Pick Up and Score at Levels 3 and 4 (Left and Right)",
+						sequence(
+								scoreClosest(3, false, 1.5, kRobotToTagsLeft),
+								waitSeconds(2),
+								goToBase(),
+								scoreClosest(3, false, 1.5, kRobotToTagsRight),
+								waitSeconds(2),
+								goToBase(),
+								scoreClosest(4, false, 1.5, kRobotToTagsLeft),
+								waitSeconds(2),
+								goToBase(),
+								scoreClosest(4, false, 1.5, kRobotToTagsRight)));
+		m_testingChooser
+				.addOption(
 						"Prepare to Score at Level 3",
 						prepareToScore(3, false));
 		m_testingChooser
