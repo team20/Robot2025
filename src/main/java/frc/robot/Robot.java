@@ -88,7 +88,6 @@ public class Robot extends TimedRobot {
 			: new VisionSimulator(m_driveSubsystem,
 					pose(kFieldLayout.getFieldLength() / 2, kFieldLayout.getFieldWidth() / 2, 0),
 					0.05); // movement overestimation by 5%
-	private final PoseEstimationSubsystem m_poseEstimationSubsystem = new PoseEstimationSubsystem(m_driveSubsystem);
 	SimCameraProperties m_cameraProp = new SimCameraProperties() {
 		{
 			setCalibration(640, 480, Rotation2d.fromDegrees(100));
@@ -104,6 +103,15 @@ public class Robot extends TimedRobot {
 
 		}
 	};
+	private final PhotonCamera m_camera1 = RobotBase.isSimulation()
+			? cameraSim("Camera1", kRobotToCamera1, m_visionSimulator, m_cameraProp)
+			: new PhotonCamera("FrontCamera");
+	private final PhotonCamera m_camera2 = RobotBase.isSimulation()
+			? cameraSim("Camera2", kRobotToCamera2, m_visionSimulator, m_cameraProp)
+			: new PhotonCamera("BackCamera");
+	private final PoseEstimationSubsystem m_poseEstimationSubsystem = new PoseEstimationSubsystem(m_driveSubsystem)
+			.addCamera(m_camera1, kRobotToCamera1)
+			.addCamera(m_camera2, kRobotToCamera2);
 
 	public Robot() {
 		// TODO: Please configure cameras correctly and then enable BackCamera.
