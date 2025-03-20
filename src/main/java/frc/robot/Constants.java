@@ -186,7 +186,7 @@ public class Constants {
 		public static final double kLevelTwoHeight = Units.inchesToMeters(8);
 		public static final double kLevelThreeHeight = Units.inchesToMeters(29);
 		public static final double kLevelFourHeight = Units.inchesToMeters(48 + 2);
-		public static final double kMaxExtension = Units.inchesToMeters(49.5 + 0.75);
+		public static final double kMaxExtension = 1.30;
 		// The amount that the elevator decreases in order to score
 		public static final double kClearanceHeight = Units.inchesToMeters(5.5);
 		public static final double kToScoreHeightDecrease = Units.inchesToMeters(0);
@@ -305,7 +305,7 @@ public class Constants {
 				1, 0.13, // L1
 				2, 0.2, // L2
 				3, 0.2, // L3
-				4, 0.05); // L4
+				4, 0.17); // L4
 		// TODO: Check
 		// increase the offset value to get closer to the tag
 
@@ -314,9 +314,9 @@ public class Constants {
 		 */
 		static Map<Integer, Double> kLevelElevatorHeights = Map.of(
 				1, Units.inchesToMeters(3), // L1
-				2, Units.inchesToMeters(8), // L2
-				3, Units.inchesToMeters(29), // L3
-				4, Units.inchesToMeters(48 + 2)); // L4
+				2, 0.3, // L2
+				3, 0.8, // L3
+				4, 1.295); // L4
 		// TODO: Check
 
 		/**
@@ -324,9 +324,9 @@ public class Constants {
 		 */
 		static Map<Integer, Double> kLevelWristAngles = Map.of(
 				1, 221.0, // L1
-				2, 221.0, // L2
+				2, 240.0, // L2
 				3, 240.0, // L3
-				4, 223.0); // L4
+				4, 240.0); // L4
 		// TODO: Check
 
 		/**

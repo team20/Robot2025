@@ -100,10 +100,10 @@ public class Robot extends TimedRobot {
 	};
 	private final PhotonCamera m_camera1 = RobotBase.isSimulation()
 			? cameraSim("Camera1", kRobotToCamera1, m_visionSimulator, m_cameraProp)
-			: new PhotonCamera("BackCamera");
+			: new PhotonCamera("FrontCamera");
 	private final PhotonCamera m_camera2 = RobotBase.isSimulation()
 			? cameraSim("Camera2", kRobotToCamera2, m_visionSimulator, m_cameraProp)
-			: new PhotonCamera("FrontCamera");
+			: new PhotonCamera("BackCamera");
 	private final PoseEstimationSubsystem m_poseEstimationSubsystem = new PoseEstimationSubsystem(m_driveSubsystem)
 			.addCamera(m_camera1, kRobotToCamera1)
 			.addCamera(m_camera2, kRobotToCamera2);

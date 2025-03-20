@@ -449,7 +449,7 @@ public class CommandComposer {
 		if (level == 4)
 			p.addCommands(m_wristSubsystem.goToAngle(kLevelWristAngles.get(level) - 10));
 		if (retreatDistance > 0)
-			p.addCommands(moveStraight(-retreatDistance, Math.max(0.16, retreatDistance - 0.3), 16));
+			p.addCommands(moveStraight(-retreatDistance, 0.16, 16)); // TODO: Optimize
 		return sequence(prepare, m_cheeseStickSubsystem.release(0.7), p); // TODO: Check
 	}
 
