@@ -158,7 +158,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 
 	@Override
 	public void periodic() {
-		m_elevatorLigament.setLength(Units.inchesToMeters(24) + getPosition());
+		m_elevatorLigament.setLength(Units.inchesToMeters(36) + getPosition());
 		SmartDashboard.putNumber("Elevator/Extension", getPosition());
 	}
 

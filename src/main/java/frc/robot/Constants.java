@@ -183,7 +183,7 @@ public class Constants {
 		public static final double kLevelOneHeight = Units.inchesToMeters(3);
 		public static final double kLevelTwoHeight = Units.inchesToMeters(11.8);
 		public static final double kLevelThreeHeight = Units.inchesToMeters(30.71);
-		public static final double kLevelFourHeight = Units.inchesToMeters(51); // TODO: 72 from carpet
+		public static final double kLevelFourHeight = Units.inchesToMeters(51);
 		public static final double kMaxExtension = Units.inchesToMeters(51 + 0.1);
 		// TODO: The amount that the elevator decreases in order to score
 		public static final double kClearanceHeight = Units.inchesToMeters(15);
@@ -212,6 +212,7 @@ public class Constants {
 		public static final double kP = 0.015;
 		public static final double kI = 0.0;
 		public static final double kD = 0;
+		// public static final double kD = 0.003; // for simulation
 
 		public static final double kTolerance = 4;
 	}
@@ -238,12 +239,19 @@ public class Constants {
 
 		/**
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
-		 * {@code AprilTag} to align the robot to that {@code AprilTag}.
+		 * {@code AprilTag} to align the robot to remove algaes.
 		 */
 		static Transform2d[] kRobotToTags = { transform(1.1, 0.0, 180),
-				transform(0.35, 0.0, 180) };
+				transform(0.44, 0.0, 180) };
+		// transform(0.35, 0.0, 180) };
+		// likely to be incorrect due to incorrect robot-to-camera transform or timeout
 
-		static Transform2d[] kRobotToStationTags = { transform(1.1, 0.0, 180), transform(0.1, 0, 180) };
+		/**
+		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
+		 * {@code AprilTag} to align the robot to coral stations.
+		 */
+		static Transform2d[] kRobotToStationTags = { transform(1.1, 0.0, 180),
+				transform(0.4, 0, 180) };
 
 		/**
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
@@ -252,30 +260,47 @@ public class Constants {
 		static Transform2d[] kRobotToTagsLeft = { transform(0.9, 0, 180),
 				transform(0.44, -0.175, 180) };
 		// TODO: decrease y to align more to the left
+
 		/**
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
 		 * {@code AprilTag} to align the robot to the right of that {@code AprilTag}.
 		 */
 		static Transform2d[] kRobotToTagsRight = { transform(0.9, 0, 180),
 				transform(0.4, 0.200, 180) };
-		/**
-		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
-		 * {@code AprilTag} to align the robot to the left of that {@code AprilTag}.
-		 */
-		static Transform2d[] kRobotToTagsLeftReady = { transform(1.1, -0.5, 180),
-				transform(0.60, 0.0, 180) };
+		// TODO: decrease y to align more to the left
 
 		/**
-		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
-		 * {@code AprilTag} to align the robot to the right of that {@code AprilTag}.
+		 * A {@code Map} storing the elevator height for each scoring level.
 		 */
-		static Transform2d[] kRobotToTagsRightReady = { transform(1.1, 0.5, 180),
-				transform(0.60, 0.0, 180) };
+		static Map<Integer, Double> kLevelElevatorHeights = Map.of(
+				1, Units.inchesToMeters(3), // L1
+				2, Units.inchesToMeters(11.8), // L2
+				3, Units.inchesToMeters(30.71), // L3
+				4, Units.inchesToMeters(51)); // L4
+		// TODO: Check
 
 		/**
-		 * A {@code Map} storing the distance to travel to score at each scoring level.
+		 * A {@code Map} storing the wrist angle for each scoring level.
 		 */
-		static Map<Integer, Double> kOffsets = Map.of(1, 0.13, 2, 0.13, 3, 0.11, 4, 0.05);
-		// TODO increase to get closer to the tag
+		static Map<Integer, Double> kLevelWristAngles = Map.of(
+				1, 221.0, // L1
+				2, 230.0, // L2
+				3, 250.0, // L3
+				4, 240.0); // L4
+		// TODO: Check
+
+		/**
+		 * A {@code Map} storing the distance to move forward to score at each scoring
+		 * level.
+		 */
+		static Map<Integer, Double> kLevelForwardOffsets = Map.of(
+				1, 0.0, // L1
+				2, 0.0, // L2
+				3, 0.0, // L3
+				4, 0.0); // L4
+		// TODO: Check
+		// increase the offset value to get closer to the tag
+
 	}
+
 }

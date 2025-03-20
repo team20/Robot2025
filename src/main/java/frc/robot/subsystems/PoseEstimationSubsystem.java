@@ -141,7 +141,7 @@ public class PoseEstimationSubsystem extends SubsystemBase {
 			var camera = e.getKey();
 			var poseEstimator = e.getValue();
 			for (var r : camera.getAllUnreadResults()) // for every result r
-				if (useful(r, 0.2, 2.5, firstCamera)) {
+				if (useful(r, 0.2, 4, firstCamera)) {
 					m_mostRecentTimestamp = r.getTimestampSeconds();
 					Optional<EstimatedRobotPose> p = poseEstimator.update(r);
 					if (p.isPresent()) { // if successful
@@ -156,10 +156,22 @@ public class PoseEstimationSubsystem extends SubsystemBase {
 		m_estimatedPosePublisher.set(m_poseEstimator.getEstimatedPosition());
 		var closest = closestTagID(getEstimatedPose(), 180, 3);
 		SmartDashboard.putString("Closest AprilTag ID (within 3m)", closest == null ? "" : ("" + closest));
-		m_closestPosePublisher.set(closest == null ? null : kFieldLayout.getTagPose(closest).get().toPose2d());
+		var pose = closest == null ? null : kFieldLayout.getTagPose(closest).get().toPose2d();
+		m_closestPosePublisher.set(pose);
+		if (pose != null)
+			SmartDashboard.putNumber(
+					"Distance to Closest AprilTag (meters)", pose.minus(getEstimatedPose()).getTranslation().getNorm());
 		SmartDashboard.putNumber(
-				"Pose Estimation Confidence",
-				m_mostRecentTimestamp == null ? 0 : 3 / (MathSharedStore.getTimestamp() - m_mostRecentTimestamp + 3));
+				"Pose Estimation Confidence", confidence());
+	}
+
+	/**
+	 * Returns the confidence of this {@code PoseEstimationSubsystem}.
+	 * 
+	 * @return the confidence of this {@code PoseEstimationSubsystem}
+	 */
+	public double confidence() {
+		return m_mostRecentTimestamp == null ? 0 : 3 / (MathSharedStore.getTimestamp() - m_mostRecentTimestamp + 3);
 	}
 
 	/**
@@ -222,6 +234,32 @@ public class PoseEstimationSubsystem extends SubsystemBase {
 	public Pose2d closestTagPose(double angleOfCoverageInDegrees, double distanceThresholdInMeters) {
 		var i = closestTagID(getEstimatedPose(), angleOfCoverageInDegrees, distanceThresholdInMeters);
 		return i == null ? null : kFieldLayout.getTagPose(i).get().toPose2d();
+	}
+
+	/**
+	 * Finds the ID of the {@code AprilTag} that is closest to the robot
+	 * ({@code null} if no such {@code AprilTag}).
+	 * 
+	 * @return the ID of the {@code AprilTag} that is closest to the
+	 *         robot ({@code null} if no such {@code AprilTag})
+	 */
+	public Integer closestTagID() {
+		return closestTagID(getEstimatedPose(), 90, 3);
+	}
+
+	/**
+	 * Finds the ID of the {@code AprilTag} that is closest to the robot
+	 * ({@code null} if no such {@code AprilTag}).
+	 * 
+	 * @param angleOfCoverageInDegrees the angular coverage (in degrees) within
+	 *        which {@code AprilTag}s are considered (maximum: 180)
+	 * @param distanceThresholdInMeters the maximum distance (in meters) within
+	 *        which {@code AprilTag}s are considered
+	 * @return the ID of the {@code AprilTag} that is closest to the
+	 *         robot ({@code null} if no such {@code AprilTag})
+	 */
+	public Integer closestTagID(double angleOfCoverageInDegrees, double distanceThresholdInMeters) {
+		return closestTagID(getEstimatedPose(), angleOfCoverageInDegrees, distanceThresholdInMeters);
 	}
 
 	/**
