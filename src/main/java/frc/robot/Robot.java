@@ -102,10 +102,10 @@ public class Robot extends TimedRobot {
 	};
 	private final PhotonCamera m_camera1 = RobotBase.isSimulation()
 			? cameraSim("Camera1", kRobotToCamera1, m_visionSimulator, cameraProp)
-			: new PhotonCamera("BackCamera");
+			: new PhotonCamera("FrontCamera");
 	private final PhotonCamera m_camera2 = RobotBase.isSimulation()
 			? cameraSim("Camera2", kRobotToCamera2, m_visionSimulator, cameraProp)
-			: new PhotonCamera("FrontCamera");
+			: new PhotonCamera("BackCamera");
 	private final PoseEstimationSubsystem m_poseEstimationSubsystem = new PoseEstimationSubsystem(m_driveSubsystem)
 			.addCamera(m_camera1, kRobotToCamera1)
 			.addCamera(m_camera2, kRobotToCamera2);
@@ -341,7 +341,7 @@ public class Robot extends TimedRobot {
 						.withName("Elevator to Level Three and Wrist to Angle"));
 		m_operatorController.cross().onTrue(
 				m_elevatorSubsystem.goToLevelTwoHeight()
-						.andThen(m_wristSubsystem.goToAngle(kGrabberAngleOthers))
+						.andThen(m_wristSubsystem.goToAngle(kGrabberAngleLevelTwo))
 						.withName("Elevator to Level Two and Wrist to Angle"));
 		m_operatorController.circle().onTrue(CommandComposer.scoreLevelOneInTeleop());
 		m_operatorController.L1().and(m_operatorController.triangle()).onTrue(CommandComposer.removeAlgaeLevelThree());

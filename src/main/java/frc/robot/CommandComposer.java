@@ -66,12 +66,12 @@ public class CommandComposer {
 	}
 
 	public static Command scoreLevelOneInTeleop() {
-		return scoreLevelInTeleop(kLevelOneHeight, 0.7, m_elevatorSubsystem::goToLevelOneHeight, kGrabberAngleOthers)
+		return scoreLevelInTeleop(kLevelOneHeight, 0.7, m_elevatorSubsystem::goToLevelOneHeight, kGrabberAngleLevelTwo)
 				.withName("Score Level One in Teleop");
 	}
 
 	public static Command scoreLevelTwoInTeleop() {
-		return scoreLevelInTeleop(kLevelTwoHeight, 0.7, m_elevatorSubsystem::goToLevelTwoHeight, kGrabberAngleOthers)
+		return scoreLevelInTeleop(kLevelTwoHeight, 0.7, m_elevatorSubsystem::goToLevelTwoHeight, kGrabberAngleLevelTwo)
 				.withName("Score Level Two in Teleop");
 	}
 
@@ -107,9 +107,9 @@ public class CommandComposer {
 			case 3:
 				return score(align, pickup, kLevelThreeHeight, kGrabberAngleLevelThree);
 			case 2:
-				return score(align, pickup, kLevelTwoHeight, kGrabberAngleOthers);
+				return score(align, pickup, kLevelTwoHeight, kGrabberAngleLevelTwo);
 			case 1:
-				return score(align, pickup, kLevelOneHeight, kGrabberAngleOthers);
+				return score(align, pickup, kLevelOneHeight, kGrabberAngleLevelTwo);
 		}
 		return runOnce(() -> {
 		});
@@ -159,9 +159,9 @@ public class CommandComposer {
 			case 3:
 				return score(align, pickup, kLevelThreeHeight, kGrabberAngleLevelThree, kOffsets.get(level));
 			case 2:
-				return score(align, pickup, kLevelTwoHeight, kGrabberAngleOthers, kOffsets.get(level));
+				return score(align, pickup, kLevelTwoHeight, kGrabberAngleLevelTwo, kOffsets.get(level));
 			case 1:
-				return score(align, pickup, kLevelOneHeight, kGrabberAngleOthers, kOffsets.get(level));
+				return score(align, pickup, kLevelOneHeight, kGrabberAngleLevelTwo, kOffsets.get(level));
 		}
 		return runOnce(() -> {
 		});
@@ -197,12 +197,12 @@ public class CommandComposer {
 	}
 
 	static Command getMiddleScoreAndAlgaeBlue() {
-		return getMiddleScoreAndAlgae(toTag(21, kRobotToTagsRight), toTag(21, kRobotToTags))
+		return getMiddleScoreAndAlgae(toTag(21, kRobotToTagsLeft), toTag(21, kRobotToTags))
 				.withName("Middle Score and Algae Blue");
 	}
 
 	static Command getMiddleScoreAndAlgaeRed() {
-		return getMiddleScoreAndAlgae(toTag(10, kRobotToTagsRight), toTag(10, kRobotToTags))
+		return getMiddleScoreAndAlgae(toTag(10, kRobotToTagsLeft), toTag(10, kRobotToTags))
 				.withName("Middle Score and Algae Red");
 	}
 

@@ -141,7 +141,7 @@ public class Constants {
 		public static final double kTurnMinAngularSpeed = Math.toRadians(0); // 0 degree per second
 
 		// DriveCommand.java Constants
-		public static final double kDriveP = 5;
+		public static final double kDriveP = 7;
 		public static final double kDriveI = 0;
 		public static final double kDriveD = 0;
 		public static final double kDriveMaxAcceleration = 2 * kDriveMaxSpeed; // kDriveMaxSpeed in 1.5 sec
@@ -181,17 +181,17 @@ public class Constants {
 		public static final double kMaxAccel = 2.5;
 		public static final double kTolerance = 0.01;
 		public static final double kLevelOneHeight = Units.inchesToMeters(3);
-		public static final double kLevelTwoHeight = Units.inchesToMeters(8);
-		public static final double kLevelThreeHeight = Units.inchesToMeters(29);
-		public static final double kLevelFourHeight = Units.inchesToMeters(48 + 2); // TODO: 72 from carpet
-		public static final double kMaxExtension = Units.inchesToMeters(49.5 + 0.75);
+		public static final double kLevelTwoHeight = Units.inchesToMeters(11.8);
+		public static final double kLevelThreeHeight = Units.inchesToMeters(30.71);
+		public static final double kLevelFourHeight = Units.inchesToMeters(51); // TODO: 72 from carpet
+		public static final double kMaxExtension = Units.inchesToMeters(51 + 0.1);
 		// TODO: The amount that the elevator decreases in order to score
-		public static final double kClearanceHeight = Units.inchesToMeters(5.5);
+		public static final double kClearanceHeight = Units.inchesToMeters(15);
 		public static final double kToScoreHeightDecrease = Units.inchesToMeters(0);
 		public static final double kCoralStationHeight = Units.inchesToMeters(17 + 2); // TODO: Change
 
 		public static final double kAlgaeLevelThreeHeight = Units.inchesToMeters(0.25);
-		public static final double kAlgaeLevelTwoHeight = Units.inchesToMeters(14);
+		public static final double kAlgaeLevelTwoHeight = Units.inchesToMeters(13);
 		// public static final double kAlgaeLevelTwoAutoHeight =
 		// Units.inchesToMeters(13.5);
 	}
@@ -200,9 +200,9 @@ public class Constants {
 		public static final int kWristMotorPort = 27;
 		public static final int kSmartCurrentLimit = 20;
 		public static final int kSecondaryCurrentLimit = 20;
-		public static final int kGrabberAngleLevelFour = 223; // 228 with wrist offset
-		public static final int kGrabberAngleOthers = 221;
-		public static final int kGrabberAngleLevelThree = 240; // 232 with wrist offset
+		public static final int kGrabberAngleLevelFour = 240; // 228 with wrist offset
+		public static final int kGrabberAngleLevelThree = 250; // 232 with wrist offset
+		public static final int kGrabberAngleLevelTwo = 230;
 		public static final double kAlgaeWristHeight = 170;
 
 		public static final double kWristForwardSoftLimit = 274; // Wrist facing down
@@ -249,15 +249,15 @@ public class Constants {
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
 		 * {@code AprilTag} to align the robot to the left of that {@code AprilTag}.
 		 */
-		static Transform2d[] kRobotToTagsLeft = { transform(1.1, 0, 180),
-				transform(0.45, -0.185, 180) };
+		static Transform2d[] kRobotToTagsLeft = { transform(0.9, 0, 180),
+				transform(0.44, -0.175, 180) };
 		// TODO: decrease y to align more to the left
 		/**
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
 		 * {@code AprilTag} to align the robot to the right of that {@code AprilTag}.
 		 */
-		static Transform2d[] kRobotToTagsRight = { transform(1.1, 0, 180),
-				transform(0.54, 0.200, 180) };
+		static Transform2d[] kRobotToTagsRight = { transform(0.9, 0, 180),
+				transform(0.4, 0.200, 180) };
 		/**
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
 		 * {@code AprilTag} to align the robot to the left of that {@code AprilTag}.
