@@ -142,7 +142,7 @@ public class Constants {
 		public static final double kTurnMinAngularSpeed = Math.toRadians(0); // 0 degree per second
 
 		// DriveCommand.java Constants
-		public static final double kDriveP = 5; // TODO: Optimize: up to 12?
+		public static final double kDriveP = 7;
 		public static final double kDriveI = 0;
 		public static final double kDriveD = 0;
 		public static final double kDriveMaxAcceleration = 2 * kDriveMaxSpeed; // kDriveMaxSpeed in 0.5 sec
@@ -183,17 +183,17 @@ public class Constants {
 		public static final double kMaxAccel = 2.5;
 		public static final double kTolerance = 0.01;
 		public static final double kLevelOneHeight = Units.inchesToMeters(3);
-		public static final double kLevelTwoHeight = Units.inchesToMeters(8);
-		public static final double kLevelThreeHeight = Units.inchesToMeters(29);
-		public static final double kLevelFourHeight = Units.inchesToMeters(48 + 2);
-		public static final double kMaxExtension = 1.30;
-		// The amount that the elevator decreases in order to score
-		public static final double kClearanceHeight = Units.inchesToMeters(5.5);
+		public static final double kLevelTwoHeight = Units.inchesToMeters(11.8);
+		public static final double kLevelThreeHeight = Units.inchesToMeters(30.71);
+		public static final double kLevelFourHeight = Units.inchesToMeters(51);
+		public static final double kMaxExtension = Units.inchesToMeters(51 + 0.1);
+		// TODO: The amount that the elevator decreases in order to score
+		public static final double kClearanceHeight = Units.inchesToMeters(15);
 		public static final double kToScoreHeightDecrease = Units.inchesToMeters(0);
 		public static final double kCoralStationHeight = Units.inchesToMeters(17 + 2);
 
 		public static final double kAlgaeLevelThreeHeight = Units.inchesToMeters(0.25);
-		public static final double kAlgaeLevelTwoHeight = Units.inchesToMeters(14);
+		public static final double kAlgaeLevelTwoHeight = Units.inchesToMeters(13);
 		// public static final double kAlgaeLevelTwoAutoHeight =
 		// Units.inchesToMeters(13.5);
 	}
@@ -202,9 +202,9 @@ public class Constants {
 		public static final int kWristMotorPort = 27;
 		public static final int kSmartCurrentLimit = 20;
 		public static final int kSecondaryCurrentLimit = 20;
-		public static final int kGrabberAngleLevelFour = 223; // 228 with wrist offset
-		public static final int kGrabberAngleOthers = 221;
-		public static final int kGrabberAngleLevelThree = 240; // 232 with wrist offset
+		public static final int kGrabberAngleLevelFour = 240; // 228 with wrist offset
+		public static final int kGrabberAngleLevelThree = 250; // 232 with wrist offset
+		public static final int kGrabberAngleLevelTwo = 230;
 		public static final double kAlgaeWristHeight = 170;
 
 		public static final double kWristForwardSoftLimit = 274; // Wrist facing down
@@ -213,7 +213,8 @@ public class Constants {
 
 		public static final double kP = 0.01; // TODO: Finalize
 		public static final double kI = 0.0;
-		public static final double kD = 0.003; // TODO: Finalize
+		public static final double kD = 0;
+		// public static final double kD = 0.003; // for simulation
 
 		public static final double kTolerance = 4;
 	}
@@ -242,46 +243,35 @@ public class Constants {
 
 		/**
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
-		 * {@code AprilTag} to align the robot to that {@code AprilTag}.
+		 * {@code AprilTag} to align the robot to remove algaes.
 		 */
 		static Transform2d[] kRobotToTags = { transform(1.1, 0.0, 180),
-				transform(0.60, 0.0, 180) };
+				transform(0.44, 0.0, 180) };
 		// transform(0.35, 0.0, 180) };
-		// TODO: Check
+		// likely to be incorrect due to incorrect robot-to-camera transform or timeout
 
-		static Transform2d[] kRobotToStationTags = { transform(1.1, 0.0, 180), transform(0.1, 0, 180) };
+		/**
+		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
+		 * {@code AprilTag} to align the robot to coral stations.
+		 */
+		static Transform2d[] kRobotToStationTags = { transform(1.1, 0.0, 180),
+				transform(0.4, 0, 180) };
 
 		/**
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
 		 * {@code AprilTag} to align the robot to the left of that {@code AprilTag}.
 		 */
-		static Transform2d[] kRobotToTagsLeft = { transform(1.1, 0, 180),
-				transform(0.60, -0.165, 180) };
-		// transform(0.60, -0.165, 180) };
-		// transform(0.45, -0.185, 180) };
-		// TODO: Check: decrease y to align more to the left
+		static Transform2d[] kRobotToTagsLeft = { transform(0.9, 0, 180),
+				transform(0.44, -0.175, 180) };
+		// TODO: decrease y to align more to the left
 
 		/**
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
 		 * {@code AprilTag} to align the robot to the right of that {@code AprilTag}.
 		 */
-		static Transform2d[] kRobotToTagsRight = { transform(1.1, 0, 180),
-				transform(0.60, 0.195, 180) };
-		// transform(0.60, 0.195, 180) };
-		// transform(0.54, 0.200, 180) };
-		// TODO: Check: decrease y to align more to the left
-
-		/**
-		 * The offset for alignment to algaes (positive: closer to algae).
-		 */
-		static double kForwrdAdjustmentAlgaeRemoval = 0.25;
-		// TODO: Check
-
-		/**
-		 * The offset for alignment to coral stations (positive: closer to station).
-		 */
-		static double kForwrdAdjustmentCoralStation = 0.1;
-		// TODO: Check
+		static Transform2d[] kRobotToTagsRight = { transform(0.9, 0, 180),
+				transform(0.4, 0.200, 180) };
+		// TODO: decrease y to align more to the left
 
 		/**
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
@@ -296,27 +286,14 @@ public class Constants {
 		 */
 		static Transform2d[] kRobotToTagsRightReady = { transform(1.1, 0.5, 180),
 				transform(0.60, 0.0, 180) };
-
-		/**
-		 * A {@code Map} storing the distance to move forward to score at each scoring
-		 * level.
-		 */
-		static Map<Integer, Double> kLevelForwardAdjustments = Map.of(
-				1, 0.13, // L1
-				2, 0.2, // L2
-				3, 0.2, // L3
-				4, 0.17); // L4
-		// TODO: Check
-		// increase the offset value to get closer to the tag
-
 		/**
 		 * A {@code Map} storing the elevator height for each scoring level.
 		 */
 		static Map<Integer, Double> kLevelElevatorHeights = Map.of(
 				1, Units.inchesToMeters(3), // L1
-				2, 0.3, // L2
-				3, 0.8, // L3
-				4, 1.295); // L4
+				2, Units.inchesToMeters(11.8), // L2
+				3, Units.inchesToMeters(30.71), // L3
+				4, Units.inchesToMeters(51)); // L4
 		// TODO: Check
 
 		/**
@@ -324,11 +301,22 @@ public class Constants {
 		 */
 		static Map<Integer, Double> kLevelWristAngles = Map.of(
 				1, 221.0, // L1
-				2, 240.0, // L2
-				3, 240.0, // L3
+				2, 230.0, // L2
+				3, 250.0, // L3
 				4, 240.0); // L4
 		// TODO: Check
 
+		/**
+		 * A {@code Map} storing the distance to move forward to score at each scoring
+		 * level.
+		 */
+		static Map<Integer, Double> kLevelForwardOffsets = Map.of(
+				1, 0.0, // L1
+				2, 0.0, // L2
+				3, 0.0, // L3
+				4, 0.0); // L4
+		// TODO: Check
+		// increase the offset value to get closer to the tag
 		/**
 		 * A {@code Map} storing the additional distance to move forward/backward for
 		 * some {@code AprilTag}s (positive: closer to the tag).
