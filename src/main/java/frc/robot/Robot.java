@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import static edu.wpi.first.math.util.Units.*;
 import static edu.wpi.first.wpilibj2.command.Commands.*;
 import static frc.robot.CommandComposer.*;
 import static frc.robot.Constants.AlgaeConstants.*;
@@ -15,11 +16,8 @@ import static frc.robot.Constants.ElevatorConstants.*;
 import static frc.robot.Constants.WristConstants.*;
 import static frc.robot.subsystems.PoseEstimationSubsystem.*;
 
-import java.util.Arrays;
 import java.util.Map;
 import java.util.function.BooleanSupplier;
-import java.util.function.Supplier;
-import java.util.stream.IntStream;
 
 import org.littletonrobotics.urcl.URCL;
 import org.photonvision.PhotonCamera;
@@ -28,7 +26,6 @@ import org.photonvision.simulation.SimCameraProperties;
 
 import com.ctre.phoenix6.SignalLogger;
 
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.util.Units;
@@ -54,7 +51,6 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
-import frc.robot.commands.PathDriveCommand;
 import frc.robot.simulation.VisionSimulator;
 import frc.robot.subsystems.AlgaeGrabberSubsystem;
 import frc.robot.subsystems.ArduinoSubsystem;
@@ -165,38 +161,26 @@ public class Robot extends TimedRobot {
 	public void addTestingCommands() {
 		m_testingChooser
 				.addOption(
+						"Pick Up and Score at Levels 3 and 4 (Left and Right)",
+						sequence(
+								scoreClosest(3, false, 1.5, kRobotToTagsLeft),
+								waitSeconds(2),
+								goToBase(),
+								scoreClosest(3, false, 1.5, kRobotToTagsRight),
+								waitSeconds(2),
+								goToBase(),
+								scoreClosest(4, false, 1.5, kRobotToTagsLeft),
+								waitSeconds(2),
+								goToBase(),
+								scoreClosest(4, false, 1.5, kRobotToTagsRight)));
+		m_testingChooser
+				.addOption(
 						"Left Align to the Closest Tag",
 						toClosestTag(kRobotToTagsLeft));
 		m_testingChooser
 				.addOption(
 						"Right Align to the Closest Tag",
 						toClosestTag(kRobotToTagsRight));
-		m_testingChooser
-				.addOption(
-						"Left Align to the Closest Tag + Score at Level 2",
-						sequence(toClosestTag(kRobotToTagsLeft), scoreLevelTwoInTeleop()));
-		m_testingChooser
-				.addOption(
-						"Right Align to the Closest Tag + Score at Level 2",
-						sequence(toClosestTag(kRobotToTagsRight), scoreLevelTwoInTeleop()));
-		double distanceTolerance = 0.01;
-		double angleToleranceInDegrees = 1;
-		double intermediateDistanceTolerance = 0.08;
-		double intermediateAngleToleranceInDegrees = 8.0;
-		m_testingChooser
-				.addOption(
-						"Quickly Align AprilTags 7, 8, 9",
-						CommandComposer.alignToTags(
-								distanceTolerance, angleToleranceInDegrees, intermediateDistanceTolerance,
-								intermediateAngleToleranceInDegrees, Arrays.asList(kRobotToTagsLeft),
-								kRobotToTagsLeft[0], 7, 8, 9, 8, 7));
-		m_testingChooser
-				.addOption(
-						"Quickly Align AprilTags 18, 19, 20",
-						CommandComposer.alignToTags(
-								distanceTolerance, angleToleranceInDegrees, intermediateDistanceTolerance,
-								intermediateAngleToleranceInDegrees, Arrays.asList(kRobotToTagsLeft),
-								kRobotToTagsLeft[0], 18, 19, 20, 19, 18));
 		m_testingChooser
 				.addOption(
 						"Check All Subsystems",
@@ -222,63 +206,20 @@ public class Robot extends TimedRobot {
 				.addOption(
 						"Check DriveSubsystem (F/B/L/R/LR/RR and F/B while rotating)",
 						m_driveSubsystem.testCommand(0.5, Math.toRadians(45), 1.0));
-		m_testingChooser
-				.addOption(
-						"Test Absolute Orientation",
-						testAbsoluteOrientation(2));
-		m_testingChooser
-				.addOption(
-						"Quickly Align AprilTags 17, 18, 19, 20, 21, and 22",
-						CommandComposer.alignToTags(
-								distanceTolerance, angleToleranceInDegrees, intermediateDistanceTolerance,
-								intermediateAngleToleranceInDegrees, Arrays.asList(kRobotToTagsLeft),
-								kRobotToTagsLeft[0], 17, 18, 19, 20, 21, 22, 17));
-		m_testingChooser
-				.addOption(
-						"Quickly Align to AprilTags 12, 13, 17, 18, and 19",
-						CommandComposer.alignToTags(
-								distanceTolerance, angleToleranceInDegrees, intermediateDistanceTolerance,
-								intermediateAngleToleranceInDegrees, Arrays.asList(kRobotToTags), kRobotToTags[0], 18,
-								17, 12, 17, 18, 19, 13, 19, 18));
-		m_testingChooser
-				.addOption(
-						"Quickly Align to AprilTags 1, 2, 6, 7, and 8",
-						CommandComposer.alignToTags(
-								distanceTolerance, angleToleranceInDegrees, intermediateDistanceTolerance,
-								intermediateAngleToleranceInDegrees, Arrays.asList(kRobotToTags), kRobotToTags[0], 7, 6,
-								1, 6, 7, 8, 2, 8, 7));
+		double distanceTolerance = 0.01;
+		double angleToleranceInDegrees = 1;
 		m_testingChooser
 				.addOption(
 						"Check PID Constants for Driving (5'x5' Square)",
-						CommandComposer
-								.moveOnSquare(Units.feetToMeters(5), distanceTolerance, angleToleranceInDegrees, 16));
+						moveOnSquare(feetToMeters(5), distanceTolerance, angleToleranceInDegrees, 16));
 		m_testingChooser
 				.addOption(
-						"Check kDriveGearRatio and kWheelDiameter (F/B 6 feet)",
-						CommandComposer.moveForwardBackward(6, distanceTolerance, angleToleranceInDegrees));
+						"Check kWheelDiameter (F/B 6 feet)",
+						moveForwardBackward(feetToMeters(6), distanceTolerance, angleToleranceInDegrees));
 		m_testingChooser
 				.addOption(
 						"Slowest Movement Test (F/B/L/R/LR/RR and F/B while rotating)",
 						m_driveSubsystem.testCommand(kDriveMinSpeed, kTurnMinAngularSpeed, 1.0));
-		m_testingChooser
-				.addOption(
-						"Fastest Forward/Backward Movement Test (5m)",
-						sequence(
-								CommandComposer.moveStraight(5, 0.1, 10),
-								CommandComposer.moveStraight(-5, 0.1, 10)));
-		m_testingChooser
-				.addOption(
-						"Fastest Rotation Test (5 rotations)",
-						new PathDriveCommand(m_driveSubsystem, 1, 10,
-								1, 100,
-								IntStream.range(1, 1 + 3 * 5)
-										.mapToObj(
-												i -> (Supplier<Pose2d>) (() -> {
-													var pose = m_driveSubsystem.getPose();
-													return new Pose2d(pose.getX(), pose.getY(),
-															Rotation2d.fromDegrees(120 * i));
-												}))
-										.toList()));
 	}
 
 	public void bindAlert(Alert alert, BooleanSupplier event) {
@@ -333,15 +274,13 @@ public class Robot extends TimedRobot {
 		m_operatorController.axisMagnitudeGreaterThan(PS5Controller.Axis.kLeftY.value, kDeadzone)
 				.whileTrue(m_elevatorSubsystem.manualMove(() -> -m_operatorController.getLeftY()));
 		m_operatorController.triangle().onTrue(
-				m_elevatorSubsystem.goToLevelFourHeight().andThen(m_wristSubsystem.goToAngle(kGrabberAngleLevelFour))
+				prepareToScore(4, false)
 						.withName("Elevator to Level Four and Wrist to Angle"));
 		m_operatorController.square().onTrue(
-				m_elevatorSubsystem.goToLevelThreeHeight()
-						.andThen(m_wristSubsystem.goToAngle(kGrabberAngleLevelThree))
+				prepareToScore(3, false)
 						.withName("Elevator to Level Three and Wrist to Angle"));
 		m_operatorController.cross().onTrue(
-				m_elevatorSubsystem.goToLevelTwoHeight()
-						.andThen(m_wristSubsystem.goToAngle(kGrabberAngleLevelTwo))
+				prepareToScore(2, false)
 						.withName("Elevator to Level Two and Wrist to Angle"));
 		m_operatorController.circle().onTrue(CommandComposer.scoreLevelOneInTeleop());
 		m_operatorController.L1().and(m_operatorController.triangle()).onTrue(CommandComposer.removeAlgaeLevelThree());
