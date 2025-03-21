@@ -6,7 +6,7 @@ import static frc.robot.Constants.ElevatorConstants.*;
 import static frc.robot.Constants.WristConstants.*;
 import static frc.robot.subsystems.PoseEstimationSubsystem.*;
 
-import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
@@ -563,7 +563,7 @@ public class CommandComposer {
 		Supplier<Pose2d> s = () -> m_driveSubsystem.getPose()
 				.plus(transform(sideLength, 0, 90));
 		return new PathDriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance, distanceTolerance,
-				angleTolerance, List.of(s, s, s, s));
+				angleTolerance, () -> List.of(s, s, s, s));
 	}
 
 	/**
@@ -642,9 +642,10 @@ public class CommandComposer {
 	 *         {@code AprilTag}
 	 */
 	private static Command toTag(Supplier<Integer> tagID, double forwardAdjustment, Transform2d... robotToTags) {
-		return new PathDriveCommand(m_driveSubsystem, 0.01, 1,
+		return follow(
+				0.01, 1,
 				0.16, 16, // TODO: Optimize
-				posesToTag(tagID, forwardAdjustment, robotToTags));
+				() -> pathToTag(tagID, forwardAdjustment, robotToTags));
 	}
 
 	/**
@@ -660,20 +661,52 @@ public class CommandComposer {
 	 * @return a list of {@code Pose2d}s to automatically align the robot to the
 	 *         target {@code AprilTag}
 	 */
-	private static List<Supplier<Pose2d>> posesToTag(Supplier<Integer> tagID, double forwardAdjustment,
+	private static List<Pose2d> pathToTag(Supplier<Integer> tagID, double forwardAdjustment,
 			Transform2d... robotToTags) {
-		return Arrays.stream(robotToTags).map(r -> (Supplier<Pose2d>) (() -> {
-			var tID = tagID.get();
-			if (tID == null)
-				return m_driveSubsystem.getPose();
+		var path = new LinkedList<Pose2d>();
+		path.add(m_poseEstimationSubsystem.getEstimatedPose());
+		var tID = tagID.get();
+		if (tID != null) {
 			Pose2d pose = pose(tID);
-			if (pose == null)
-				return m_driveSubsystem.getPose();
-			var t = adjust(
-					forwardAdjustment, 0.0, r);
-			return m_poseEstimationSubsystem.odometryCentricPose(
-					pose.plus(t));
-		})).toList();
+			for (var r : robotToTags)
+				path.add(pose.plus(adjust(forwardAdjustment, 0.0, r)));
+		}
+		return refine(path);
+	}
+
+	/**
+	 * Refines the specified path (i.e., list of {@code Pose2d}s).
+	 * 
+	 * @param path a list of {@code Pose2d}s
+	 * @return a refined version of the specified path (i.e., list of
+	 *         {@code Pose2d}s)
+	 */
+	private static List<Pose2d> refine(List<Pose2d> path) {
+		return path;
+	}
+
+	/**
+	 * Constructs a {@code Command} for following the specified path (i.e., list of
+	 * {@code Pose2d}s).
+	 * 
+	 * @param distanceTolerance the distance error in meters which is tolerable
+	 * @param angleToleranceInDegrees the angle error in degrees which is tolerable
+	 * @param intermediateDistanceTolerance the distance error in meters which is
+	 *        tolerable for intermeidate target {@code Pose2d}s
+	 * @param intermediateAngleToleranceInDegrees the angle error in degrees which
+	 *        is tolerable for intermeidate target {@code Pose2d}s
+	 * @param targetPoses {@code Supplier} that provides the {@code Pose2d}s
+	 *        to which the robot should move
+	 * @return a {@code Command} for following the specified path (i.e., list of
+	 *         {@code Pose2d}s)
+	 */
+	public static Command follow(double distanceTolerance, double angleToleranceInDegrees,
+			double intermediateDistanceTolerance, double intermediateAngleToleranceInDegrees,
+			Supplier<List<Pose2d>> targetPoses) {
+		return new PathDriveCommand(m_driveSubsystem, distanceTolerance, angleToleranceInDegrees,
+				intermediateDistanceTolerance, intermediateAngleToleranceInDegrees, () -> targetPoses.get().stream()
+						.map(p -> (Supplier<Pose2d>) (() -> m_poseEstimationSubsystem.odometryCentricPose(p)))
+						.toList());
 	}
 
 	/**

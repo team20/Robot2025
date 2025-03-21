@@ -40,6 +40,12 @@ public class PathDriveCommand extends DriveCommand {
 	protected double m_intermediateAngleTolerance;
 
 	/**
+	 * The {@code Supplier} that provides the {@code Pose2d}s to which the robot
+	 * should move.
+	 */
+	protected Supplier<List<Supplier<Pose2d>>> m_targetPoseSuppliers;
+
+	/**
 	 * Constructs a new {@code PathDriveCommand} whose purpose is to move
 	 * the robot to certain {@code Pose2d}s.
 	 * 
@@ -56,7 +62,7 @@ public class PathDriveCommand extends DriveCommand {
 			double intermediateDistanceTolerance, double intermediateAngleToleranceInDegrees, Pose2d... targetPoses) {
 		this(driveSubsystem, distanceTolerance, angleToleranceInDegrees, intermediateDistanceTolerance,
 				intermediateAngleToleranceInDegrees,
-				Arrays.stream(targetPoses).map(p -> (Supplier<Pose2d>) (() -> p)).toList());
+				() -> Arrays.stream(targetPoses).map(p -> (Supplier<Pose2d>) (() -> p)).toList());
 	}
 
 	/**
@@ -70,18 +76,19 @@ public class PathDriveCommand extends DriveCommand {
 	 *        tolerable for intermeidate target {@code Pose2d}s
 	 * @param intermediateAngleToleranceInDegrees the angle error in degrees which
 	 *        is tolerable for intermeidate target {@code Pose2d}s
-	 * @param targetPoseSuppliers {@code Supplier<Pose2d>}s that provide the
-	 *        {@code Pose2d}s to which the robot should move
+	 * @param targetPoseSuppliers {@code Supplier} that provides the {@code Pose2d}s
+	 *        to which the robot should move
 	 */
 	public PathDriveCommand(DriveSubsystem driveSubsystem, double distanceTolerance, double angleToleranceInDegrees,
 			double intermediateDistanceTolerance, double intermediateAngleToleranceInDegrees,
-			List<Supplier<Pose2d>> targetPoseSuppliers) {
+			Supplier<List<Supplier<Pose2d>>> targetPoseSuppliers) {
 		super(driveSubsystem, distanceTolerance, angleToleranceInDegrees,
-				new IterativeTargetPoseSupplier(targetPoseSuppliers));
+				new IterativeTargetPoseSupplier());
 		m_distanceTolerance = distanceTolerance;
 		m_angleTolerance = Math.toRadians(angleToleranceInDegrees);
 		m_intermediateDistanceTolerance = intermediateDistanceTolerance;
 		m_intermediateAngleTolerance = Math.toRadians(intermediateAngleToleranceInDegrees);
+		m_targetPoseSuppliers = targetPoseSuppliers;
 	}
 
 	/**
@@ -91,7 +98,7 @@ public class PathDriveCommand extends DriveCommand {
 	 */
 	@Override
 	public void initialize() {
-		targetPoseSupplier().reset();
+		targetPoseSupplier().reset(m_targetPoseSuppliers.get());
 		moveToNextTargetPose();
 		Pose2d pose = m_driveSubsystem.getPose();
 		m_controllerXY.reset(m_targetPose.minus(pose).getTranslation().getNorm());
@@ -181,19 +188,13 @@ public class PathDriveCommand extends DriveCommand {
 		protected int m_targetPoseIndex = 0;
 
 		/**
-		 * Constructs an {@code IterativeTargetPoseSupplier}.
+		 * Resets this {@code IterativeTargetPoseSupplier}.
 		 * 
 		 * @param targetPoseSuppliers {@code Supplier<Pose2d>}s that provide the
 		 *        {@code Pose2d}s to which the robot should move
 		 */
-		public IterativeTargetPoseSupplier(List<Supplier<Pose2d>> targetPoseSuppliers) {
+		public void reset(List<Supplier<Pose2d>> targetPoseSuppliers) {
 			m_targetPoseSuppliers = targetPoseSuppliers;
-		}
-
-		/**
-		 * Resets this {@code IterativeTargetPoseSupplier}.
-		 */
-		public void reset() {
 			m_targetPoseIndex = 0;
 		}
 
