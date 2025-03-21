@@ -104,19 +104,16 @@ public class Robot extends TimedRobot {
 		}
 	};
 	private final PhotonCamera m_camera1 = RobotBase.isSimulation()
-			? cameraSim("Camera1", kRobotToCamera1, m_visionSimulator, m_cameraProp)
+			? cameraSim("FrontCamera", kRobotToCamera1, m_visionSimulator, m_cameraProp)
 			: new PhotonCamera("FrontCamera");
 	private final PhotonCamera m_camera2 = RobotBase.isSimulation()
-			? cameraSim("Camera2", kRobotToCamera2, m_visionSimulator, m_cameraProp)
+			? cameraSim("BackCamera", kRobotToCamera2, m_visionSimulator, m_cameraProp)
 			: new PhotonCamera("BackCamera");
 	private final PoseEstimationSubsystem m_poseEstimationSubsystem = new PoseEstimationSubsystem(m_driveSubsystem)
 			.addCamera(m_camera1, kRobotToCamera1)
 			.addCamera(m_camera2, kRobotToCamera2);
 
 	public Robot() {
-		// TODO: Please configure cameras correctly and then enable BackCamera.
-		addCamera("BackCamera", kRobotToCamera1); // TODO: check camera names.
-		// addCamera("FrontCamera", kRobotToCamera2);
 		SignalLogger.start();
 		WebServer.start(5800, Filesystem.getDeployDirectory().getPath());
 		CommandComposer.setSubsystems(
@@ -588,13 +585,6 @@ public class Robot extends TimedRobot {
 		cameraSim.enableDrawWireframe(true);
 		m_visionSimulator.addCamera(cameraSim, robotToCamera);
 		return camera;
-	}
-
-	private void addCamera(String cameraName, Transform3d robotToCamera) {
-		PhotonCamera camera = RobotBase.isSimulation()
-				? cameraSim(cameraName, robotToCamera, m_visionSimulator, m_cameraProp)
-				: new PhotonCamera(cameraName);
-		m_poseEstimationSubsystem.addCamera(camera, robotToCamera);
 	}
 
 	@Override

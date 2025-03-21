@@ -362,14 +362,9 @@ public class CommandComposer {
 	 *         field as a memeber of the blue alliance
 	 */
 	private static Command get3ScoreNorthBlue(double distance, double waitTime) {
-		return sequence(
-				score(20, 4, true, 0.5, kRobotToTagsRight),
-				toStation(13, 0.0, kRobotToTagsRightReady),
-				parallel(m_wristSubsystem.goToAngle(270), waitSeconds(waitTime)),
-				score(19, 4, true, 0.5, kRobotToTagsRight),
-				toStation(13, 0.0, kRobotToTagsRightReady),
-				parallel(m_wristSubsystem.goToAngle(270), waitSeconds(waitTime)),
-				score(19, 4, true, 0.5, kRobotToTagsLeft));
+		return get3ScoreAutoCommand(
+				20, kRobotToTagsRight, 13, kRobotToTagsRightReady, 19, kRobotToTagsRight, kRobotToTagsLeft, distance,
+				waitTime);
 	}
 
 	/**
@@ -382,14 +377,9 @@ public class CommandComposer {
 	 *         field as a memeber of the red alliance
 	 */
 	private static Command get3ScoreNorthRed(double distance, double waitTime) {
-		return sequence(
-				score(9, 4, true, 0.5, kRobotToTagsLeft),
-				toStation(2, 0.0, kRobotToTagsLeftReady),
-				parallel(m_wristSubsystem.goToAngle(270), waitSeconds(waitTime)),
-				score(8, 4, true, 0.5, kRobotToTagsLeft),
-				toStation(2, 0.0, kRobotToTagsLeftReady),
-				parallel(m_wristSubsystem.goToAngle(270), waitSeconds(waitTime)),
-				score(8, 4, true, 0.5, kRobotToTagsRight));
+		return get3ScoreAutoCommand(
+				9, kRobotToTagsLeft, 2, kRobotToTagsLeftReady, 8, kRobotToTagsLeft, kRobotToTagsRight, distance,
+				waitTime);
 	}
 
 	/**
@@ -402,14 +392,9 @@ public class CommandComposer {
 	 *         field as a memeber of the blue alliance
 	 */
 	private static Command get3ScoreSouthBlue(double distance, double waitTime) {
-		return sequence(
-				score(22, 4, true, 0.5, kRobotToTagsLeft),
-				toStation(12, 0.0, kRobotToTagsLeftReady),
-				parallel(m_wristSubsystem.goToAngle(270), waitSeconds(waitTime)),
-				score(17, 4, true, 0.5, kRobotToTagsLeft),
-				toStation(12, 0.0, kRobotToTagsLeftReady),
-				parallel(m_wristSubsystem.goToAngle(270), waitSeconds(waitTime)),
-				score(17, 4, true, 0.5, kRobotToTagsRight));
+		return get3ScoreAutoCommand(
+				22, kRobotToTagsLeft, 12, kRobotToTagsLeftReady, 17, kRobotToTagsLeft, kRobotToTagsRight, distance,
+				waitTime);
 	}
 
 	/**
@@ -422,14 +407,36 @@ public class CommandComposer {
 	 *         field as a memeber of the red alliance
 	 */
 	private static Command get3ScoreSouthRed(double distance, double waitTime) {
+		return get3ScoreAutoCommand(
+				11, kRobotToTagsRight, 1, kRobotToTagsRightReady, 6, kRobotToTagsRight, kRobotToTagsLeft, distance,
+				waitTime);
+	}
+
+	/**
+	 * Returns a {@code Command} to perform a 3-score auto.
+	 * 
+	 * @param tagID1 the ID of the {@code AprilTag} for first scoring
+	 * @param robotToTags1 the {@code Tranform2d} for first scoring
+	 * @param tagIDStation the ID of the {@code AprilTag} on the coral station
+	 * @param robotToTagsStation the {@code Tranform2d} for alignment to the station
+	 * @param tagID2 the ID of the {@code AprilTag} for second and third scoring
+	 * @param robotToTags2 the {@code Tranform2d} for second scoring
+	 * @param robotToTags3 the {@code Tranform2d} for theird scoring
+	 * @param distance the distance to retreat after scoring
+	 * @param waitTime the time to load a coral at the coral station
+	 * @return a {@code Command} to perform a 3-score auto
+	 */
+	private static Command get3ScoreAutoCommand(int tagID1, Transform2d[] robotToTags1, int tagIDStation,
+			Transform2d[] robotToTagsStation, int tagID2, Transform2d[] robotToTags2, Transform2d[] robotToTags3,
+			double distance, double waitTime) {
 		return sequence(
-				score(11, 4, true, 0.5, kRobotToTagsRight),
-				toStation(1, 0.0, kRobotToTagsRightReady),
+				score(tagID1, 4, true, distance, robotToTags1),
+				toStation(tagIDStation, 0.0, robotToTagsStation),
 				parallel(m_wristSubsystem.goToAngle(270), waitSeconds(waitTime)),
-				score(6, 4, true, 0.5, kRobotToTagsRight),
-				toStation(1, 0.0, kRobotToTagsRightReady),
+				score(tagID2, 4, true, distance, robotToTags2),
+				toStation(tagIDStation, 0.0, robotToTagsStation),
 				parallel(m_wristSubsystem.goToAngle(270), waitSeconds(waitTime)),
-				score(6, 4, true, 0.5, kRobotToTagsLeft));
+				score(tagID2, 4, true, distance, robotToTags3));
 	}
 
 	/**
