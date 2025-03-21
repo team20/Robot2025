@@ -285,31 +285,11 @@ public class Constants {
 				transform(0.60, 0.0, 180) };
 
 		/**
-		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
-		 * {@code AprilTag} to align the robot to the right of that {@code AprilTag}.
+		 * A {@code Map} storing the distance to move forward to score at each scoring
+		 * level.
 		 */
 		static Transform2d[] kRobotToTagsRightReady = { transform(1.1, 0.5, 180),
 				transform(0.60, 0.0, 180) };
-		/**
-		 * A {@code Map} storing the elevator height for each scoring level.
-		 */
-		static Map<Integer, Double> kLevelElevatorHeights = Map.of(
-				1, Units.inchesToMeters(3), // L1
-				2, Units.inchesToMeters(11.8), // L2
-				3, Units.inchesToMeters(30.71), // L3
-				4, Units.inchesToMeters(51)); // L4
-		// TODO: Check
-
-		/**
-		 * A {@code Map} storing the wrist angle for each scoring level.
-		 */
-		static Map<Integer, Double> kLevelWristAngles = Map.of(
-				1, 221.0, // L1
-				2, 230.0, // L2
-				3, 250.0, // L3
-				4, 240.0); // L4
-		// TODO: Check
-
 		/**
 		 * A {@code Map} storing the distance to move forward to score at each scoring
 		 * level.

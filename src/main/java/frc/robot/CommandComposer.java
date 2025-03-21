@@ -102,32 +102,52 @@ public class CommandComposer {
 	}
 
 	/**
-	 * Returns a {@code Command} to prepare the robot to score.
+	 * Returns a {@code Command} to prepare the robot to score at the closest
+	 * {@code AprilTag} and the specified level.
 	 * 
-	 * @param level the target elevator level
+	 * Returns a {@code Command} to prepare the robot to score at the specified
+	 * level.
+	 * 
+	 * @param level the target scoring level
 	 * @param pickup a {@code boolean} value indicating whether or not to pick up
-	 *        the coral from the pocket
-	 * @return a {@code Command} to prepare the robot to score
+	 *        the coral in the pocket
+	 * @return a {@code Command} to prepare the robot to score at the specified
+	 *         level
 	 */
 	public static Command prepareToScore(int level, boolean pickup) {
+		switch (level) {
+			case 4:
+				return prepareToScore(kLevelFourHeight, kGrabberAngleLevelFour, pickup);
+			case 3:
+				return prepareToScore(kLevelThreeHeight, kGrabberAngleLevelThree, pickup);
+			case 2:
+				return prepareToScore(kLevelTwoHeight, kGrabberAngleLevelTwo, pickup);
+		}
+		return runOnce(() -> {
+		});
+	}
+
+	/**
+	 * Returns a {@code Command} to prepare the robot to score based on the
+	 * specified elevator level and wrist angle.
+	 * 
+	 * @param elevatorLevel the target elevator level
+	 * @param wristAngle the target wrist angle
+	 * @param pickup a {@code boolean} value indicating whether or not to pick up
+	 *        the coral in the pocket
+	 * @return {@code Command} to prepare the robot to score based on the
+	 *         specified elevator level and wrist angle
+	 */
+	public static Command prepareToScore(double elevatorLevel, double wristAngle, boolean pickup) {
 		var c = pickup ? new SequentialCommandGroup(goToBase()) : new SequentialCommandGroup();
 		c.addCommands(
-				m_elevatorSubsystem.goToLevel(() -> kLevelElevatorHeights.get(level)),
-				m_wristSubsystem.goToAngle(kLevelWristAngles.get(level)));
+				m_elevatorSubsystem.goToLevel(() -> elevatorLevel),
+				m_wristSubsystem.goToAngle(wristAngle));
 		return c;
 	}
 
 	/**
-	 * Returns a {@code Command} to prepare the robot to score at the specified
-	 * {@code AprilTag} and level.
 	 * 
-	 * @param tagID the ID of the target {@code AprilTag}
-	 * @param level the target scoring level
-	 * @param pickup a {@code boolean} value indicating whether or not to pick up
-	 *        the coral in the pocket
-	 * @param robotToTags the {@code Tranform2d} representing the pose of the
-	 *        target {@code AprilTag} relative to the robot when the robot is
-	 *        aligned
 	 * @return a {@code Command} to prepare the robot to score at the specified
 	 *         {@code AprilTag} and level
 	 */
@@ -146,10 +166,10 @@ public class CommandComposer {
 	 *        target {@code AprilTag} relative to the robot when the robot is
 	 *        aligned
 	 * @return a {@code Command} to prepare the robot to score at the closest
-	 *         {@code AprilTag}
+	 *         {@code AprilTag} and the specified level
 	 */
 	public static Command prepareToScoreClosest(int level, boolean pickup, Transform2d... robotToTags) {
-		return prepareToScore(() -> m_poseEstimationSubsystem.closestTagID(180, 3), level, pickup, robotToTags);
+		return prepareToScore(() -> m_poseEstimationSubsystem.closestTagID(), level, pickup, robotToTags);
 	}
 
 	/**
@@ -185,7 +205,6 @@ public class CommandComposer {
 	 * @param robotToTags the {@code Tranform2d} representing the pose of the
 	 *        target {@code AprilTag} relative to the robot when the robot is
 	 *        aligned
-	 * @return a {@code Command} to score
 	 * @return a {@code Command} to score at the specified {@code AprilTag} and
 	 *         level
 	 */
@@ -253,25 +272,19 @@ public class CommandComposer {
 						moveStraight(-0.5, 0.01, 1)));
 	}
 
-	private static Command getMiddleScoreAndAlgaeRed() {
-		return getMiddleScoreAndAlgae(
-				score(10, 4, true, 0, kRobotToTagsRight),
-				toTag(10, kRobotToTags))
-						.withName("Middle Score and Algae Red");
+	static Command getMiddleScoreAndAlgaeBlue() {
+		return getMiddleScoreAndAlgae(score(21, 4, false, 0, kRobotToTagsLeft), toTag(21, kRobotToTags))
+				.withName("Middle Score and Algae Blue");
 	}
 
-	private static Command getMiddleScoreAndAlgaeBlue() {
-		return getMiddleScoreAndAlgae(
-				score(21, 4, true, 0, kRobotToTagsRight),
-				toTag(21, kRobotToTags))
-						.withName("Middle Score and Algae Blue");
+	static Command getMiddleScoreAndAlgaeRed() {
+		return getMiddleScoreAndAlgae(score(10, 4, false, 0, kRobotToTagsLeft), toTag(10, kRobotToTags))
+				.withName("Middle Score and Algae Red");
 	}
 
 	static Command getMiddleScoreAndAlgaePracticeField() {
-		return getMiddleScoreAndAlgae(
-				scoreClosest(4, true, 0, kRobotToTagsRight),
-				toClosestTag(kRobotToTags))
-						.withName("Middle Score and Algae Practice Field (Closest)");
+		return getMiddleScoreAndAlgae(scoreClosest(4, false, 0, kRobotToTagsLeft), toClosestTag(kRobotToTags))
+				.withName("Middle Score and Algae Practice Field (6)");
 	}
 
 	public static Command leave() {
@@ -291,7 +304,8 @@ public class CommandComposer {
 
 	public static Command getTwoScoreRedLeftSide() {
 		return getTwoScore(
-				score(11, 4, false, 0, kRobotToTagsRight), 1,
+				score(11, 4, false, 0, kRobotToTagsRight),
+				1,
 				score(6, 4, false, 0, kRobotToTagsLeft))
 						.withName("Red-Left | Two Score ");
 	}

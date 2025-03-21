@@ -365,6 +365,14 @@ public class Robot extends TimedRobot {
 						moveOnSquare(feetToMeters(5), distanceTolerance, angleToleranceInDegrees, 16));
 		m_testingChooser
 				.addOption(
+						"Check PID Constants for Driving (5'x5' Square)",
+						moveOnSquare(feetToMeters(5), distanceTolerance, angleToleranceInDegrees, 16));
+		m_testingChooser
+				.addOption(
+						"Check kWheelDiameter (F/B 6 feet)",
+						moveForwardBackward(feetToMeters(6), distanceTolerance, angleToleranceInDegrees));
+		m_testingChooser
+				.addOption(
 						"Slowest Movement Test (F/B/L/R/LR/RR and F/B while rotating)",
 						m_driveSubsystem.testCommand(kDriveMinSpeed, kTurnMinAngularSpeed, 1.0));
 		m_testingChooser
