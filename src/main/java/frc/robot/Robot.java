@@ -152,14 +152,37 @@ public class Robot extends TimedRobot {
 	}
 
 	public void addAutoCommands() {
-		m_autoSelector
-				.addOption(
-						"Middle and Algae Blue", CommandComposer.getMiddleScoreAndAlgaeBlue());
 		m_autoSelector.addOption("Leave", CommandComposer.leave());
+
+		// One score and algae, center starting position
+		m_autoSelector.addOption("Middle and Algae Blue", CommandComposer.getMiddleScoreAndAlgaeBlue());
 		m_autoSelector.addOption("Middle and Algae Red", CommandComposer.getMiddleScoreAndAlgaeRed());
 		m_autoSelector
 				.addOption("Middle and Algae Practice Field", CommandComposer.getMiddleScoreAndAlgaePracticeField());
-		m_autoSelector.addOption("Two Score Red Left Side", CommandComposer.getTwoScoreRedLeftSide());
+
+		// One score and algae, left or right starting position
+		m_autoSelector.addOption("Left and Algae Blue", CommandComposer.getLeftScoreAndAlgaeBlue());
+		m_autoSelector.addOption("Right and Algae Blue", CommandComposer.getRightScoreAndAlgaeBlue());
+		m_autoSelector.addOption("Left and Algae Red", CommandComposer.getLeftScoreAndAlgaeRed());
+		m_autoSelector.addOption("Right and Algae Red", CommandComposer.getRightScoreAndAlgaeRed());
+
+		// Two score, left or right starting position
+		m_autoSelector.addOption("Left Two Score Blue", CommandComposer.getLeftTwoScoreBlue());
+		m_autoSelector.addOption("Right Two Score Blue", CommandComposer.getRightTwoScoreBlue());
+		m_autoSelector.addOption("Left Two Score Red", CommandComposer.getLeftTwoScoreRed());
+		m_autoSelector.addOption("Right Two Score Red", CommandComposer.getRightTwoScoreRed());
+
+		// Two score and algae, left or right starting position
+		m_autoSelector.addOption("Left Two Score and Algae Blue", CommandComposer.getLeftTwoScoreAndAlgaeBlue());
+		m_autoSelector.addOption("Right Two Score and Algae Blue", CommandComposer.getRightTwoScoreAndAlgaeBlue());
+		m_autoSelector.addOption("Left Two Score and Algae Red", CommandComposer.getLeftTwoScoreAndAlgaeRed());
+		m_autoSelector.addOption("Right Two Score and Algae Red", CommandComposer.getRightTwoScoreAndAlgaeRed());
+
+		// Three score, left or right starting position
+		m_autoSelector.addOption("Left Three Score Blue", CommandComposer.getLeftThreeScoreBlue());
+		m_autoSelector.addOption("Right Three Score Blue", CommandComposer.getRightThreeScoreBlue());
+		m_autoSelector.addOption("Left Three Score Red", CommandComposer.getLeftThreeScoreRed());
+		m_autoSelector.addOption("Right Three Score Red", CommandComposer.getRightThreeScoreRed());
 	}
 
 	public void addTestingCommands() {
