@@ -73,6 +73,33 @@ public class CommandComposer {
 				.withName("Score Level Two in Teleop");
 	}
 
+	/**
+	 * Returns a {@code Command} to align to the specified {@code AprilTag} and then
+	 * remove the algae at level two.
+	 * 
+	 * @param tagID the ID of the {@code AprilTag}
+	 * @return a {@code Command} to align to the specified {@code AprilTag} and then
+	 *         remove the algae at level two
+	 */
+	public static Command removeAlgaeLevelTwo(int tagID) {
+		return removeAlgaeLevelTwo(() -> tagID);
+	}
+
+	/**
+	 * Returns a {@code Command} to align to the specified {@code AprilTag} and then
+	 * remove the algae at level two.
+	 * 
+	 * @param tagID the ID of the {@code AprilTag}
+	 * @return a {@code Command} to align to the specified {@code AprilTag} and then
+	 *         remove the algae at level two
+	 */
+	private static Command removeAlgaeLevelTwo(Supplier<Integer> tagID) {
+		return sequence(
+				toTag(tagID, 0, kRobotToTags), // .withTimeout(4), This timeout seems to affect alignment accuracy
+				m_cheeseStickSubsystem.grab(),
+				removeAlgaeLevelTwo());
+	}
+
 	public static Command removeAlgaeLevelThree() {
 		return sequence(
 				m_elevatorSubsystem.goToLevelTwoHeight(),
@@ -211,6 +238,26 @@ public class CommandComposer {
 	 */
 	public static Command score(int tagID, int level, boolean pickup, double retreatDistance,
 			Transform2d... robotToTags) {
+		return score(() -> tagID, level, pickup, retreatDistance, robotToTags);
+	}
+
+	/**
+	 * Returns a {@code Command} to score at the specified {@code AprilTag} and
+	 * level.
+	 * 
+	 * @param tagID the ID of the target {@code AprilTag}
+	 * @param level the target scoring level
+	 * @param pickup a {@code boolean} value indicating whether or not to pick up
+	 *        the coral in the pocket
+	 * @param retreatDistance the retreat distance at the end of scoring
+	 * @param robotToTags the {@code Tranform2d} representing the pose of the
+	 *        target {@code AprilTag} relative to the robot when the robot is
+	 *        aligned
+	 * @return a {@code Command} to score at the specified {@code AprilTag} and
+	 *         level
+	 */
+	private static Command score(Supplier<Integer> tagID, int level, boolean pickup, double retreatDistance,
+			Transform2d... robotToTags) {
 		return score(prepareToScore(tagID, level, pickup, robotToTags), level, retreatDistance);
 	}
 
@@ -249,60 +296,43 @@ public class CommandComposer {
 		return sequence(prepare, m_cheeseStickSubsystem.release(0.7), p); // TODO: Check
 	}
 
-	private static Command getMiddleScoreAndAlgae(Command score, Command align) {
+	/**
+	 * Returns a {@code Command} to obtain a coral at the specified station, align
+	 * to the specified {@code AprilTag}, and then score at the specified level.
+	 * 
+	 * @param tagIDStation the ID of the {@code AprilTag} at the coral station
+	 * @param tagID the ID of the {@code AprilTag} to align to in order to score
+	 * @param level the target scoring level
+	 * @param pickup a {@code boolean} value indicating whether or not to pick up
+	 *        the coral in the pocket
+	 * @param retreatDistance the retreat distance at the end of scoring
+	 * @param robotToTags the {@code Tranform2d} representing the pose of the
+	 *        target {@code AprilTag} relative to the robot when the robot is
+	 *        aligned
+	 * @return a {@code Command} to obtain a coral at the specified station, align
+	 *         to the specified {@code AprilTag}, and then score at the specified
+	 *         level
+	 */
+	private static Command score(int tagIDStation, int tagID, int level, boolean pickup, double retreatDistance,
+			Transform2d... robotToTags) {
 		return sequence(
-				score,
-				align, // .withTimeout(4), // this timeout seems to affect the accuracy of alignment
 				m_cheeseStickSubsystem.grab(),
-				removeAlgaeLevelTwo(),
-				parallel(
-						m_wristSubsystem.goToAngle(268),
-						moveStraight(-0.5, 0.01, 1)));
-	}
-
-	static Command getMiddleScoreAndAlgaeBlue() {
-		return getMiddleScoreAndAlgae(score(21, 4, false, 0, kRobotToTagsLeft), toTag(21, kRobotToTags))
-				.withName("Middle Score and Algae Blue");
-	}
-
-	static Command getMiddleScoreAndAlgaeRed() {
-		return getMiddleScoreAndAlgae(score(10, 4, false, 0, kRobotToTagsLeft), toTag(10, kRobotToTags))
-				.withName("Middle Score and Algae Red");
-	}
-
-	static Command getMiddleScoreAndAlgaePracticeField() {
-		return getMiddleScoreAndAlgae(scoreClosest(4, false, 0, kRobotToTagsLeft), toClosestTag(kRobotToTags))
-				.withName("Middle Score and Algae Practice Field (6)");
-	}
-
-	public static Command leave() {
-		return m_driveSubsystem.driveCommand(() -> -0.25, () -> 0, () -> 0, () -> true).withTimeout(10)
-				.withName("Leave Auto");
-	}
-
-	public static Command getTwoScore(Command score1, int coralStationID, Command score2) {
-		return sequence(
-				score1,
-				m_cheeseStickSubsystem.grab(),
-				toStation(coralStationID),
+				toStation(tagIDStation),
 				waitSeconds(2),
 				pickupAtCoralStation(),
-				score2);
+				score(tagID, level, pickup, retreatDistance, robotToTags));
 	}
 
-	public static Command getTwoScoreRedLeftSide() {
-		return getTwoScore(
-				score(11, 4, false, 0, kRobotToTagsRight),
-				1,
-				score(6, 4, false, 0, kRobotToTagsLeft))
-						.withName("Red-Left | Two Score ");
+	public static Command score(double offset, double releaseDuration, Command followup) {
+		return sequence(
+				moveStraight(offset, 0.01, 1), m_cheeseStickSubsystem.release(releaseDuration),
+				parallel(followup, moveStraight(-2 * offset, 0.01, 1)));
 	}
 
 	public static Command toStation(int tagID) {
 		return parallel(
 				toTag(tagID, kRobotToStationTags),
 				prepareForCoralPickup()).withName("Align to Station");
-
 	}
 
 	public static Command prepareForCoralPickup() {
@@ -328,6 +358,149 @@ public class CommandComposer {
 		return parallel(m_climberSubsystem.retract(), m_driveSubsystem.setNeutralMode(NeutralModeValue.Coast).asProxy())
 				.finallyDo(() -> m_driveSubsystem.setDriveMotorNeutralMode(NeutralModeValue.Brake))
 				.withName("Retract Climber and Drive Coast");
+	}
+
+	// TODO: AUTO SEQUENCES START HERE
+	public static Command leave() {
+		return m_driveSubsystem.driveCommand(() -> -0.25, () -> 0, () -> 0, () -> true).withTimeout(10)
+				.withName("Leave Auto");
+	}
+
+	private static Command getOneScoreAndAlgae(int tagID) {
+		return getOneScoreAndAlgae(() -> tagID);
+	}
+
+	private static Command getOneScoreAndAlgae(Supplier<Integer> tagID) {
+		return sequence(
+				score(tagID, 4, false, 0, kRobotToTagsLeft),
+				removeAlgaeLevelTwo(tagID),
+				parallel(
+						m_wristSubsystem.goToAngle(268),
+						moveStraight(-0.5, 0.16, 16)));
+	}
+
+	static Command getMiddleScoreAndAlgaeBlue() {
+		return getOneScoreAndAlgae(21)
+				.withName("Middle Score and Algae Blue");
+	}
+
+	static Command getMiddleScoreAndAlgaeRed() {
+		return getOneScoreAndAlgae(10)
+				.withName("Middle Score and Algae Red");
+	}
+
+	static Command getMiddleScoreAndAlgaePracticeField() {
+		return getOneScoreAndAlgae(() -> m_poseEstimationSubsystem.closestTagID())
+				.withName("Middle Score and Algae Practice Field");
+	}
+
+	static Command getLeftScoreAndAlgaeBlue() {
+		return getOneScoreAndAlgae(20)
+				.withName("Left Score and Algae Blue");
+	}
+
+	static Command getRightScoreAndAlgaeBlue() {
+		return getOneScoreAndAlgae(22)
+				.withName("Right Score and Algae Blue");
+	}
+
+	static Command getLeftScoreAndAlgaeRed() {
+		return getOneScoreAndAlgae(11)
+				.withName("Left Score and Algae Red");
+	}
+
+	static Command getRightScoreAndAlgaeRed() {
+		return getOneScoreAndAlgae(9)
+				.withName("Right Score and Algae Red");
+	}
+
+	public static Command getTwoScore(int tagID1, int tagIDStation, int tagID2) {
+		return sequence(
+				score(tagID1, 4, false, 0.5, kRobotToTagsRight),
+				score(tagIDStation, tagID2, 4, false, 0.5, kRobotToTagsLeft),
+				parallel(
+						m_wristSubsystem.goToAngle(268),
+						moveStraight(-0.5, 0.01, 1)));
+	}
+
+	public static Command getLeftTwoScoreBlue() {
+		return getTwoScore(20, 13, 19)
+				.withName("Blue-Left | Two Score ");
+	}
+
+	public static Command getRightTwoScoreBlue() {
+		return getTwoScore(22, 12, 17)
+				.withName("Blue-Right | Two Score ");
+	}
+
+	public static Command getLeftTwoScoreRed() {
+		return getTwoScore(11, 1, 6)
+				.withName("Red-Left | Two Score ");
+	}
+
+	public static Command getRightTwoScoreRed() {
+		return getTwoScore(9, 2, 8)
+				.withName("Red-Right | Two Score ");
+	}
+
+	public static Command getTwoScoreAndAlgae(int tagID1, int tagIDStation, int tagID2) {
+		return sequence(
+				score(tagID1, 4, false, 0.5, kRobotToTagsRight),
+				score(tagIDStation, tagID2, 4, false, 0.5, kRobotToTagsLeft),
+				removeAlgaeLevelTwo(tagID2),
+				parallel(
+						m_wristSubsystem.goToAngle(268),
+						moveStraight(-0.5, 0.01, 1)));
+	}
+
+	public static Command getLeftTwoScoreAndAlgaeBlue() {
+		return getTwoScoreAndAlgae(20, 13, 19)
+				.withName("Blue-Left | Two Score and Algae ");
+	}
+
+	public static Command getRightTwoScoreAndAlgaeBlue() {
+		return getTwoScoreAndAlgae(22, 12, 17)
+				.withName("Blue-Right | Two Score and Algae ");
+	}
+
+	public static Command getLeftTwoScoreAndAlgaeRed() {
+		return getTwoScoreAndAlgae(11, 1, 6)
+				.withName("Red-Left | Two Score and Algae ");
+	}
+
+	public static Command getRightTwoScoreAndAlgaeRed() {
+		return getTwoScoreAndAlgae(9, 2, 8)
+				.withName("Red-Right | Two Score and Algae ");
+	}
+
+	public static Command getThreeScore(int tagID1, int tagIDStation, int tagID2, int tagID3) {
+		return sequence(
+				score(tagID1, 4, false, 0.5, kRobotToTagsRight),
+				score(tagIDStation, tagID2, 4, false, 0.5, kRobotToTagsLeft),
+				score(tagIDStation, tagID3, 4, false, 0.5, kRobotToTagsLeft),
+				parallel(
+						m_wristSubsystem.goToAngle(270),
+						moveStraight(-0.5, 0.01, 1)));
+	}
+
+	public static Command getLeftThreeScoreBlue() {
+		return getThreeScore(20, 13, 19, 18)
+				.withName("Blue-Left | Three Score ");
+	}
+
+	public static Command getRightThreeScoreBlue() {
+		return getThreeScore(22, 12, 17, 18)
+				.withName("Blue-Right | Three Score ");
+	}
+
+	public static Command getLeftThreeScoreRed() {
+		return getThreeScore(11, 1, 6, 7)
+				.withName("Red-Left | Three Score ");
+	}
+
+	public static Command getRightThreeScoreRed() {
+		return getThreeScore(9, 2, 8, 7)
+				.withName("Red-Right | Three Score ");
 	}
 
 	public static Command testAbsoluteOrientation(double duration) {
