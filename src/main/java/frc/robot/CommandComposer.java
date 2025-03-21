@@ -10,6 +10,8 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BooleanSupplier;
+import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
 import com.ctre.phoenix6.signals.NeutralModeValue;
@@ -76,6 +78,33 @@ public class CommandComposer {
 	public static Command scoreLevelTwoInTeleop() {
 		return scoreLevelInTeleop(kLevelTwoHeight, 0.7, m_elevatorSubsystem::goToLevelTwoHeight, kGrabberAngleLevelTwo)
 				.withName("Score Level Two in Teleop");
+	}
+
+	/**
+	 * Returns a {@code Command} to align to the specified {@code AprilTag} and then
+	 * remove the algae at level two.
+	 * 
+	 * @param tagID the ID of the {@code AprilTag}
+	 * @return a {@code Command} to align to the specified {@code AprilTag} and then
+	 *         remove the algae at level two
+	 */
+	public static Command removeAlgaeLevelTwo(int tagID) {
+		return removeAlgaeLevelTwo(() -> tagID);
+	}
+
+	/**
+	 * Returns a {@code Command} to align to the specified {@code AprilTag} and then
+	 * remove the algae at level two.
+	 * 
+	 * @param tagID the ID of the {@code AprilTag}
+	 * @return a {@code Command} to align to the specified {@code AprilTag} and then
+	 *         remove the algae at level two
+	 */
+	private static Command removeAlgaeLevelTwo(Supplier<Integer> tagID) {
+		return sequence(
+				toTag(tagID, 0, kRobotToTags), // .withTimeout(4), This timeout seems to affect alignment accuracy
+				m_cheeseStickSubsystem.grab(),
+				removeAlgaeLevelTwo());
 	}
 
 	public static Command removeAlgaeLevelThree() {
@@ -210,6 +239,26 @@ public class CommandComposer {
 	 */
 	public static Command score(int tagID, int level, boolean pickup, double retreatDistance,
 			Transform2d... robotToTags) {
+		return score(() -> tagID, level, pickup, retreatDistance, robotToTags);
+	}
+
+	/**
+	 * Returns a {@code Command} to score at the specified {@code AprilTag} and
+	 * level.
+	 * 
+	 * @param tagID the ID of the target {@code AprilTag}
+	 * @param level the target scoring level
+	 * @param pickup a {@code boolean} value indicating whether or not to pick up
+	 *        the coral in the pocket
+	 * @param retreatDistance the retreat distance at the end of scoring
+	 * @param robotToTags the {@code Tranform2d} representing the pose of the
+	 *        target {@code AprilTag} relative to the robot when the robot is
+	 *        aligned
+	 * @return a {@code Command} to score at the specified {@code AprilTag} and
+	 *         level
+	 */
+	private static Command score(Supplier<Integer> tagID, int level, boolean pickup, double retreatDistance,
+			Transform2d... robotToTags) {
 		return score(prepareToScore(tagID, level, pickup, robotToTags), level, retreatDistance);
 	}
 
@@ -255,66 +304,43 @@ public class CommandComposer {
 	private static Command score(Command prepare, int level, double retreatDistance) {
 		var p = new ParallelCommandGroup();
 		if (level == 4)
-			p.addCommands(m_wristSubsystem.goToAngle(kLevelWristAngles.get(level) - 10));
+			p.addCommands(m_wristSubsystem.goToAngle(kGrabberAngleLevelFour - 10));
 		if (retreatDistance > 0)
 			p.addCommands(moveStraight(-retreatDistance, 0.16, 16)); // TODO: Optimize
 		return sequence(prepare, m_cheeseStickSubsystem.release(0.7), p); // TODO: Check
 	}
 
-	private static Command getMiddleScoreAndAlgae(Command score, Command align) {
+	/**
+	 * Returns a {@code Command} to obtain a coral at the specified station, align
+	 * to the specified {@code AprilTag}, and then score at the specified level.
+	 * 
+	 * @param tagIDStation the ID of the {@code AprilTag} at the coral station
+	 * @param tagID the ID of the {@code AprilTag} to align to in order to score
+	 * @param level the target scoring level
+	 * @param pickup a {@code boolean} value indicating whether or not to pick up
+	 *        the coral in the pocket
+	 * @param retreatDistance the retreat distance at the end of scoring
+	 * @param robotToTags the {@code Tranform2d} representing the pose of the
+	 *        target {@code AprilTag} relative to the robot when the robot is
+	 *        aligned
+	 * @return a {@code Command} to obtain a coral at the specified station, align
+	 *         to the specified {@code AprilTag}, and then score at the specified
+	 *         level
+	 */
+	private static Command score(int tagIDStation, int tagID, int level, boolean pickup, double retreatDistance,
+			Transform2d... robotToTags) {
 		return sequence(
-				score,
-				align, // .withTimeout(4), // this timeout seems to affect the accuracy of alignment
 				m_cheeseStickSubsystem.grab(),
-				removeAlgaeLevelTwo(),
-				parallel(
-						m_wristSubsystem.goToAngle(268),
-						moveStraight(-0.5, 0.01, 1)));
-	}
-
-	static Command getMiddleScoreAndAlgaeBlue() {
-		return getMiddleScoreAndAlgae(score(21, 4, false, 0, kRobotToTagsLeft), toTag(21, kRobotToTags))
-				.withName("Middle Score and Algae Blue");
-	}
-
-	static Command getMiddleScoreAndAlgaeRed() {
-		return getMiddleScoreAndAlgae(score(10, 4, false, 0, kRobotToTagsLeft), toTag(10, kRobotToTags))
-				.withName("Middle Score and Algae Red");
-	}
-
-	static Command getMiddleScoreAndAlgaePracticeField() {
-		return getMiddleScoreAndAlgae(scoreClosest(4, false, 0, kRobotToTagsLeft), toClosestTag(kRobotToTags))
-				.withName("Middle Score and Algae Practice Field (6)");
-	}
-
-	public static Command leave() {
-		return m_driveSubsystem.driveCommand(() -> -0.25, () -> 0, () -> 0, () -> true).withTimeout(10)
-				.withName("Leave Auto");
-	}
-
-	public static Command getTwoScore(Command score1, int coralStationID, Command score2) {
-		return sequence(
-				score1,
-				m_cheeseStickSubsystem.grab(),
-				toStation(coralStationID),
+				toStation(tagIDStation),
 				waitSeconds(2),
 				pickupAtCoralStation(),
-				score2);
-	}
-
-	public static Command getTwoScoreRedLeftSide() {
-		return getTwoScore(
-				score(11, 4, false, 0, kRobotToTagsRight),
-				1,
-				score(6, 4, false, 0, kRobotToTagsLeft))
-						.withName("Red-Left | Two Score ");
+				score(tagID, level, pickup, retreatDistance, robotToTags));
 	}
 
 	public static Command toStation(int tagID) {
 		return parallel(
 				toTag(tagID, kRobotToStationTags),
 				prepareForCoralPickup()).withName("Align to Station");
-
 	}
 
 	public static Command prepareForCoralPickup() {
@@ -500,6 +526,160 @@ public class CommandComposer {
 				.withName("Retract Climber and Drive Coast");
 	}
 
+	// TODO: AUTO SEQUENCES START HERE
+	public static Command leave() {
+		return m_driveSubsystem.driveCommand(() -> -0.25, () -> 0, () -> 0, () -> true).withTimeout(10)
+				.withName("Leave Auto");
+	}
+
+	private static Command getOneScoreAndAlgae(int tagID) {
+		return getOneScoreAndAlgae(() -> tagID);
+	}
+
+	private static Command getOneScoreAndAlgae(Supplier<Integer> tagID) {
+		return sequence(
+				score(tagID, 4, false, 0, kRobotToTagsLeft),
+				removeAlgaeLevelTwo(tagID),
+				parallel(
+						m_wristSubsystem.goToAngle(268),
+						moveStraight(-0.5, 0.16, 16)));
+	}
+
+	static Command getMiddleScoreAndAlgaeBlue() {
+		return getOneScoreAndAlgae(21)
+				.withName("Middle Score and Algae Blue");
+	}
+
+	static Command getMiddleScoreAndAlgaeRed() {
+		return getOneScoreAndAlgae(10)
+				.withName("Middle Score and Algae Red");
+	}
+
+	static Command getMiddleScoreAndAlgaePracticeField() {
+		return getOneScoreAndAlgae(() -> m_poseEstimationSubsystem.closestTagID())
+				.withName("Middle Score and Algae Practice Field");
+	}
+
+	static Command getLeftScoreAndAlgaeBlue() {
+		return getOneScoreAndAlgae(20)
+				.withName("Left Score and Algae Blue");
+	}
+
+	static Command getRightScoreAndAlgaeBlue() {
+		return getOneScoreAndAlgae(22)
+				.withName("Right Score and Algae Blue");
+	}
+
+	static Command getLeftScoreAndAlgaeRed() {
+		return getOneScoreAndAlgae(11)
+				.withName("Left Score and Algae Red");
+	}
+
+	static Command getRightScoreAndAlgaeRed() {
+		return getOneScoreAndAlgae(9)
+				.withName("Right Score and Algae Red");
+	}
+
+	public static Command getTwoScore(int tagID1, int tagIDStation, int tagID2) {
+		return sequence(
+				score(tagID1, 4, false, 0.5, kRobotToTagsRight),
+				score(tagIDStation, tagID2, 4, false, 0.5, kRobotToTagsLeft),
+				parallel(
+						m_wristSubsystem.goToAngle(268),
+						moveStraight(-0.5, 0.01, 1)));
+	}
+
+	public static Command getLeftTwoScoreBlue() {
+		return getTwoScore(20, 13, 19)
+				.withName("Blue-Left | Two Score ");
+	}
+
+	public static Command getRightTwoScoreBlue() {
+		return getTwoScore(22, 12, 17)
+				.withName("Blue-Right | Two Score ");
+	}
+
+	public static Command getLeftTwoScoreRed() {
+		return getTwoScore(11, 1, 6)
+				.withName("Red-Left | Two Score ");
+	}
+
+	public static Command getRightTwoScoreRed() {
+		return getTwoScore(9, 2, 8)
+				.withName("Red-Right | Two Score ");
+	}
+
+	public static Command getTwoScoreAndAlgae(int tagID1, int tagIDStation, int tagID2) {
+		return sequence(
+				score(tagID1, 4, false, 0.5, kRobotToTagsRight),
+				score(tagIDStation, tagID2, 4, false, 0.5, kRobotToTagsLeft),
+				removeAlgaeLevelTwo(tagID2),
+				parallel(
+						m_wristSubsystem.goToAngle(268),
+						moveStraight(-0.5, 0.01, 1)));
+	}
+
+	public static Command getLeftTwoScoreAndAlgaeBlue() {
+		return getTwoScoreAndAlgae(20, 13, 19)
+				.withName("Blue-Left | Two Score and Algae ");
+	}
+
+	public static Command getRightTwoScoreAndAlgaeBlue() {
+		return getTwoScoreAndAlgae(22, 12, 17)
+				.withName("Blue-Right | Two Score and Algae ");
+	}
+
+	public static Command getLeftTwoScoreAndAlgaeRed() {
+		return getTwoScoreAndAlgae(11, 1, 6)
+				.withName("Red-Left | Two Score and Algae ");
+	}
+
+	public static Command getRightTwoScoreAndAlgaeRed() {
+		return getTwoScoreAndAlgae(9, 2, 8)
+				.withName("Red-Right | Two Score and Algae ");
+	}
+
+	public static Command getThreeScore(int tagID1, int tagIDStation, int tagID2, int tagID3) {
+		return sequence(
+				score(tagID1, 4, false, 0.5, kRobotToTagsRight),
+				score(tagIDStation, tagID2, 4, false, 0.5, kRobotToTagsLeft),
+				score(tagIDStation, tagID3, 4, false, 0.5, kRobotToTagsLeft),
+				parallel(
+						m_wristSubsystem.goToAngle(270),
+						moveStraight(-0.5, 0.01, 1)));
+	}
+
+	public static Command getLeftThreeScoreBlue() {
+		return getThreeScore(20, 13, 19, 18)
+				.withName("Blue-Left | Three Score ");
+	}
+
+	public static Command getRightThreeScoreBlue() {
+		return getThreeScore(22, 12, 17, 18)
+				.withName("Blue-Right | Three Score ");
+	}
+
+	public static Command getLeftThreeScoreRed() {
+		return getThreeScore(11, 1, 6, 7)
+				.withName("Red-Left | Three Score ");
+	}
+
+	public static Command getRightThreeScoreRed() {
+		return getThreeScore(9, 2, 8, 7)
+				.withName("Red-Right | Three Score ");
+	}
+
+	public static Command testAbsoluteOrientation(double duration) {
+		DoubleSupplier z = () -> 0;
+		BooleanSupplier f = () -> false;
+		return sequence(
+				m_driveSubsystem.driveCommand(z, z, z, () -> 1, z, f).withTimeout(duration), // 90 degrees
+				m_driveSubsystem.driveCommand(z, z, () -> -1, z, z, f).withTimeout(duration), // 180 degrees
+				m_driveSubsystem.driveCommand(z, z, z, () -> -1, z, f).withTimeout(duration), // 270 degrees
+				m_driveSubsystem.driveCommand(z, z, () -> 1, () -> 1, z, f).withTimeout(duration), // 45 degrees
+				m_driveSubsystem.driveCommand(z, z, () -> 1, z, z, f).withTimeout(duration)); // 0 degrees
+	}
+
 	/**
 	 * Returns a {@code Command} for moving forward and then backward.
 	 * 
@@ -549,50 +729,7 @@ public class CommandComposer {
 		Supplier<Pose2d> s = () -> m_driveSubsystem.getPose()
 				.plus(transform(sideLength, 0, 90));
 		return new PathDriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance, distanceTolerance,
-				angleTolerance, List.of(s, s, s, s));
-	}
-
-	/**
-	 * Returns a {@code Command} for aligning the robot to the specified
-	 * {@code AprilTag}s.
-	 * 
-	 * @param distanceTolerance the distance error in meters which is tolerable
-	 * @param angleTolerance the angle error in degrees which is tolerable
-	 * @param intermediateDistanceTolerance the distance error in meters which is
-	 *        tolerable for intermeidate target {@code Pose2d}s
-	 * @param intermediateAngleToleranceInDegrees the angle error in degrees which
-	 *        is tolerable for intermeidate target {@code Pose2d}s
-	 * @param robotToTagTransforms the {@code Pose2d}s of the {@code AprilTag}
-	 *        relative to the center of the robot when the robit is aligned to the
-	 *        ready and alignment poses
-	 * @param robotToTagBackup the {@code Pose2d} of the {@code AprilTag} relative
-	 *        to the center of the robot when the robit is aligned to the backup
-	 *        pose
-	 * @param tagIDs the IDs of the {@code AprilTag}s
-	 * 
-	 * @return a {@code Command} for aligning the robot to the specified
-	 *         {@code AprilTag}s
-	 */
-	public static Command alignToTags(double distanceTolerance, double angleTolerance,
-			double intermediateDistanceTolerance, double intermediateAngleToleranceInDegrees,
-			List<Transform2d> robotToTagTransforms, Transform2d robotToTagBackup, int... tagIDs) {
-		Pose2d previous = null;
-		var commands = new LinkedList<Command>();
-		for (int tagID : tagIDs) {
-			var tagPose = kFieldLayout.getTagPose(tagID).get().toPose2d();
-			var l = new LinkedList<Pose2d>();
-			if (previous != null)
-				l.add(previous);
-			for (var r : robotToTagTransforms)
-				l.add(tagPose.plus(r));
-			previous = tagPose.plus(robotToTagBackup);
-			var command = new PathDriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance,
-					intermediateDistanceTolerance, intermediateAngleToleranceInDegrees, l.stream()
-							.map(p -> (Supplier<Pose2d>) (() -> m_poseEstimationSubsystem.odometryCentricPose(p)))
-							.toList());
-			commands.add(command.andThen(waitSeconds(.5)));
-		}
-		return sequence(commands.toArray(new Command[0]));
+				angleTolerance, () -> List.of(s, s, s, s));
 	}
 
 	/**
@@ -671,9 +808,10 @@ public class CommandComposer {
 	 *         {@code AprilTag}
 	 */
 	private static Command toTag(Supplier<Integer> tagID, double forwardAdjustment, Transform2d... robotToTags) {
-		return new PathDriveCommand(m_driveSubsystem, 0.01, 1,
+		return follow(
+				0.01, 1,
 				0.16, 16, // TODO: Optimize
-				posesToTag(tagID, forwardAdjustment, robotToTags));
+				() -> pathToTag(tagID, forwardAdjustment, robotToTags));
 	}
 
 	/**
@@ -689,21 +827,54 @@ public class CommandComposer {
 	 * @return a list of {@code Pose2d}s to automatically align the robot to the
 	 *         target {@code AprilTag}
 	 */
-	private static List<Supplier<Pose2d>> posesToTag(Supplier<Integer> tagID, double forwardAdjustment,
+	private static List<Pose2d> pathToTag(Supplier<Integer> tagID, double forwardAdjustment,
 			Transform2d... robotToTags) {
-		return Arrays.stream(robotToTags).map(r -> (Supplier<Pose2d>) (() -> {
-			var tID = tagID.get();
-			if (tID == null)
-				return m_driveSubsystem.getPose();
+		var path = new LinkedList<Pose2d>();
+		path.add(m_poseEstimationSubsystem.getEstimatedPose());
+		var tID = tagID.get();
+		if (tID != null) {
 			Pose2d pose = pose(tID);
-			if (pose == null)
-				return m_driveSubsystem.getPose();
-			var t = adjust(
-					forwardAdjustment + kTagForwardAdjustments.getOrDefault(tID, 0.0),
-					kTagSideAdjustments.getOrDefault(tID, 0.0), r);
-			return m_poseEstimationSubsystem.odometryCentricPose(
-					pose.plus(t));
-		})).toList();
+			for (var r : robotToTags)
+				path.add(pose.plus(adjust(forwardAdjustment, 0.0, r)));
+		}
+		return
+
+		refine(path);
+	}
+
+	/**
+	 * Refines the specified path (i.e., list of {@code Pose2d}s).
+	 * 
+	 * @param path a list of {@code Pose2d}s
+	 * @return a refined version of the specified path (i.e., list of
+	 *         {@code Pose2d}s)
+	 */
+	private static List<Pose2d> refine(List<Pose2d> path) {
+		return path;
+	}
+
+	/**
+	 * Constructs a {@code Command} for following the specified path (i.e., list of
+	 * {@code Pose2d}s).
+	 * 
+	 * @param distanceTolerance the distance error in meters which is tolerable
+	 * @param angleToleranceInDegrees the angle error in degrees which is tolerable
+	 * @param intermediateDistanceTolerance the distance error in meters which is
+	 *        tolerable for intermeidate target {@code Pose2d}s
+	 * @param intermediateAngleToleranceInDegrees the angle error in degrees which
+	 *        is tolerable for intermeidate target {@code Pose2d}s
+	 * @param targetPoses {@code Supplier} that provides the {@code Pose2d}s
+	 *        to which the robot should move
+	 * @return a {@code Command} for following the specified path (i.e., list of
+	 *         {@code Pose2d}s)
+	 */
+	public static Command follow(double distanceTolerance, double angleToleranceInDegrees,
+			double intermediateDistanceTolerance, double intermediateAngleToleranceInDegrees,
+			Supplier<List<Pose2d>> targetPoses) {
+		return new PathDriveCommand(m_driveSubsystem, distanceTolerance, angleToleranceInDegrees,
+				intermediateDistanceTolerance, intermediateAngleToleranceInDegrees, () -> targetPoses.get().stream()
+						.map(p -> (Supplier<Pose2d>) (() -> m_poseEstimationSubsystem.odometryCentricPose(p)))
+						.toList());
 	}
 
 	private static Command select(Command commandRedAlliance, Command commandBlueAlliance, boolean safetyStop) {

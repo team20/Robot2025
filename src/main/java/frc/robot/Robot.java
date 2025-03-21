@@ -16,11 +16,8 @@ import static frc.robot.Constants.ElevatorConstants.*;
 import static frc.robot.Constants.WristConstants.*;
 import static frc.robot.subsystems.PoseEstimationSubsystem.*;
 
-import java.util.Arrays;
 import java.util.Map;
 import java.util.function.BooleanSupplier;
-import java.util.function.Supplier;
-import java.util.stream.IntStream;
 
 import org.littletonrobotics.urcl.URCL;
 import org.photonvision.PhotonCamera;
@@ -29,7 +26,6 @@ import org.photonvision.simulation.SimCameraProperties;
 
 import com.ctre.phoenix6.SignalLogger;
 
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.util.Units;
@@ -55,7 +51,6 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
-import frc.robot.commands.PathDriveCommand;
 import frc.robot.simulation.VisionSimulator;
 import frc.robot.subsystems.AlgaeGrabberSubsystem;
 import frc.robot.subsystems.ArduinoSubsystem;
@@ -155,10 +150,37 @@ public class Robot extends TimedRobot {
 	}
 
 	public void addAutoCommands() {
-		m_autoSelector
-				.addOption(
-						"Middle Score and Algae", CommandComposer.getMiddleScoreAndAlgae());
 		m_autoSelector.addOption("Leave", CommandComposer.leave());
+
+		// One score and algae, center starting position
+		m_autoSelector.addOption("Middle and Algae Blue", CommandComposer.getMiddleScoreAndAlgaeBlue());
+		m_autoSelector.addOption("Middle and Algae Red", CommandComposer.getMiddleScoreAndAlgaeRed());
+		m_autoSelector
+				.addOption("Middle and Algae Practice Field", CommandComposer.getMiddleScoreAndAlgaePracticeField());
+
+		// One score and algae, left or right starting position
+		m_autoSelector.addOption("Left and Algae Blue", CommandComposer.getLeftScoreAndAlgaeBlue());
+		m_autoSelector.addOption("Right and Algae Blue", CommandComposer.getRightScoreAndAlgaeBlue());
+		m_autoSelector.addOption("Left and Algae Red", CommandComposer.getLeftScoreAndAlgaeRed());
+		m_autoSelector.addOption("Right and Algae Red", CommandComposer.getRightScoreAndAlgaeRed());
+
+		// Two score, left or right starting position
+		m_autoSelector.addOption("Left Two Score Blue", CommandComposer.getLeftTwoScoreBlue());
+		m_autoSelector.addOption("Right Two Score Blue", CommandComposer.getRightTwoScoreBlue());
+		m_autoSelector.addOption("Left Two Score Red", CommandComposer.getLeftTwoScoreRed());
+		m_autoSelector.addOption("Right Two Score Red", CommandComposer.getRightTwoScoreRed());
+
+		// Two score and algae, left or right starting position
+		m_autoSelector.addOption("Left Two Score and Algae Blue", CommandComposer.getLeftTwoScoreAndAlgaeBlue());
+		m_autoSelector.addOption("Right Two Score and Algae Blue", CommandComposer.getRightTwoScoreAndAlgaeBlue());
+		m_autoSelector.addOption("Left Two Score and Algae Red", CommandComposer.getLeftTwoScoreAndAlgaeRed());
+		m_autoSelector.addOption("Right Two Score and Algae Red", CommandComposer.getRightTwoScoreAndAlgaeRed());
+
+		// Three score, left or right starting position
+		m_autoSelector.addOption("Left Three Score Blue", CommandComposer.getLeftThreeScoreBlue());
+		m_autoSelector.addOption("Right Three Score Blue", CommandComposer.getRightThreeScoreBlue());
+		m_autoSelector.addOption("Left Three Score Red", CommandComposer.getLeftThreeScoreRed());
+		m_autoSelector.addOption("Right Three Score Red", CommandComposer.getRightThreeScoreRed());
 		m_autoSelector
 				.addOption(
 						"3 Score North",
@@ -167,11 +189,6 @@ public class Robot extends TimedRobot {
 				.addOption(
 						"3 Score South",
 						get3ScoreSouth(0.5, 1.0));
-		m_autoSelector
-				.addOption(
-						"Middle and Algae Practice Field",
-						CommandComposer.getMiddleScoreAndAlgaePracticeField());
-		m_autoSelector.addOption("Two Score Red Left Side", CommandComposer.getTwoScoreRedLeftSide());
 	}
 
 	public void addTestingCommands() {
@@ -325,36 +342,6 @@ public class Robot extends TimedRobot {
 						m_driveSubsystem.testCommand(0.5, Math.toRadians(45), 1.0));
 		double distanceTolerance = 0.01;
 		double angleToleranceInDegrees = 1;
-		double intermediateDistanceTolerance = 0.08;
-		double intermediateAngleToleranceInDegrees = 8.0;
-		m_testingChooser
-				.addOption(
-						"Align to AprilTags 17, 18, 19, 20, 21, and 22",
-						CommandComposer.alignToTags(
-								distanceTolerance, angleToleranceInDegrees, intermediateDistanceTolerance,
-								intermediateAngleToleranceInDegrees, Arrays.asList(kRobotToTagsLeft),
-								kRobotToTagsLeft[0], 17, 18, 19, 20, 21, 22, 17));
-		m_testingChooser
-				.addOption(
-						"Align to AprilTags 6, 7, 8, 9, 10, and 11",
-						CommandComposer.alignToTags(
-								distanceTolerance, angleToleranceInDegrees, intermediateDistanceTolerance,
-								intermediateAngleToleranceInDegrees, Arrays.asList(kRobotToTagsLeft),
-								kRobotToTagsLeft[0], 6, 7, 8, 9, 10, 11, 6));
-		m_testingChooser
-				.addOption(
-						"Align to AprilTags 12, 13, 17, 18, and 19",
-						CommandComposer.alignToTags(
-								distanceTolerance, angleToleranceInDegrees, intermediateDistanceTolerance,
-								intermediateAngleToleranceInDegrees, Arrays.asList(kRobotToTags), kRobotToTags[0], 18,
-								17, 12, 17, 18, 19, 13, 19, 18));
-		m_testingChooser
-				.addOption(
-						"Align to AprilTags 1, 2, 6, 7, and 8",
-						CommandComposer.alignToTags(
-								distanceTolerance, angleToleranceInDegrees, intermediateDistanceTolerance,
-								intermediateAngleToleranceInDegrees, Arrays.asList(kRobotToTags), kRobotToTags[0], 7, 6,
-								1, 6, 7, 8, 2, 8, 7));
 		m_testingChooser
 				.addOption(
 						"Check kWheelDiameter (F/B 6 feet)",
@@ -363,14 +350,6 @@ public class Robot extends TimedRobot {
 				.addOption(
 						"Check PID Constants for Driving (5'x5' Square)",
 						moveOnSquare(feetToMeters(5), distanceTolerance, angleToleranceInDegrees, 16));
-		m_testingChooser
-				.addOption(
-						"Check PID Constants for Driving (5'x5' Square)",
-						moveOnSquare(feetToMeters(5), distanceTolerance, angleToleranceInDegrees, 16));
-		m_testingChooser
-				.addOption(
-						"Check kWheelDiameter (F/B 6 feet)",
-						moveForwardBackward(feetToMeters(6), distanceTolerance, angleToleranceInDegrees));
 		m_testingChooser
 				.addOption(
 						"Slowest Movement Test (F/B/L/R/LR/RR and F/B while rotating)",
@@ -378,19 +357,6 @@ public class Robot extends TimedRobot {
 		m_testingChooser
 				.addOption(
 						"Fastest Forward/Backward Movement Test (5m)", forwardBackwardSpeedTest(5, 5, 0.01, 1));
-		m_testingChooser
-				.addOption(
-						"Fastest Rotation Test (5 rotations)",
-						new PathDriveCommand(m_driveSubsystem, 1, 10,
-								1, 100,
-								IntStream.range(1, 1 + 3 * 5)
-										.mapToObj(
-												i -> (Supplier<Pose2d>) (() -> {
-													var pose = m_driveSubsystem.getPose();
-													return new Pose2d(pose.getX(), pose.getY(),
-															Rotation2d.fromDegrees(120 * i));
-												}))
-										.toList()));
 	}
 
 	public void bindAlert(Alert alert, BooleanSupplier event) {
