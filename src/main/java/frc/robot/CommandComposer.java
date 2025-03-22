@@ -19,6 +19,7 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
@@ -659,7 +660,7 @@ public class CommandComposer {
 	private static Command toTag(Supplier<Integer> tagID, double forwardAdjustment, Transform2d... robotToTags) {
 		return follow(
 				0.01, 1,
-				0.08, 16, // TODO: Optimize
+				0.32, 16, // TODO: Optimize
 				() -> pathToTag(tagID, forwardAdjustment, robotToTags));
 	}
 
@@ -691,17 +692,6 @@ public class CommandComposer {
 										kTagSideAdjustments.getOrDefault(tID, 0.0), r)));
 		}
 		return refine(path);
-	}
-
-	/**
-	 * Refines the specified path (i.e., list of {@code Pose2d}s).
-	 * 
-	 * @param path a list of {@code Pose2d}s
-	 * @return a refined version of the specified path (i.e., list of
-	 *         {@code Pose2d}s)
-	 */
-	private static List<Pose2d> refine(List<Pose2d> path) {
-		return path;
 	}
 
 	/**
@@ -763,4 +753,114 @@ public class CommandComposer {
 				() -> m_poseEstimationSubsystem.confidence() > 0.3);
 	}
 
+	/**
+	 * Refines the specified path (i.e., list of {@code Pose2d}s).
+	 * 
+	 * @param path a list of {@code Pose2d}s
+	 * @return a refined version of the specified path (i.e., list of
+	 *         {@code Pose2d}s)
+	 */
+	private static List<Pose2d> refine(List<Pose2d> path) {
+		return refine(refine(path, reefCenterRed), reefCenterBlue);
+	}
+
+	/**
+	 * Refines the specified path (i.e., list of {@code Pose2d}s) to avoid the
+	 * collision with the specified reef.
+	 * 
+	 * @param path a list of {@code Pose2d}s
+	 * @param center the center of the reef
+	 * @return a refined version of the specified path (i.e., list of
+	 *         {@code Pose2d}s)
+	 */
+	private static List<Pose2d> refine(List<Pose2d> path, Translation2d center) {
+		return refine(path, center, reefRadius, .7, 5);
+	}
+
+	/**
+	 * Refines the specified path (i.e., list of {@code Pose2d}s) to avoid the
+	 * collision with the specified reef.
+	 * 
+	 * @param path a list of {@code Pose2d}s
+	 * @param center the center of the reef
+	 * @param radius the radius of the reef
+	 * @param margin the margin around the reef
+	 * @param steps the number of maximum possible refinement steps
+	 * @return a refined version of the specified path (i.e., list of
+	 *         {@code Pose2d}s)
+	 */
+	private static List<Pose2d> refine(List<Pose2d> path, Translation2d center, double radius, double margin,
+			int steps) {
+		if (steps <= 0)
+			return path;
+		else {
+			var l = new LinkedList<Pose2d>();
+			Pose2d prev = null;
+			for (var p : path) {
+				if (prev != null) {
+					var t = intermediate(prev.getTranslation(), p.getTranslation(), center, radius, margin);
+					if (t != null)
+						l.add(new Pose2d(t, average(prev.getRotation(), p.getRotation())));
+				}
+				prev = p;
+				l.add(p);
+			}
+			if (l.size() > path.size())
+				return refine(l, center, radius, margin, steps - 1);
+			return l;
+		}
+	}
+
+	/**
+	 * Finds an intermediate {@code Translaton2d} to avoid a collision with the
+	 * specified reef if any ({@code null} if no colllision can occur).
+	 * 
+	 * @param path a list of {@code Pose2d}s
+	 * @param center the center of the reef
+	 * @param radius the radius of the reef
+	 * @param margin the margin around the reef
+	 * @param steps the number of maximum possible refinement steps
+	 * @return a refined version of the specified path (i.e., list of
+	 *         {@code Pose2d}s)
+	 */
+	public static Translation2d intermediate(Translation2d p1, Translation2d p2, Translation2d center, double radius,
+			double margin) {
+		Translation2d v = p2.minus(p1);
+		double s = dot(v, v);
+		if (s < 1e-9)
+			return null;
+		Translation2d w = center.minus(p1);
+		double t = dot(w, v) / s;
+		if (t < 0)
+			t = 0;
+		else if (t > 1)
+			t = 1;
+		Translation2d closest = p1.plus(v.times(t));
+		double closest2center = closest.getDistance(center);
+		if (closest2center > radius + margin)
+			return null;
+		if (closest2center < 1e-9)
+			return center.plus(v.div(v.getNorm()).rotateBy(Rotation2d.kCCW_90deg).times(radius + 2 * margin));
+		return center.plus(closest.minus(center).times((radius + 1.2 * margin) / closest2center));
+	}
+
+	/**
+	 * Finds the inner product of the two specified vectors.
+	 * 
+	 * @param v1 a {@code Translation2d} representing a vector
+	 * @param v2 a {@code Translation2d} representing a vector
+	 * @return the inner product of the two specified vectors
+	 */
+	private static double dot(Translation2d v1, Translation2d v2) {
+		return v1.getX() * v2.getX() + v1.getY() * v2.getY();
+	}
+
+	/**
+	 * Returns the average direction of two Rotation2ds.
+	 */
+	private static Rotation2d average(Rotation2d a, Rotation2d b) {
+		double x = a.getCos() + b.getCos();
+		double y = a.getSin() + b.getSin();
+		return new Rotation2d(Math.atan2(y, x));
+	}
 }

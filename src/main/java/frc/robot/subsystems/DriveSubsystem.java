@@ -344,17 +344,36 @@ public class DriveSubsystem extends SubsystemBase {
 	 */
 	public ChassisSpeeds chassisSpeeds(DoubleSupplier forwardSpeed, DoubleSupplier strafeSpeed,
 			DoubleSupplier forwardOrientation, DoubleSupplier strafeOrientation, DoubleSupplier rotation) {
-		var orientation = new Translation2d(forwardOrientation.getAsDouble(), strafeOrientation.getAsDouble());
 		double omegaRadiansPerSecond = MathUtil.applyDeadband(rotation.getAsDouble(), ControllerConstants.kDeadzone);
 		omegaRadiansPerSecond = Math.signum(omegaRadiansPerSecond) * Math.pow(omegaRadiansPerSecond, 2)
 				* kTeleopTurnMaxAngularSpeed;
-		if (orientation.getNorm() > 0.05) {
-			var angle = orientation.getAngle();
+		var orientation = orientation(forwardOrientation, strafeOrientation);
+		if (orientation != null) {
 			omegaRadiansPerSecond += m_orientationController
-					.calculate(getHeading().getRadians(), angle.getRadians());
-			m_targetHeadingPublisher.set(angle);
+					.calculate(getHeading().getRadians(), orientation.getRadians());
+			m_targetHeadingPublisher.set(orientation);
 		}
 		return chassisSpeeds(forwardSpeed, strafeSpeed, omegaRadiansPerSecond);
+	}
+
+	/**
+	 * Returns a {@code Rotation2d} representing the target orientation defined by
+	 * the two specified {@code Supplier}s ({@code null} if the {@code Supplers}
+	 * provide insignificant values).
+	 * 
+	 * @param forwardOrientation Forward orientation supplier. Positive values make
+	 *        the robot face forward (+X direction).
+	 * @param strafeOrientation Strafe orientation supplier. Positive values make
+	 *        the robot face left (+Y direction).
+	 * @return a {@code Rotation2d} representing the target orientation defined by
+	 *         the two specified {@code Supplier}s ({@code null} if the
+	 *         {@code Supplers} provide insignificant values)
+	 */
+	public static Rotation2d orientation(DoubleSupplier forwardOrientation, DoubleSupplier strafeOrientation) {
+		var orientation = new Translation2d(forwardOrientation.getAsDouble(), strafeOrientation.getAsDouble());
+		if (orientation.getNorm() > 0.05)
+			return orientation.getAngle();
+		return null;
 	}
 
 	/**
