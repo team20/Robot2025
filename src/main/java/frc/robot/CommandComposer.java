@@ -168,8 +168,11 @@ public class CommandComposer {
 	public static Command prepareToScore(double elevatorLevel, double wristAngle, boolean pickup) {
 		var c = pickup ? new SequentialCommandGroup(goToBase()) : new SequentialCommandGroup();
 		c.addCommands(
-				m_elevatorSubsystem.goToLevel(() -> elevatorLevel),
-				m_wristSubsystem.goToAngle(wristAngle).withTimeout(1));
+				parallel(
+						m_elevatorSubsystem.goToLevel(() -> elevatorLevel),
+						sequence(
+								waitSeconds(0.55), // TODO: MAKE CONSTANT FOR TIME TO CLEAR THE INTAKE
+								m_wristSubsystem.goToAngle(wristAngle).withTimeout(1))));
 		return c;
 	}
 
@@ -298,7 +301,7 @@ public class CommandComposer {
 	private static Command score(Command prepare, int level, double retreatDistance) {
 		var p = new ParallelCommandGroup();
 		if (level == 4)
-			p.addCommands(m_wristSubsystem.goToAngle(kGrabberAngleLevelFour - 15).withTimeout(1));
+			p.addCommands(m_wristSubsystem.goToAngle(kGrabberAngleLevelFour - 10).withTimeout(1));
 		if (retreatDistance > 0)
 			p.addCommands(moveStraight(-retreatDistance, 0.16, 16)); // TODO: Optimize
 		return sequence(prepare, m_cheeseStickSubsystem.release(), waitSeconds(.7), p); // TODO: Check
@@ -656,7 +659,7 @@ public class CommandComposer {
 	private static Command toTag(Supplier<Integer> tagID, double forwardAdjustment, Transform2d... robotToTags) {
 		return follow(
 				0.01, 1,
-				0.16, 16, // TODO: Optimize
+				0.08, 16, // TODO: Optimize
 				() -> pathToTag(tagID, forwardAdjustment, robotToTags));
 	}
 
