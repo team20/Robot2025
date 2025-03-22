@@ -6,8 +6,10 @@ import static frc.robot.Constants.ElevatorConstants.*;
 import static frc.robot.Constants.WristConstants.*;
 import static frc.robot.subsystems.PoseEstimationSubsystem.*;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
@@ -18,8 +20,11 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.SelectCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.commands.DriveCommand;
 import frc.robot.commands.PathDriveCommand;
@@ -100,7 +105,7 @@ public class CommandComposer {
 				removeAlgaeLevelTwo(),
 				parallel(
 						m_wristSubsystem.goToAngle(268),
-						moveStraight(-0.5, 0.16, 16)));
+						moveStraight(-0.7, 0.16, 16)));
 	}
 
 	public static Command removeAlgaeLevelThree() {
@@ -316,7 +321,7 @@ public class CommandComposer {
 	 *         to the specified {@code AprilTag}, and then score at the specified
 	 *         level
 	 */
-	private static Command score(int tagIDStation, int tagID, int level, boolean pickup, double retreatDistance,
+	public static Command score(int tagIDStation, int tagID, int level, boolean pickup, double retreatDistance,
 			Transform2d... robotToTags) {
 		return sequence(
 				m_cheeseStickSubsystem.grab(),
@@ -324,6 +329,27 @@ public class CommandComposer {
 				parallel(m_wristSubsystem.goToAngle(270), waitSeconds(2)),
 				pickupAtCoralStation(),
 				score(tagID, level, pickup, retreatDistance, robotToTags));
+	}
+
+	/**
+	 * Returns a {@code Command} to obtain corals at the specified station and score
+	 * at the specified {@code AprilTag}s with both left and right alignments.
+	 * 
+	 * @param tagIDStation the ID of the {@code AprilTag} at the coral station
+	 * @param tagIDs the ID of the {@code AprilTag}s to align to in order to score
+	 * @param level the target scoring level
+	 * @return a {@code Command} to obtain corals at the specified station and score
+	 *         at the specified {@code AprilTag}s with both left and right
+	 *         alignments
+	 */
+	public static Command score(int tagIDStation, int level, int... tagIDs) {
+		return sequence(
+				Arrays.stream(tagIDs)
+						.mapToObj(
+								t -> sequence(
+										score(tagIDStation, t, level, true, 0.5, kRobotToTagsLeft),
+										score(tagIDStation, t, level, true, 0.5, kRobotToTagsRight)))
+						.toList().toArray(new Command[0]));
 	}
 
 	public static Command toStation(int tagID) {
@@ -373,7 +399,7 @@ public class CommandComposer {
 		return getOneScoreAndAlgae(() -> tagID);
 	}
 
-	private static Command getOneScoreAndAlgae(Supplier<Integer> tagID) {
+	static Command getOneScoreAndAlgae(Supplier<Integer> tagID) {
 		return sequence(
 				score(tagID, 4, false, 0, kRobotToTagsLeft),
 				removeAlgaeLevelTwo(tagID));
@@ -387,11 +413,6 @@ public class CommandComposer {
 	static Command getMiddleScoreAndAlgaeRed() {
 		return getOneScoreAndAlgae(10)
 				.withName("Middle Score and Algae Red");
-	}
-
-	static Command getMiddleScoreAndAlgaePracticeField() {
-		return getOneScoreAndAlgae(() -> m_poseEstimationSubsystem.closestTagID())
-				.withName("Middle Score and Algae Practice Field");
 	}
 
 	static Command getLeftScoreAndAlgaeBlue() {
@@ -717,4 +738,26 @@ public class CommandComposer {
 	private static Transform2d adjust(double forwardAdjustment, double sideAdjustment, Transform2d t) {
 		return new Transform2d(t.getX() - forwardAdjustment, t.getY() - sideAdjustment, t.getRotation());
 	}
+
+	/**
+	 * Returns a {@code Command} that selects the specified {@code Command} only if
+	 * the {@code PoseEstimationSubsystem} has seen an {@code AprilTag} during the
+	 * last 6 seconds.
+	 * 
+	 * @param command a {@code Command}
+	 * @return a {@code Command} that selects the specified {@code Command} only if
+	 *         the {@code PoseEstimationSubsystem} has seen an {@code AprilTag}
+	 *         during the last 6 seconds
+	 */
+	public static Command selectIfConfident(Command command) {
+		return new SelectCommand<Boolean>(Map
+				.of(true, command, false, runOnce(() -> {
+					@SuppressWarnings("resource")
+					var a = new Alert("Pose Confidence (" + m_poseEstimationSubsystem.confidence() + ") Too Low!",
+							AlertType.kError);
+					a.set(true);
+				})),
+				() -> m_poseEstimationSubsystem.confidence() > 0.3);
+	}
+
 }
