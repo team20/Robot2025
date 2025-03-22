@@ -97,10 +97,10 @@ public class Robot extends TimedRobot {
 		}
 	};
 	private final PhotonCamera m_camera1 = RobotBase.isSimulation()
-			? cameraSim("Camera1", kRobotToFrontCamera, m_visionSimulator, cameraProp)
+			? cameraSim("FrontCamera", kRobotToFrontCamera, m_visionSimulator, cameraProp)
 			: new PhotonCamera("FrontCamera");
 	private final PhotonCamera m_camera2 = RobotBase.isSimulation()
-			? cameraSim("Camera2", kRobotToBackCamera, m_visionSimulator, cameraProp)
+			? cameraSim("BackCamera", kRobotToBackCamera, m_visionSimulator, cameraProp)
 			: new PhotonCamera("BackCamera");
 	private final PoseEstimationSubsystem m_poseEstimationSubsystem = new PoseEstimationSubsystem(m_driveSubsystem)
 			.addCamera(m_camera1, kRobotToFrontCamera)
@@ -151,52 +151,54 @@ public class Robot extends TimedRobot {
 		m_autoSelector.addOption("Leave", CommandComposer.leave());
 
 		// One score and algae, center starting position
-		m_autoSelector.addOption("Middle and Algae Blue", CommandComposer.getMiddleScoreAndAlgaeBlue());
-		m_autoSelector.addOption("Middle and Algae Red", CommandComposer.getMiddleScoreAndAlgaeRed());
+		m_autoSelector.addOption("Middle and Algae Blue (21)", CommandComposer.getMiddleScoreAndAlgaeBlue());
+		m_autoSelector.addOption("Middle and Algae Red (10)", CommandComposer.getMiddleScoreAndAlgaeRed());
 		m_autoSelector
-				.addOption("Middle and Algae Practice Field", CommandComposer.getMiddleScoreAndAlgaePracticeField());
+				.addOption(
+						"Middle and Algae Practice Field (Closest)",
+						CommandComposer.getMiddleScoreAndAlgaePracticeField());
 
 		// One score and algae, left or right starting position
-		m_autoSelector.addOption("Left and Algae Blue", CommandComposer.getLeftScoreAndAlgaeBlue());
-		m_autoSelector.addOption("Right and Algae Blue", CommandComposer.getRightScoreAndAlgaeBlue());
-		m_autoSelector.addOption("Left and Algae Red", CommandComposer.getLeftScoreAndAlgaeRed());
-		m_autoSelector.addOption("Right and Algae Red", CommandComposer.getRightScoreAndAlgaeRed());
+		m_autoSelector.addOption("Left and Algae Blue (20)", CommandComposer.getLeftScoreAndAlgaeBlue());
+		m_autoSelector.addOption("Right and Algae Blue (22)", CommandComposer.getRightScoreAndAlgaeBlue());
+		m_autoSelector.addOption("Left and Algae Red (11)", CommandComposer.getLeftScoreAndAlgaeRed());
+		m_autoSelector.addOption("Right and Algae Red (9)", CommandComposer.getRightScoreAndAlgaeRed());
 
 		// Two score, left or right starting position
-		m_autoSelector.addOption("Left Two Score Blue", CommandComposer.getLeftTwoScoreBlue());
-		m_autoSelector.addOption("Right Two Score Blue", CommandComposer.getRightTwoScoreBlue());
-		m_autoSelector.addOption("Left Two Score Red", CommandComposer.getLeftTwoScoreRed());
-		m_autoSelector.addOption("Right Two Score Red", CommandComposer.getRightTwoScoreRed());
+		m_autoSelector.addOption("Left Two Score Blue (20)", CommandComposer.getLeftTwoScoreBlue());
+		m_autoSelector.addOption("Right Two Score Blue (22)", CommandComposer.getRightTwoScoreBlue());
+		m_autoSelector.addOption("Left Two Score Red (11)", CommandComposer.getLeftTwoScoreRed());
+		m_autoSelector.addOption("Right Two Score Red (9)", CommandComposer.getRightTwoScoreRed());
 
 		// Two score and algae, left or right starting position
-		m_autoSelector.addOption("Left Two Score and Algae Blue", CommandComposer.getLeftTwoScoreAndAlgaeBlue());
-		m_autoSelector.addOption("Right Two Score and Algae Blue", CommandComposer.getRightTwoScoreAndAlgaeBlue());
-		m_autoSelector.addOption("Left Two Score and Algae Red", CommandComposer.getLeftTwoScoreAndAlgaeRed());
-		m_autoSelector.addOption("Right Two Score and Algae Red", CommandComposer.getRightTwoScoreAndAlgaeRed());
+		m_autoSelector.addOption("Left Two Score and Algae Blue (20)", CommandComposer.getLeftTwoScoreAndAlgaeBlue());
+		m_autoSelector.addOption("Right Two Score and Algae Blue (22)", CommandComposer.getRightTwoScoreAndAlgaeBlue());
+		m_autoSelector.addOption("Left Two Score and Algae Red (11)", CommandComposer.getLeftTwoScoreAndAlgaeRed());
+		m_autoSelector.addOption("Right Two Score and Algae Red (9)", CommandComposer.getRightTwoScoreAndAlgaeRed());
 
 		// Three score, left or right starting position
-		m_autoSelector.addOption("Left Three Score Blue", CommandComposer.getLeftThreeScoreBlue());
-		m_autoSelector.addOption("Right Three Score Blue", CommandComposer.getRightThreeScoreBlue());
-		m_autoSelector.addOption("Left Three Score Red", CommandComposer.getLeftThreeScoreRed());
-		m_autoSelector.addOption("Right Three Score Red", CommandComposer.getRightThreeScoreRed());
+		m_autoSelector.addOption("Left Three Score Blue (20)", CommandComposer.getLeftThreeScoreBlue());
+		m_autoSelector.addOption("Right Three Score Blue (22)", CommandComposer.getRightThreeScoreBlue());
+		m_autoSelector.addOption("Left Three Score Red (11)", CommandComposer.getLeftThreeScoreRed());
+		m_autoSelector.addOption("Right Three Score Red (9)", CommandComposer.getRightThreeScoreRed());
 	}
 
 	public void addTestingCommands() {
 		m_testingChooser
 				.addOption(
-						"Pick Up and Score at Levels 3 and 4 (Left and Right)",
+						"Pick Up and Score at Levels 3 and 4 (Left and Right) and Remove Algae",
 						sequence(
-								// scoreClosest(3, false, 1.5, kRobotToTagsLeft),
-								// waitSeconds(2),
-								// goToBase(),
-								// scoreClosest(3, false, 1.5, kRobotToTagsRight),
-								// waitSeconds(2),
-								// goToBase(),
+								scoreClosest(3, false, 1.5, kRobotToTagsLeft),
+								waitSeconds(2),
+								goToBase(),
+								scoreClosest(3, false, 1.5, kRobotToTagsRight),
+								waitSeconds(2),
+								goToBase(),
 								scoreClosest(4, false, 1.5, kRobotToTagsLeft),
 								waitSeconds(2),
 								goToBase(),
 								scoreClosest(4, false, 1.5, kRobotToTagsRight),
-								removeAlgaeLevelTwoAuto(() -> m_poseEstimationSubsystem.closestTagID())));
+								removeAlgaeLevelTwo(() -> m_poseEstimationSubsystem.closestTagID())));
 		m_testingChooser
 				.addOption(
 						"Left Align to the Closest Tag",

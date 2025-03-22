@@ -223,9 +223,17 @@ public class Constants {
 		 */
 		public static AprilTagFieldLayout kFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
 
-		// Locations of the camera relative to the robot
+		/**
+		 * The {@code Transform3d} expressing the pose of the first camera relative to
+		 * the pose of the robot.
+		 */
 		public static Transform3d kRobotToFrontCamera = new Transform3d(new Translation3d(0.3383, 0.0, 0.3),
 				new Rotation3d(Units.degreesToRadians(2.2), Units.degreesToRadians(-14), 0));
+
+		/**
+		 * The {@code Transform3d} expressing the pose of the second camera relative to
+		 * the pose of the robot.
+		 */
 		public static Transform3d kRobotToBackCamera = new Transform3d(new Translation3d(0.1033, 0.1583, 0.962),
 				new Rotation3d(0, 0, Math.PI));
 
@@ -235,8 +243,6 @@ public class Constants {
 		 */
 		static Transform2d[] kRobotToTags = { transform(1.1, 0.1, 180),
 				transform(0.36, 0.1, 180) };
-		// transform(0.35, 0.0, 180) };
-		// likely to be incorrect due to incorrect robot-to-camera transform or timeout
 
 		/**
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
@@ -244,6 +250,7 @@ public class Constants {
 		 */
 		static Transform2d[] kRobotToStationTags = { transform(1.1, 0.0, 180),
 				transform(0.4, 0, 180) };
+		// TODO: Check: smaller x = closer to tag; smaller y = more to the left
 
 		/**
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
@@ -251,7 +258,7 @@ public class Constants {
 		 */
 		static Transform2d[] kRobotToTagsLeft = { transform(1, 0, 180),
 				transform(0.4, -0.150, 180) };
-		// TODO: decrease y to align more to the left
+		// TODO: Check: smaller x = closer to tag; smaller y = more to the left
 
 		/**
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
@@ -259,7 +266,7 @@ public class Constants {
 		 */
 		static Transform2d[] kRobotToTagsRight = { transform(1, 0, 180),
 				transform(0.43, 0.235, 180) };
-		// TODO: decrease y to align more to the left
+		// TODO: Check: smaller x = closer to the tag; smaller y = more to the left
 
 		/**
 		 * A {@code Map} storing the distance to move forward to score at each scoring
@@ -270,8 +277,21 @@ public class Constants {
 				2, 0.0, // L2
 				3, 0.03, // L3
 				4, -0.03); // L4
-		// TODO: Check
-		// increase the offset value to get closer to the tag
+		// TODO: Check (positive: closer to the tag)
+
+		/**
+		 * A {@code Map} storing the additional distance to move forward/backward for
+		 * some {@code AprilTag}s (positive: closer to the tag).
+		 */
+		static Map<Integer, Double> kTagForwardAdjustments = Map.of();
+		// Map.of(18, 0.015, 22, 0.01);
+
+		/**
+		 * A {@code Map} storing the additional distance to move to left/right for
+		 * some {@code AprilTag}s (positive: left when facing toward the tag).
+		 */
+		static Map<Integer, Double> kTagSideAdjustments = Map.of();
+		// Map.of(19, -0.02, 21, -0.01, 22, -0.01);
 
 	}
 
