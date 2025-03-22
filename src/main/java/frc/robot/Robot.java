@@ -97,14 +97,14 @@ public class Robot extends TimedRobot {
 		}
 	};
 	private final PhotonCamera m_camera1 = RobotBase.isSimulation()
-			? cameraSim("Camera1", kRobotToCamera1, m_visionSimulator, cameraProp)
+			? cameraSim("Camera1", kRobotToFrontCamera, m_visionSimulator, cameraProp)
 			: new PhotonCamera("FrontCamera");
 	private final PhotonCamera m_camera2 = RobotBase.isSimulation()
-			? cameraSim("Camera2", kRobotToCamera2, m_visionSimulator, cameraProp)
+			? cameraSim("Camera2", kRobotToBackCamera, m_visionSimulator, cameraProp)
 			: new PhotonCamera("BackCamera");
 	private final PoseEstimationSubsystem m_poseEstimationSubsystem = new PoseEstimationSubsystem(m_driveSubsystem)
-			.addCamera(m_camera1, kRobotToCamera1)
-			.addCamera(m_camera2, kRobotToCamera2);
+			.addCamera(m_camera1, kRobotToFrontCamera)
+			.addCamera(m_camera2, kRobotToBackCamera);
 
 	public Robot() {
 		SignalLogger.start();
@@ -186,16 +186,17 @@ public class Robot extends TimedRobot {
 				.addOption(
 						"Pick Up and Score at Levels 3 and 4 (Left and Right)",
 						sequence(
-								scoreClosest(3, false, 1.5, kRobotToTagsLeft),
-								waitSeconds(2),
-								goToBase(),
-								scoreClosest(3, false, 1.5, kRobotToTagsRight),
-								waitSeconds(2),
-								goToBase(),
+								// scoreClosest(3, false, 1.5, kRobotToTagsLeft),
+								// waitSeconds(2),
+								// goToBase(),
+								// scoreClosest(3, false, 1.5, kRobotToTagsRight),
+								// waitSeconds(2),
+								// goToBase(),
 								scoreClosest(4, false, 1.5, kRobotToTagsLeft),
 								waitSeconds(2),
 								goToBase(),
-								scoreClosest(4, false, 1.5, kRobotToTagsRight)));
+								scoreClosest(4, false, 1.5, kRobotToTagsRight),
+								removeAlgaeLevelTwoAuto(() -> m_poseEstimationSubsystem.closestTagID())));
 		m_testingChooser
 				.addOption(
 						"Left Align to the Closest Tag",
@@ -288,6 +289,7 @@ public class Robot extends TimedRobot {
 				toClosestTag(kRobotToTagsLeft).withName("toClosestTag(kRobotToTagsLeft)"));
 		m_driverController.R1().whileTrue(
 				toClosestTag(kRobotToTagsRight).withName("toClosestTag(kRobotToTagsRight)"));
+		m_driverController.PS().onTrue(toClosestTag(kRobotToTags).withName("toClosestTag(kRobotToTagMiddle)"));
 		m_driverController.options().onTrue(m_driveSubsystem.resetHeading());
 		m_driverController.square().onTrue(m_driveSubsystem.toggleCoastMode());
 	}

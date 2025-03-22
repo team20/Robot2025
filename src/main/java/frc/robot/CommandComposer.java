@@ -93,11 +93,19 @@ public class CommandComposer {
 	 * @return a {@code Command} to align to the specified {@code AprilTag} and then
 	 *         remove the algae at level two
 	 */
-	private static Command removeAlgaeLevelTwo(Supplier<Integer> tagID) {
+	static Command removeAlgaeLevelTwo(Supplier<Integer> tagID) {
 		return sequence(
 				toTag(tagID, 0, kRobotToTags), // .withTimeout(4), This timeout seems to affect alignment accuracy
 				m_cheeseStickSubsystem.grab(),
 				removeAlgaeLevelTwo());
+	}
+
+	static Command removeAlgaeLevelTwoAuto(Supplier<Integer> tagID) {
+		return sequence(
+				removeAlgaeLevelTwo(tagID),
+				parallel(
+						m_wristSubsystem.goToAngle(268),
+						moveStraight(-0.5, 0.16, 16)));
 	}
 
 	public static Command removeAlgaeLevelThree() {
@@ -344,7 +352,9 @@ public class CommandComposer {
 	public static Command goToBase() {
 		return sequence(
 				m_wristSubsystem.goToAngle(270),
-				m_elevatorSubsystem.goToBaseHeight()).withName("Go To Base");
+				m_elevatorSubsystem.goToBaseHeight(),
+				m_cheeseStickSubsystem.grab(),
+				waitSeconds(1)).withName("Go To Base");
 	}
 
 	public static Command pickupAtCoralStation() {

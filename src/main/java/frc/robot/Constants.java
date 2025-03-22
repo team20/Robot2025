@@ -156,11 +156,11 @@ public class Constants {
 		public static final int kElevatorMotorPort = 26;
 		public static final int kSmartCurrentLimit = 60;
 		public static final int kSecondaryCurrentLimit = 70;
-		public static final double kP = 6.0; // 1.1
+		public static final double kP = 6.5; // 1.1
 		public static final double kI = 0;
 		public static final double kD = 0;
 		public static final double kS = 0.05631;
-		public static final double kG = 0.43;
+		public static final double kG = 0.20;
 		public static final double kV = 5.3794;
 		public static final double kA = 0.74041;
 		public static final double kGearRatio = 10;
@@ -179,7 +179,7 @@ public class Constants {
 		public static final double kMetersPerMotorRotation = (1 / kGearRatio) * kMetersPerPulleyRotation;
 		public static final double kMaxVelocity = 2.75;
 		public static final double kMaxAccel = 2.5;
-		public static final double kTolerance = 0.01;
+		public static final double kTolerance = 0.04;
 		public static final double kLevelOneHeight = Units.inchesToMeters(3);
 		public static final double kLevelTwoHeight = Units.inchesToMeters(11.8);
 		public static final double kLevelThreeHeight = Units.inchesToMeters(30.71);
@@ -191,7 +191,7 @@ public class Constants {
 		public static final double kCoralStationHeight = Units.inchesToMeters(17 + 2); // TODO: Change
 
 		public static final double kAlgaeLevelThreeHeight = Units.inchesToMeters(0.25);
-		public static final double kAlgaeLevelTwoHeight = Units.inchesToMeters(13);
+		public static final double kAlgaeLevelTwoHeight = Units.inchesToMeters(10);
 		// public static final double kAlgaeLevelTwoAutoHeight =
 		// Units.inchesToMeters(13.5);
 	}
@@ -214,7 +214,7 @@ public class Constants {
 		public static final double kD = 0;
 		// public static final double kD = 0.003; // for simulation
 
-		public static final double kTolerance = 4;
+		public static final double kTolerance = 5;
 	}
 
 	public static final class AutoAlignConstants {
@@ -223,26 +223,18 @@ public class Constants {
 		 */
 		public static AprilTagFieldLayout kFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
 
-		/**
-		 * The {@code Transform3d} expressing the pose of the first camera relative to
-		 * the pose of the robot.
-		 */
-		public static Transform3d kRobotToCamera1 = new Transform3d(new Translation3d(0.3, 0.0, 0.2),
-				new Rotation3d(0, Units.degreesToRadians(-20), 0));
-
-		/**
-		 * The {@code Transform3d} expressing the pose of the second camera relative to
-		 * the pose of the robot.
-		 */
-		public static Transform3d kRobotToCamera2 = new Transform3d(new Translation3d(-0.5, 0.0, 0.5),
-				new Rotation3d(0, Units.degreesToRadians(0), Units.degreesToRadians(180)));
+		// Locations of the camera relative to the robot
+		public static Transform3d kRobotToFrontCamera = new Transform3d(new Translation3d(0.3383, 0.0, 0.3),
+				new Rotation3d(Units.degreesToRadians(2.2), Units.degreesToRadians(-14), 0));
+		public static Transform3d kRobotToBackCamera = new Transform3d(new Translation3d(0.1033, 0.1583, 0.962),
+				new Rotation3d(0, 0, Math.PI));
 
 		/**
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
 		 * {@code AprilTag} to align the robot to remove algaes.
 		 */
-		static Transform2d[] kRobotToTags = { transform(1.1, 0.0, 180),
-				transform(0.44, 0.0, 180) };
+		static Transform2d[] kRobotToTags = { transform(1.1, 0.1, 180),
+				transform(0.36, 0.1, 180) };
 		// transform(0.35, 0.0, 180) };
 		// likely to be incorrect due to incorrect robot-to-camera transform or timeout
 
@@ -257,16 +249,16 @@ public class Constants {
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
 		 * {@code AprilTag} to align the robot to the left of that {@code AprilTag}.
 		 */
-		static Transform2d[] kRobotToTagsLeft = { transform(0.9, 0, 180),
-				transform(0.44, -0.175, 180) };
+		static Transform2d[] kRobotToTagsLeft = { transform(1, 0, 180),
+				transform(0.4, -0.150, 180) };
 		// TODO: decrease y to align more to the left
 
 		/**
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
 		 * {@code AprilTag} to align the robot to the right of that {@code AprilTag}.
 		 */
-		static Transform2d[] kRobotToTagsRight = { transform(0.9, 0, 180),
-				transform(0.4, 0.200, 180) };
+		static Transform2d[] kRobotToTagsRight = { transform(1, 0, 180),
+				transform(0.43, 0.235, 180) };
 		// TODO: decrease y to align more to the left
 
 		/**
@@ -276,8 +268,8 @@ public class Constants {
 		static Map<Integer, Double> kLevelForwardOffsets = Map.of(
 				1, 0.0, // L1
 				2, 0.0, // L2
-				3, 0.0, // L3
-				4, 0.0); // L4
+				3, 0.03, // L3
+				4, -0.03); // L4
 		// TODO: Check
 		// increase the offset value to get closer to the tag
 
