@@ -151,32 +151,32 @@ public class Robot extends TimedRobot {
 		m_autoSelector.addOption("Leave", leave());
 
 		// One score and algae, center starting position
-		m_autoSelector.addOption("Middle and Algae Blue (21)", getMiddleScoreAndAlgaeBlue());
-		m_autoSelector.addOption("Middle and Algae Red (10)", getMiddleScoreAndAlgaeRed());
+		m_autoSelector.addOption("Middle and Algae Blue (Tag 21)", getMiddleScoreAndAlgaeBlue());
+		m_autoSelector.addOption("Middle and Algae Red (Tag 10)", getMiddleScoreAndAlgaeRed());
 
 		// One score and algae, left or right starting position
-		m_autoSelector.addOption("Left and Algae Blue (20)", getLeftScoreAndAlgaeBlue());
-		m_autoSelector.addOption("Right and Algae Blue (22)", getRightScoreAndAlgaeBlue());
-		m_autoSelector.addOption("Left and Algae Red (11)", getLeftScoreAndAlgaeRed());
-		m_autoSelector.addOption("Right and Algae Red (9)", getRightScoreAndAlgaeRed());
+		m_autoSelector.addOption("Left and Algae Blue (Tag 20)", getLeftScoreAndAlgaeBlue());
+		m_autoSelector.addOption("Right and Algae Blue (Tag 22)", getRightScoreAndAlgaeBlue());
+		m_autoSelector.addOption("Left and Algae Red (Tag 11)", getLeftScoreAndAlgaeRed());
+		m_autoSelector.addOption("Right and Algae Red (Tag 9)", getRightScoreAndAlgaeRed());
 
 		// Two score, left or right starting position
-		m_autoSelector.addOption("Left Two Score Blue (20)", getLeftTwoScoreBlue());
-		m_autoSelector.addOption("Right Two Score Blue (22)", getRightTwoScoreBlue());
-		m_autoSelector.addOption("Left Two Score Red (11)", getLeftTwoScoreRed());
-		m_autoSelector.addOption("Right Two Score Red (9)", getRightTwoScoreRed());
+		m_autoSelector.addOption("Left Two Score Blue (Tag 20)", getLeftTwoScoreBlue());
+		m_autoSelector.addOption("Right Two Score Blue (Tag 22)", getRightTwoScoreBlue());
+		m_autoSelector.addOption("Left Two Score Red (Tag 11)", getLeftTwoScoreRed());
+		m_autoSelector.addOption("Right Two Score Red (Tag 9)", getRightTwoScoreRed());
 
 		// Two score and algae, left or right starting position
-		m_autoSelector.addOption("Left Two Score and Algae Blue (20)", getLeftTwoScoreAndAlgaeBlue());
-		m_autoSelector.addOption("Right Two Score and Algae Blue (22)", getRightTwoScoreAndAlgaeBlue());
-		m_autoSelector.addOption("Left Two Score and Algae Red (11)", getLeftTwoScoreAndAlgaeRed());
-		m_autoSelector.addOption("Right Two Score and Algae Red (9)", getRightTwoScoreAndAlgaeRed());
+		m_autoSelector.addOption("Left Two Score and Algae Blue (Tag 20)", getLeftTwoScoreAndAlgaeBlue());
+		m_autoSelector.addOption("Right Two Score and Algae Blue (Tag 22)", getRightTwoScoreAndAlgaeBlue());
+		m_autoSelector.addOption("Left Two Score and Algae Red (Tag 11)", getLeftTwoScoreAndAlgaeRed());
+		m_autoSelector.addOption("Right Two Score and Algae Red (Tag 9)", getRightTwoScoreAndAlgaeRed());
 
 		// Three score, left or right starting position
-		m_autoSelector.addOption("Left Three Score Blue (20)", getLeftThreeScoreBlue());
-		m_autoSelector.addOption("Right Three Score Blue (22)", getRightThreeScoreBlue());
-		m_autoSelector.addOption("Left Three Score Red (11)", getLeftThreeScoreRed());
-		m_autoSelector.addOption("Right Three Score Red (9)", getRightThreeScoreRed());
+		m_autoSelector.addOption("Left Three Score Blue (Tag 20)", getLeftThreeScoreBlue());
+		m_autoSelector.addOption("Right Three Score Blue (Tag 22)", getRightThreeScoreBlue());
+		m_autoSelector.addOption("Left Three Score Red (Tag 11)", getLeftThreeScoreRed());
+		m_autoSelector.addOption("Right Three Score Red (Tag 9)", getRightThreeScoreRed());
 	}
 
 	public void addTestingCommands() {
@@ -186,7 +186,7 @@ public class Robot extends TimedRobot {
 						selectIfConfident(removeAlgaeLevelTwo(() -> m_poseEstimationSubsystem.closestTagID())));
 		m_testingChooser
 				.addOption(
-						"Pick Up and Score at Level 4 Left and Right (Closest)",
+						"L4 Score Left and Right (Closest)",
 						selectIfConfident(
 								sequence(
 										goToBase(),
@@ -196,7 +196,7 @@ public class Robot extends TimedRobot {
 										scoreClosest(4, false, 1.5, kRobotToTagsRight))));
 		m_testingChooser
 				.addOption(
-						"Pick Up and Score at Level 3 Left and Right (Closest)",
+						"L3 Score Left and Right (Closest)",
 						selectIfConfident(
 								sequence(
 										goToBase(),
@@ -206,22 +206,22 @@ public class Robot extends TimedRobot {
 										scoreClosest(3, false, 1.5, kRobotToTagsRight))));
 		m_testingChooser
 				.addOption(
-						"Score from Station 1",
+						"Score from Station (Tag 1)",
 						selectIfConfident(
 								sequence(score(1, 4, 6))));
 		m_testingChooser
 				.addOption(
-						"Score from Station 2",
+						"Score from Station (Tag 2)",
 						selectIfConfident(
 								sequence(score(2, 4, 8))));
 		m_testingChooser
 				.addOption(
-						"Score from Station 12",
+						"Score from Station (Tag 12)",
 						selectIfConfident(
 								sequence(score(12, 4, 17))));
 		m_testingChooser
 				.addOption(
-						"Score from Station 13",
+						"Score from Station (Tag 13)",
 						selectIfConfident(
 								sequence(score(13, 4, 19))));
 		m_testingChooser
