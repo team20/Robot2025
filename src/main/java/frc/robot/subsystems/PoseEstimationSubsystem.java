@@ -14,10 +14,12 @@ import org.photonvision.PhotonPoseEstimator.PoseStrategy;
 import org.photonvision.targeting.PhotonPipelineResult;
 
 import edu.wpi.first.math.MathSharedStore;
+import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
@@ -40,7 +42,7 @@ public class PoseEstimationSubsystem extends SubsystemBase {
 	 * The {@code PhotonCamera}s and {@code PhotonPoseEstimator}s used by this
 	 * {@code PoseEstimationSubsystem}.
 	 */
-	private final Map<PhotonCamera, PhotonPoseEstimator> m_cameras = new LinkedHashMap<PhotonCamera, PhotonPoseEstimator>();
+	private final Map<PhotonCamera, Pair<PhotonPoseEstimator, StructPublisher<Pose3d>>> m_cameras = new LinkedHashMap<>();
 
 	/**
 	 * The {@code PhotonCamera} used by this {@code PoseEstimationSubsystem}.
@@ -67,12 +69,6 @@ public class PoseEstimationSubsystem extends SubsystemBase {
 	private final SwerveDrivePoseEstimator m_poseEstimator;
 
 	/**
-	 * The {@code StructPublisher} for reporting the detected {@code Pose2d} of the
-	 * robot.
-	 */
-	private final StructPublisher<Pose2d> m_detectedPosePublisher;
-
-	/**
 	 * The {@code StructPublisher} for reporting the estimated {@code Pose2d} of the
 	 * robot.
 	 */
@@ -96,6 +92,7 @@ public class PoseEstimationSubsystem extends SubsystemBase {
 	 *        {@code PoseEstimationSubsystem}
 	 */
 	public PoseEstimationSubsystem(DriveSubsystem driveSubsystem) {
+		NetworkTableInstance.getDefault().getBooleanTopic("/photonvision/use_new_cscore_frametime").publish().set(true);
 		m_driveSubsystem = driveSubsystem;
 		m_poseEstimator = new SwerveDrivePoseEstimator(
 				driveSubsystem.kinematics(),
@@ -104,9 +101,6 @@ public class PoseEstimationSubsystem extends SubsystemBase {
 				new Pose2d(),
 				stateStdDevs,
 				visionMeasurementStdDevs);
-		m_detectedPosePublisher = NetworkTableInstance.getDefault()
-				.getStructTopic("/SmartDashboard/Pose@PhotonPoseEstimator", Pose2d.struct)
-				.publish();
 		m_estimatedPosePublisher = NetworkTableInstance.getDefault()
 				.getStructTopic("/SmartDashboard/Pose@PoseEstimationSubsystem", Pose2d.struct)
 				.publish();
@@ -126,8 +120,12 @@ public class PoseEstimationSubsystem extends SubsystemBase {
 	 */
 	public PoseEstimationSubsystem addCamera(PhotonCamera camera, Transform3d robotToCamera) {
 		m_cameras.put(
-				camera, new PhotonPoseEstimator(kFieldLayout,
-						PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, robotToCamera));
+				camera, Pair.of(
+						new PhotonPoseEstimator(kFieldLayout,
+								PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, robotToCamera),
+						NetworkTableInstance.getDefault()
+								.getStructTopic("/SmartDashboard/Pose@" + camera.getName(), Pose3d.struct)
+								.publish()));
 		return this;
 	}
 
@@ -139,7 +137,8 @@ public class PoseEstimationSubsystem extends SubsystemBase {
 		boolean firstCamera = true;
 		for (var e : m_cameras.entrySet()) {
 			var camera = e.getKey();
-			var poseEstimator = e.getValue();
+			var poseEstimator = e.getValue().getFirst();
+			var posePublisher = e.getValue().getSecond();
 			for (var r : camera.getAllUnreadResults()) // for every result r
 				if (useful(r, 0.2, 4, firstCamera)) {
 					m_mostRecentTimestamp = r.getTimestampSeconds();
@@ -147,15 +146,15 @@ public class PoseEstimationSubsystem extends SubsystemBase {
 					if (p.isPresent()) { // if successful
 						EstimatedRobotPose v = p.get(); // get successfully estimated pose
 						m_poseEstimator.addVisionMeasurement(v.estimatedPose.toPose2d(), v.timestampSeconds);
-						m_detectedPosePublisher.set(v.estimatedPose.toPose2d());
+						posePublisher.set(v.estimatedPose);
 					}
 				}
 			firstCamera = false;
 		}
 		m_poseEstimator.update(m_driveSubsystem.getHeading(), m_driveSubsystem.getModulePositions());
 		m_estimatedPosePublisher.set(m_poseEstimator.getEstimatedPosition());
-		var closest = closestTagID(getEstimatedPose(), 180, 4.5);
-		SmartDashboard.putString("Closest AprilTag ID (within 3m)", closest == null ? "" : ("" + closest));
+		var closest = closestTagID(getEstimatedPose(), 180, 3);
+		SmartDashboard.putNumber("Closest AprilTag ID (within 3m)", closest == null ? -1 : closest);
 		var pose = closest == null ? null : kFieldLayout.getTagPose(closest).get().toPose2d();
 		m_closestPosePublisher.set(pose);
 		if (pose != null)

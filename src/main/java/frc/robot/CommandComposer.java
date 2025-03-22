@@ -100,11 +100,14 @@ public class CommandComposer {
 	 * @return a {@code Command} to align to the specified {@code AprilTag} and then
 	 *         remove the algae at level two
 	 */
-	private static Command removeAlgaeLevelTwo(Supplier<Integer> tagID) {
+	public static Command removeAlgaeLevelTwo(Supplier<Integer> tagID) {
 		return sequence(
 				toTag(tagID, 0, kRobotToTags), // .withTimeout(4), This timeout seems to affect alignment accuracy
 				m_cheeseStickSubsystem.grab(),
-				removeAlgaeLevelTwo());
+				removeAlgaeLevelTwo(),
+				parallel(
+						m_wristSubsystem.goToAngle(268),
+						moveStraight(-0.7, 0.16, 16)));
 	}
 
 	public static Command removeAlgaeLevelThree() {
@@ -171,7 +174,7 @@ public class CommandComposer {
 		var c = pickup ? new SequentialCommandGroup(goToBase()) : new SequentialCommandGroup();
 		c.addCommands(
 				m_elevatorSubsystem.goToLevel(() -> elevatorLevel),
-				m_wristSubsystem.goToAngle(wristAngle));
+				m_wristSubsystem.goToAngle(wristAngle).withTimeout(1));
 		return c;
 	}
 
@@ -304,10 +307,10 @@ public class CommandComposer {
 	private static Command score(Command prepare, int level, double retreatDistance) {
 		var p = new ParallelCommandGroup();
 		if (level == 4)
-			p.addCommands(m_wristSubsystem.goToAngle(kGrabberAngleLevelFour - 10));
+			p.addCommands(m_wristSubsystem.goToAngle(kGrabberAngleLevelFour - 15).withTimeout(1));
 		if (retreatDistance > 0)
 			p.addCommands(moveStraight(-retreatDistance, 0.16, 16)); // TODO: Optimize
-		return sequence(prepare, m_cheeseStickSubsystem.release(0.7), p); // TODO: Check
+		return sequence(prepare, m_cheeseStickSubsystem.release(), waitSeconds(.7), p); // TODO: Check
 	}
 
 	/**
@@ -327,14 +330,35 @@ public class CommandComposer {
 	 *         to the specified {@code AprilTag}, and then score at the specified
 	 *         level
 	 */
-	private static Command score(int tagIDStation, int tagID, int level, boolean pickup, double retreatDistance,
+	public static Command score(int tagIDStation, int tagID, int level, boolean pickup, double retreatDistance,
 			Transform2d... robotToTags) {
 		return sequence(
 				m_cheeseStickSubsystem.grab(),
 				toStation(tagIDStation),
-				waitSeconds(2),
+				parallel(m_wristSubsystem.goToAngle(270), waitSeconds(2)),
 				pickupAtCoralStation(),
 				score(tagID, level, pickup, retreatDistance, robotToTags));
+	}
+
+	/**
+	 * Returns a {@code Command} to obtain corals at the specified station and score
+	 * at the specified {@code AprilTag}s with both left and right alignments.
+	 * 
+	 * @param tagIDStation the ID of the {@code AprilTag} at the coral station
+	 * @param tagIDs the ID of the {@code AprilTag}s to align to in order to score
+	 * @param level the target scoring level
+	 * @return a {@code Command} to obtain corals at the specified station and score
+	 *         at the specified {@code AprilTag}s with both left and right
+	 *         alignments
+	 */
+	public static Command score(int tagIDStation, int level, int... tagIDs) {
+		return sequence(
+				Arrays.stream(tagIDs)
+						.mapToObj(
+								t -> sequence(
+										score(tagIDStation, t, level, true, 0.5, kRobotToTagsLeft),
+										score(tagIDStation, t, level, true, 0.5, kRobotToTagsRight)))
+						.toList().toArray(new Command[0]));
 	}
 
 	public static Command toStation(int tagID) {
@@ -353,6 +377,12 @@ public class CommandComposer {
 		return sequence(
 				parallel(m_wristSubsystem.goToAngle(270), m_cheeseStickSubsystem.grab()),
 				m_elevatorSubsystem.goToBaseHeight()).withName("Go To Base");
+		// TODO: Check
+		// return sequence(
+		// m_wristSubsystem.goToAngle(270),
+		// m_elevatorSubsystem.goToBaseHeight(),
+		// m_cheeseStickSubsystem.grab(),
+		// waitSeconds(1)).withName("Go To Base");
 	}
 
 	public static Command pickupAtCoralStation() {
@@ -536,13 +566,10 @@ public class CommandComposer {
 		return getOneScoreAndAlgae(() -> tagID);
 	}
 
-	private static Command getOneScoreAndAlgae(Supplier<Integer> tagID) {
+	static Command getOneScoreAndAlgae(Supplier<Integer> tagID) {
 		return sequence(
 				score(tagID, 4, false, 0, kRobotToTagsLeft),
-				removeAlgaeLevelTwo(tagID),
-				parallel(
-						m_wristSubsystem.goToAngle(268),
-						moveStraight(-0.5, 0.16, 16)));
+				removeAlgaeLevelTwo(tagID));
 	}
 
 	static Command getMiddleScoreAndAlgaeBlue() {
@@ -553,11 +580,6 @@ public class CommandComposer {
 	static Command getMiddleScoreAndAlgaeRed() {
 		return getOneScoreAndAlgae(10)
 				.withName("Middle Score and Algae Red");
-	}
-
-	static Command getMiddleScoreAndAlgaePracticeField() {
-		return getOneScoreAndAlgae(() -> m_poseEstimationSubsystem.closestTagID())
-				.withName("Middle Score and Algae Practice Field");
 	}
 
 	static Command getLeftScoreAndAlgaeBlue() {
@@ -583,10 +605,7 @@ public class CommandComposer {
 	public static Command getTwoScore(int tagID1, int tagIDStation, int tagID2) {
 		return sequence(
 				score(tagID1, 4, false, 0.5, kRobotToTagsRight),
-				score(tagIDStation, tagID2, 4, false, 0.5, kRobotToTagsLeft),
-				parallel(
-						m_wristSubsystem.goToAngle(268),
-						moveStraight(-0.5, 0.01, 1)));
+				score(tagIDStation, tagID2, 4, true, 0.5, kRobotToTagsLeft));
 	}
 
 	public static Command getLeftTwoScoreBlue() {
@@ -612,11 +631,8 @@ public class CommandComposer {
 	public static Command getTwoScoreAndAlgae(int tagID1, int tagIDStation, int tagID2) {
 		return sequence(
 				score(tagID1, 4, false, 0.5, kRobotToTagsRight),
-				score(tagIDStation, tagID2, 4, false, 0.5, kRobotToTagsLeft),
-				removeAlgaeLevelTwo(tagID2),
-				parallel(
-						m_wristSubsystem.goToAngle(268),
-						moveStraight(-0.5, 0.01, 1)));
+				score(tagIDStation, tagID2, 4, true, 0.5, kRobotToTagsLeft),
+				removeAlgaeLevelTwo(tagID2));
 	}
 
 	public static Command getLeftTwoScoreAndAlgaeBlue() {
@@ -642,11 +658,8 @@ public class CommandComposer {
 	public static Command getThreeScore(int tagID1, int tagIDStation, int tagID2, int tagID3) {
 		return sequence(
 				score(tagID1, 4, false, 0.5, kRobotToTagsRight),
-				score(tagIDStation, tagID2, 4, false, 0.5, kRobotToTagsLeft),
-				score(tagIDStation, tagID3, 4, false, 0.5, kRobotToTagsLeft),
-				parallel(
-						m_wristSubsystem.goToAngle(270),
-						moveStraight(-0.5, 0.01, 1)));
+				score(tagIDStation, tagID2, 4, true, 0.5, kRobotToTagsLeft),
+				score(tagIDStation, tagID3, 4, true, 0.5, kRobotToTagsLeft));
 	}
 
 	public static Command getLeftThreeScoreBlue() {
@@ -835,7 +848,11 @@ public class CommandComposer {
 		if (tID != null) {
 			Pose2d pose = pose(tID);
 			for (var r : robotToTags)
-				path.add(pose.plus(adjust(forwardAdjustment, 0.0, r)));
+				path.add(
+						pose.plus(
+								adjust(
+										forwardAdjustment + kTagForwardAdjustments.getOrDefault(tID, 0.0),
+										kTagSideAdjustments.getOrDefault(tID, 0.0), r)));
 		}
 		return
 
@@ -968,6 +985,27 @@ public class CommandComposer {
 					moveStraight(-displacement, distanceTolerance, angleToleranceInDegrees),
 					waitSeconds(1.0));
 		return g;
+	}
+
+	/**
+	 * Returns a {@code Command} that selects the specified {@code Command} only if
+	 * the {@code PoseEstimationSubsystem} has seen an {@code AprilTag} during the
+	 * last 6 seconds.
+	 * 
+	 * @param command a {@code Command}
+	 * @return a {@code Command} that selects the specified {@code Command} only if
+	 *         the {@code PoseEstimationSubsystem} has seen an {@code AprilTag}
+	 *         during the last 6 seconds
+	 */
+	public static Command selectIfConfident(Command command) {
+		return new SelectCommand<Boolean>(Map
+				.of(true, command, false, runOnce(() -> {
+					@SuppressWarnings("resource")
+					var a = new Alert("Pose Confidence (" + m_poseEstimationSubsystem.confidence() + ") Too Low!",
+							AlertType.kError);
+					a.set(true);
+				})),
+				() -> m_poseEstimationSubsystem.confidence() > 0.3);
 	}
 
 }
