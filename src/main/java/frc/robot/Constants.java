@@ -136,12 +136,12 @@ public class Constants {
 		public static final double kTeleopTurnMaxAngularSpeed = Math.toRadians(360 * 5);
 
 		public static final double kDriveMaxSpeed = 12.0; // 5 meters per second
-		public static final double kDriveMinSpeed = 0.3; // 0.2 meters per second
+		public static final double kDriveMinSpeed = 1; // 0.2 meters per second
 		public static final double kTurnMaxAngularSpeed = Math.toRadians(360); // 1 rotation per second
 		public static final double kTurnMinAngularSpeed = Math.toRadians(0); // 0 degree per second
 
 		// DriveCommand.java Constants
-		public static final double kDriveP = 7;
+		public static final double kDriveP = 5.5;
 		public static final double kDriveI = 0;
 		public static final double kDriveD = 0;
 		public static final double kDriveMaxAcceleration = 2 * kDriveMaxSpeed; // kDriveMaxSpeed in 1.5 sec
@@ -248,7 +248,7 @@ public class Constants {
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
 		 * {@code AprilTag} to align the robot to coral stations.
 		 */
-		static Transform2d[] kRobotToStationTags = { transform(1.1, 0.0, 180), transform(0.9, 0.0, 180),
+		static Transform2d[] kRobotToStationTags = { /* transform(1.1, 0.0, 180), */ transform(0.9, 0.0, 180),
 				transform(0.25, 0, 180) };
 		// TODO: Check: smaller x = closer to tag; smaller y = more to the left
 
@@ -256,7 +256,7 @@ public class Constants {
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
 		 * {@code AprilTag} to align the robot to the left of that {@code AprilTag}.
 		 */
-		static Transform2d[] kRobotToTagsLeft = { transform(1.1, 0, 180), transform(0.9, 0, 180),
+		static Transform2d[] kRobotToTagsLeft = { /* transform(1.1, 0, 180), */ transform(0.9, 0, 180),
 				transform(0.4, -0.150, 180) };
 		// TODO: Check: smaller x = closer to tag; smaller y = more to the left
 
@@ -264,7 +264,7 @@ public class Constants {
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
 		 * {@code AprilTag} to align the robot to the right of that {@code AprilTag}.
 		 */
-		static Transform2d[] kRobotToTagsRight = { transform(1.1, 0, 180), transform(0.9, 0, 180),
+		static Transform2d[] kRobotToTagsRight = { /* transform(1.1, 0, 180), */ transform(0.9, 0, 180),
 				transform(0.41, 0.235, 180) };
 		// TODO: Check: smaller x = closer to the tag; smaller y = more to the left
 

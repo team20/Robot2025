@@ -329,7 +329,7 @@ public class CommandComposer {
 		return sequence(
 				m_cheeseStickSubsystem.grab(),
 				toStation(tagIDStation),
-				parallel(m_wristSubsystem.goToAngle(270), waitSeconds(2)),
+				parallel(m_wristSubsystem.goToAngle(270)),
 				pickupAtCoralStation(),
 				score(tagID, level, pickup, retreatDistance, robotToTags));
 	}
@@ -357,7 +357,7 @@ public class CommandComposer {
 
 	public static Command toStation(int tagID) {
 		return parallel(
-				toTag(tagID, kRobotToStationTags),
+				toTag(tagID, kRobotToStationTags).withTimeout(4.25),
 				prepareForCoralPickup()).withName("Align to Station");
 	}
 
