@@ -182,6 +182,26 @@ public class Robot extends TimedRobot {
 	public void addTestingCommands() {
 		m_testingChooser
 				.addOption(
+						"Align Far from Station (Tag 1)",
+						selectIfConfident(
+								sequence(align(1, 4, 8, 9, 10))));
+		m_testingChooser
+				.addOption(
+						"Align Far from Station (Tag 2)",
+						selectIfConfident(
+								sequence(align(2, 4, 10, 11, 6))));
+		m_testingChooser
+				.addOption(
+						"Align Far from Station (Tag 12)",
+						selectIfConfident(
+								sequence(align(12, 4, 19, 20, 21))));
+		m_testingChooser
+				.addOption(
+						"Align Far from Station (Tag 13)",
+						selectIfConfident(
+								sequence(align(13, 4, 21, 22, 17))));
+		m_testingChooser
+				.addOption(
 						"Remove Algae (Closest)",
 						selectIfConfident(removeAlgaeLevelTwo(() -> m_poseEstimationSubsystem.closestTagID())));
 		m_testingChooser
@@ -196,46 +216,6 @@ public class Robot extends TimedRobot {
 				.addOption(
 						"L2 Score Left and Right (Closest)",
 						selectIfConfident(testScore(2)));
-		m_testingChooser
-				.addOption(
-						"Score from Station (Tag 1)",
-						selectIfConfident(
-								sequence(score(1, 4, 6))));
-		m_testingChooser
-				.addOption(
-						"Score from Station (Tag 2)",
-						selectIfConfident(
-								sequence(score(2, 4, 8))));
-		m_testingChooser
-				.addOption(
-						"Score from Station (Tag 12)",
-						selectIfConfident(
-								sequence(score(12, 4, 17))));
-		m_testingChooser
-				.addOption(
-						"Score from Station (Tag 13)",
-						selectIfConfident(
-								sequence(score(13, 4, 19))));
-		m_testingChooser
-				.addOption(
-						"Score Far from Station (Tag 1)",
-						selectIfConfident(
-								sequence(score(1, 4, 8, 9, 10))));
-		m_testingChooser
-				.addOption(
-						"Score Far from Station (Tag 2)",
-						selectIfConfident(
-								sequence(score(2, 4, 10, 11, 6))));
-		m_testingChooser
-				.addOption(
-						"Score Far from Station (Tag 12)",
-						selectIfConfident(
-								sequence(score(12, 4, 19, 20, 21))));
-		m_testingChooser
-				.addOption(
-						"Score Far from Station (Tag 13)",
-						selectIfConfident(
-								sequence(score(13, 4, 21, 22, 17))));
 		m_testingChooser
 				.addOption(
 						"Left Align to the Closest Tag",
@@ -315,10 +295,10 @@ public class Robot extends TimedRobot {
 	public void bindDriveControls() {
 		m_driveSubsystem.setDefaultCommand(
 				m_driveSubsystem.driveCommand(
-						() -> -m_driverController.getLeftY(),
-						() -> -m_driverController.getLeftX(),
-						() -> -m_driverController.getRightY(),
-						() -> -m_driverController.getRightX(),
+						() -> m_driverController.getLeftY(),
+						() -> m_driverController.getLeftX(),
+						() -> m_driverController.getRightY(),
+						() -> m_driverController.getRightX(),
 						() -> m_driverController.getL2Axis() - m_driverController.getR2Axis(),
 						m_driverController.getHID()::getCreateButton)); // makes the robot
 		// robot-oriented
