@@ -2,6 +2,7 @@ package frc.robot;
 
 import static edu.wpi.first.wpilibj2.command.Commands.*;
 import static frc.robot.Constants.AutoAlignConstants.*;
+import static frc.robot.Constants.DriveConstants.*;
 import static frc.robot.Constants.ElevatorConstants.*;
 import static frc.robot.Constants.WristConstants.*;
 import static frc.robot.subsystems.PoseEstimationSubsystem.*;
@@ -353,8 +354,8 @@ public class CommandComposer {
 						.mapToObj(
 								t -> sequence(
 										toTag(tagIDStation, kRobotToStationTags),
-										toTag(t, t % 2 == 0 ? kRobotToTagsLeft : kRobotToTagsRight)))
-						.toList().toArray(new Command[0]));
+										toTag(t, t % 2 == 0 ? kRobotToTagsLeft : kRobotToTagsRight), waitSeconds(1)))
+						.toList().toArray(new Command[0])).andThen(moveStraight(-0.5, 0.1, 10));
 	}
 
 	public static Command toStation(int tagID) {
@@ -679,7 +680,7 @@ public class CommandComposer {
 	private static Command toTag(Supplier<Integer> tagID, double forwardAdjustment, Transform2d... robotToTags) {
 		return follow(
 				0.01, 1,
-				0.08, 16, // TODO: Optimize
+				kIntermediateTolerance, 16, // TODO: Optimize
 				() -> pathToTag(tagID, forwardAdjustment, robotToTags));
 	}
 
@@ -793,7 +794,7 @@ public class CommandComposer {
 	 *         {@code Pose2d}s)
 	 */
 	private static List<Pose2d> refine(List<Pose2d> path, Translation2d center) {
-		return refine(path, center, reefRadius, 1.2, 5);
+		return refine(path, center, reefRadius, 1.2, 3);
 	}
 
 	/**
@@ -987,10 +988,10 @@ public class CommandComposer {
 						.mapToObj(
 								(i -> sequence(
 										testScore(
-												level, move(transform(-0.7, 0.5 * i, -20 * i), 0.1, 10),
+												level, move(transform(-0.9, 0.5 * i, -20 * i), 0.1, 10),
 												kRobotToTagsLeft),
 										testScore(
-												level, move(transform(-0.7, -0.5 * i, 20 * i), 0.1, 10),
+												level, move(transform(-0.9, -0.5 * i, 20 * i), 0.1, 10),
 												kRobotToTagsRight))))
 						.toList()
 						.toArray(new Command[0]));
