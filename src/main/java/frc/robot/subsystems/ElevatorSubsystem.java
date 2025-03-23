@@ -296,8 +296,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 	 * @return
 	 */
 	public Command goToBaseHeight() {
-		return goToLevel(() -> 0).withTimeout(2.0).withName("Go To Base Height");
-		// reason for timeout: avoid damanging wrist when a coral is stuck in the pocket
+		return goToLevel(() -> 0.001).withName("Go To Base Height");
 	}
 
 	public Command goToClearanceHeight(double level, double clearanceHeight) {
