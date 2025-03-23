@@ -305,7 +305,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 	 * @return
 	 */
 	public Command goToBaseHeight() {
-		return goToLevel(() -> 0).withName("Go To Base Height");
+		return goToLevel(() -> 0.001).withName("Go To Base Height");
 	}
 
 	public Command goToClearanceHeight(double level, double clearanceHeight) {

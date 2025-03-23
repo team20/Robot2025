@@ -218,12 +218,12 @@ public class WristSubsystem extends SubsystemBase {
 	public Command testCommand(double duration) {
 		return sequence(
 				m_elevatorSubsystem.goToLevelThreeHeight(),
-				run(() -> setSpeed(-.1)).until(() -> getAngle() < 270 - 10), // checking
+				run(() -> setSpeed(-.1)).until(() -> getAngle() < kBaseAngle - 10), // checking
 				runOnce(() -> setSpeed(0)), new WaitCommand(duration), // should stay at current angle
-				goToAngle(270), new WaitCommand(duration), // should stay at angle 0
-				goToAngle(270 - 45), new WaitCommand(duration), // should stay at angle 45
-				goToAngle(270), goToAngle(270 - 45),
-				goToAngle(270), goToAngle(270 - 45), goToAngle(270),
+				goToAngle(kBaseAngle), new WaitCommand(duration), // should stay at angle 0
+				goToAngle(kBaseAngle - 45), new WaitCommand(duration), // should stay at angle 45
+				goToAngle(kBaseAngle), goToAngle(kBaseAngle - 45),
+				goToAngle(kBaseAngle), goToAngle(kBaseAngle - 45), goToAngle(kBaseAngle),
 				m_elevatorSubsystem.goToLevelOneHeight());
 	}
 }

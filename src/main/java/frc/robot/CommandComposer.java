@@ -304,7 +304,7 @@ public class CommandComposer {
 			p.addCommands(m_wristSubsystem.goToAngle(kGrabberAngleLevelFour - 10).withTimeout(1));
 		if (retreatDistance > 0)
 			p.addCommands(moveStraight(-retreatDistance, 0.16, 16)); // TODO: Optimize
-		return sequence(prepare, m_cheeseStickSubsystem.release(), waitSeconds(.7), p); // TODO: Check
+		return sequence(prepare, m_cheeseStickSubsystem.release(), waitSeconds(0.8), p); // TODO: Check
 	}
 
 	/**
@@ -329,7 +329,7 @@ public class CommandComposer {
 		return sequence(
 				m_cheeseStickSubsystem.grab(),
 				toStation(tagIDStation),
-				parallel(m_wristSubsystem.goToAngle(270)),
+				parallel(m_wristSubsystem.goToAngle(kBaseAngle)),
 				pickupAtCoralStation(),
 				score(tagID, level, pickup, retreatDistance, robotToTags));
 	}
@@ -364,16 +364,17 @@ public class CommandComposer {
 	public static Command prepareForCoralPickup() {
 		return sequence(
 				m_elevatorSubsystem.goToCoralStationHeight(),
-				m_wristSubsystem.goToAngle(270)).withName("Prepare For Coral Pickup");
+				m_wristSubsystem.goToAngle(kBaseAngle)).withName("Prepare For Coral Pickup");
 	}
 
 	public static Command goToBase() {
 		return sequence(
-				parallel(m_wristSubsystem.goToAngle(270), m_cheeseStickSubsystem.grab()),
-				m_elevatorSubsystem.goToBaseHeight()).withName("Go To Base");
+				parallel(m_wristSubsystem.goToAngle(kBaseAngle), m_cheeseStickSubsystem.grab()),
+				m_elevatorSubsystem.goToBaseHeight(),
+				waitSeconds(0.1)).withName("Go To Base");
 		// TODO: Check
 		// return sequence(
-		// m_wristSubsystem.goToAngle(270),
+		// m_wristSubsystem.goToAngle(kBaseAngle),
 		// m_elevatorSubsystem.goToBaseHeight(),
 		// m_cheeseStickSubsystem.grab(),
 		// waitSeconds(1)).withName("Go To Base");
@@ -440,8 +441,9 @@ public class CommandComposer {
 
 	public static Command getTwoScore(int tagID1, int tagIDStation, int tagID2) {
 		return sequence(
-				score(tagID1, 4, false, 0.5, kRobotToTagsRight),
-				score(tagIDStation, tagID2, 4, true, 0.5, kRobotToTagsLeft));
+				score(tagID1, 4, false, 0.6, kRobotToTagsRight),
+				score(tagIDStation, tagID2, 4, true, 0.6, kRobotToTagsRight)); // TODO: CHANGE BACK TO LEFT, RIGHT TO
+																				// AVOID BAD 19 BRANCH
 	}
 
 	public static Command getLeftTwoScoreBlue() {
