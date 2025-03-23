@@ -136,13 +136,13 @@ public class Constants {
 		public static final double kTeleopDriveMaxSpeed = 12.0; // 12 meters per second
 		public static final double kTeleopTurnMaxAngularSpeed = Math.toRadians(360 * 5);// 5 rotations per second
 
-		public static final double kDriveMaxSpeed = 12.0; // 12 meters per second
-		public static final double kDriveMinSpeed = 0.2; // 0.2 meters per second
+		public static final double kDriveMaxSpeed = 2.0; // 5 meters per second
+		public static final double kDriveMinSpeed = 1; // 0.2 meters per second
 		public static final double kTurnMaxAngularSpeed = Math.toRadians(360); // 1 rotation per second
 		public static final double kTurnMinAngularSpeed = Math.toRadians(0); // 0 degree per second
 
 		// DriveCommand.java Constants
-		public static final double kDriveP = 7;
+		public static final double kDriveP = 3;
 		public static final double kDriveI = 0;
 		public static final double kDriveD = 0;
 		public static final double kDriveMaxAcceleration = 2 * kDriveMaxSpeed; // kDriveMaxSpeed in 0.5 sec
@@ -202,7 +202,7 @@ public class Constants {
 		public static final int kWristMotorPort = 27;
 		public static final int kSmartCurrentLimit = 20;
 		public static final int kSecondaryCurrentLimit = 20;
-		public static final int kGrabberAngleLevelFour = 240; // 228 with wrist offset
+		public static final int kGrabberAngleLevelFour = 239; // 228 with wrist offset
 		public static final int kGrabberAngleLevelThree = 250; // 232 with wrist offset
 		public static final int kGrabberAngleLevelTwo = 230;
 		public static final double kAlgaeWristHeight = 170;
@@ -254,15 +254,15 @@ public class Constants {
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
 		 * {@code AprilTag} to align the robot to coral stations.
 		 */
-		static Transform2d[] kRobotToStationTags = { transform(1.1, 0.0, 180),
-				transform(0.4, 0, 180) };
+		static Transform2d[] kRobotToStationTags = { transform(1.1, 0.0, 180), transform(0.9, 0.0, 180),
+				transform(0.25, 0, 180) };
 		// TODO: Check: smaller x = closer to tag; smaller y = more to the left
 
 		/**
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
 		 * {@code AprilTag} to align the robot to the left of that {@code AprilTag}.
 		 */
-		static Transform2d[] kRobotToTagsLeft = { transform(1, 0, 180),
+		static Transform2d[] kRobotToTagsLeft = { transform(1.1, 0, 180), transform(0.9, 0, 180),
 				transform(0.4, -0.150, 180) };
 		// TODO: Check: smaller x = closer to tag; smaller y = more to the left
 
@@ -270,8 +270,8 @@ public class Constants {
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
 		 * {@code AprilTag} to align the robot to the right of that {@code AprilTag}.
 		 */
-		static Transform2d[] kRobotToTagsRight = { transform(1, 0, 180),
-				transform(0.43, 0.235, 180) };
+		static Transform2d[] kRobotToTagsRight = { transform(1.1, 0, 180), transform(0.9, 0, 180),
+				transform(0.41, 0.235, 180) };
 		// TODO: Check: smaller x = closer to the tag; smaller y = more to the left
 
 		/**
@@ -295,14 +295,14 @@ public class Constants {
 				1, 0.0, // L1
 				2, 0.0, // L2
 				3, 0.03, // L3
-				4, -0.03); // L4
+				4, -0.05); // L4
 		// TODO: Check (positive: closer to the tag)
 
 		/**
 		 * A {@code Map} storing the additional distance to move forward/backward for
 		 * some {@code AprilTag}s (positive: closer to the tag).
 		 */
-		static Map<Integer, Double> kTagForwardAdjustments = Map.of();
+		static Map<Integer, Double> kTagForwardAdjustments = Map.of(22, 0.01);
 		// Map.of(18, 0.015, 22, 0.01);
 
 		/**
@@ -312,6 +312,20 @@ public class Constants {
 		static Map<Integer, Double> kTagSideAdjustments = Map.of();
 		// Map.of(19, -0.02, 21, -0.01, 22, -0.01);
 
+		/**
+		 * The center of the reed in the red alliance.
+		 */
+		static Translation2d reefCenterRed = pose(8).getTranslation().plus((pose(11).getTranslation())).div(2);
+
+		/**
+		 * The center of the reed in the blue alliance.
+		 */
+		static Translation2d reefCenterBlue = pose(19).getTranslation().plus((pose(22).getTranslation())).div(2);
+
+		/**
+		 * The radius of the reefs.
+		 */
+		static double reefRadius = pose(11).getTranslation().minus((pose(8).getTranslation())).getNorm() / 2;
 	}
 
 }

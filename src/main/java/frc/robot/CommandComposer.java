@@ -19,6 +19,7 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
@@ -173,8 +174,11 @@ public class CommandComposer {
 	public static Command prepareToScore(double elevatorLevel, double wristAngle, boolean pickup) {
 		var c = pickup ? new SequentialCommandGroup(goToBase()) : new SequentialCommandGroup();
 		c.addCommands(
-				m_elevatorSubsystem.goToLevel(() -> elevatorLevel),
-				m_wristSubsystem.goToAngle(wristAngle).withTimeout(1));
+				parallel(
+						m_elevatorSubsystem.goToLevel(() -> elevatorLevel),
+						sequence(
+								waitSeconds(0.55), // TODO: MAKE CONSTANT FOR TIME TO CLEAR THE INTAKE
+								m_wristSubsystem.goToAngle(wristAngle).withTimeout(1))));
 		return c;
 	}
 
@@ -307,7 +311,7 @@ public class CommandComposer {
 	private static Command score(Command prepare, int level, double retreatDistance) {
 		var p = new ParallelCommandGroup();
 		if (level == 4)
-			p.addCommands(m_wristSubsystem.goToAngle(kGrabberAngleLevelFour - 15).withTimeout(1));
+			p.addCommands(m_wristSubsystem.goToAngle(kGrabberAngleLevelFour - 10).withTimeout(1));
 		if (retreatDistance > 0)
 			p.addCommands(moveStraight(-retreatDistance, 0.16, 16)); // TODO: Optimize
 		return sequence(prepare, m_cheeseStickSubsystem.release(), waitSeconds(.7), p); // TODO: Check
@@ -335,7 +339,7 @@ public class CommandComposer {
 		return sequence(
 				m_cheeseStickSubsystem.grab(),
 				toStation(tagIDStation),
-				parallel(m_wristSubsystem.goToAngle(270), waitSeconds(2)),
+				parallel(m_wristSubsystem.goToAngle(270)),
 				pickupAtCoralStation(),
 				score(tagID, level, pickup, retreatDistance, robotToTags));
 	}
@@ -363,7 +367,7 @@ public class CommandComposer {
 
 	public static Command toStation(int tagID) {
 		return parallel(
-				toTag(tagID, kRobotToStationTags),
+				toTag(tagID, kRobotToStationTags).withTimeout(4.25),
 				prepareForCoralPickup()).withName("Align to Station");
 	}
 
@@ -746,6 +750,96 @@ public class CommandComposer {
 	}
 
 	/**
+	 * Returns a {@code Command} for aligning to the specified {@code AprilTag}.
+	 * 
+	 * @param forwardOrientation Forward orientation supplier. Positive values make
+	 *        the robot face forward (+X direction).
+	 * @param strafeOrientation Strafe orientation supplier. Positive values make
+	 *        the robot face left (+Y direction).
+	 * @return a {@code Command} for aligning to the specified {@code AprilTag}
+	 */
+	public static Command toTagLeft(DoubleSupplier forwardOrientation, DoubleSupplier strafeOrientation) {
+		return new SelectCommand<Object>(Map
+				.of(
+						-1, toClosestTag(kRobotToTagsLeft),
+						0, toTag(tagID(0), 0, kRobotToTagsRight),
+						1, toTag(tagID(1), 0, kRobotToTagsRight),
+						2, toTag(tagID(2), 0, kRobotToTagsLeft),
+						3, toTag(tagID(3), 0, kRobotToTagsLeft),
+						4, toTag(tagID(4), 0, kRobotToTagsLeft),
+						5, toTag(tagID(5), 0, kRobotToTagsRight)),
+				() -> index(forwardOrientation, strafeOrientation));
+	}
+
+	/**
+	 * Returns a {@code Command} for aligning to the specified {@code AprilTag}.
+	 * 
+	 * @param forwardOrientation Forward orientation supplier. Positive values make
+	 *        the robot face forward (+X direction).
+	 * @param strafeOrientation Strafe orientation supplier. Positive values make
+	 *        the robot face left (+Y direction).
+	 * @return a {@code Command} for aligning to the specified {@code AprilTag}
+	 */
+	public static Command toTagRight(DoubleSupplier forwardOrientation, DoubleSupplier strafeOrientation) {
+		return new SelectCommand<Object>(Map
+				.of(
+						-1, toClosestTag(kRobotToTagsRight),
+						0, toTag(tagID(0), 0, kRobotToTagsLeft),
+						1, toTag(tagID(1), 0, kRobotToTagsLeft),
+						2, toTag(tagID(2), 0, kRobotToTagsRight),
+						3, toTag(tagID(3), 0, kRobotToTagsRight),
+						4, toTag(tagID(4), 0, kRobotToTagsRight),
+						5, toTag(tagID(5), 0, kRobotToTagsLeft)),
+				() -> index(forwardOrientation, strafeOrientation));
+	}
+
+	/**
+	 * Returns the {@code Suppler} providing the ID of the {@code AprilTag}
+	 * corresponding to the specified index.
+	 * 
+	 * @param index an index (0 through 5)
+	 * @return the {@code Suppler} providing the ID of the {@code AprilTag}
+	 *         corresponding to the specified index
+	 */
+	private static Supplier<Integer> tagID(int index) {
+		var red = Map.of(
+				0, 10,
+				1, 11,
+				2, 6,
+				3, 7,
+				4, 8,
+				5, 9);
+		var blue = Map.of(
+				0, 21,
+				1, 20,
+				2, 19,
+				3, 18,
+				4, 17,
+				5, 22);
+		return () -> DriverStation.getAlliance().get() == DriverStation.Alliance.Red ? red.get(index) : blue.get(index);
+	}
+
+	/**
+	 * Returns the index (between 0 and 5 inclusive) based on the provided
+	 * {@code DoubleSuppler}s.
+	 * 
+	 * @param forwardOrientation Forward orientation supplier. Positive values make
+	 *        the robot face forward (+X direction).
+	 * @param strafeOrientation Strafe orientation supplier. Positive values make
+	 *        the robot face left (+Y direction).
+	 * @return the index (between 0 and 5 inclusive) based on the provided
+	 *         {@code DoubleSuppler}s
+	 */
+	public static int index(DoubleSupplier forwardOrientation, DoubleSupplier strafeOrientation) {
+		var a = DriveSubsystem.orientation(forwardOrientation, strafeOrientation);
+		int i = -1;
+		if (a != null)
+			i = ((int) Math.round(a.plus(Rotation2d.k180deg).getDegrees() / 60) + 6) % 6;
+		System.out.println(i);
+		return i;
+	}
+
+	/**
 	 * Creates a {@code Command} to automatically align the robot to the closest
 	 * {@code AprilTag}.
 	 *
@@ -857,17 +951,6 @@ public class CommandComposer {
 		return
 
 		refine(path);
-	}
-
-	/**
-	 * Refines the specified path (i.e., list of {@code Pose2d}s).
-	 * 
-	 * @param path a list of {@code Pose2d}s
-	 * @return a refined version of the specified path (i.e., list of
-	 *         {@code Pose2d}s)
-	 */
-	private static List<Pose2d> refine(List<Pose2d> path) {
-		return path;
 	}
 
 	/**
@@ -1006,6 +1089,117 @@ public class CommandComposer {
 					a.set(true);
 				})),
 				() -> m_poseEstimationSubsystem.confidence() > 0.3);
+	}
+
+	/**
+	 * Refines the specified path (i.e., list of {@code Pose2d}s).
+	 * 
+	 * @param path a list of {@code Pose2d}s
+	 * @return a refined version of the specified path (i.e., list of
+	 *         {@code Pose2d}s)
+	 */
+	private static List<Pose2d> refine(List<Pose2d> path) {
+		return refine(refine(path, reefCenterRed), reefCenterBlue);
+	}
+
+	/**
+	 * Refines the specified path (i.e., list of {@code Pose2d}s) to avoid the
+	 * collision with the specified reef.
+	 * 
+	 * @param path a list of {@code Pose2d}s
+	 * @param center the center of the reef
+	 * @return a refined version of the specified path (i.e., list of
+	 *         {@code Pose2d}s)
+	 */
+	private static List<Pose2d> refine(List<Pose2d> path, Translation2d center) {
+		return refine(path, center, reefRadius, 1.2, 5);
+	}
+
+	/**
+	 * Refines the specified path (i.e., list of {@code Pose2d}s) to avoid the
+	 * collision with the specified reef.
+	 * 
+	 * @param path a list of {@code Pose2d}s
+	 * @param center the center of the reef
+	 * @param radius the radius of the reef
+	 * @param margin the margin around the reef
+	 * @param steps the number of maximum possible refinement steps
+	 * @return a refined version of the specified path (i.e., list of
+	 *         {@code Pose2d}s)
+	 */
+	private static List<Pose2d> refine(List<Pose2d> path, Translation2d center, double radius, double margin,
+			int steps) {
+		if (steps <= 0)
+			return path;
+		else {
+			var l = new LinkedList<Pose2d>();
+			Pose2d prev = null;
+			for (var p : path) {
+				if (prev != null) {
+					var t = intermediate(prev.getTranslation(), p.getTranslation(), center, radius, margin);
+					if (t != null)
+						l.add(new Pose2d(t, average(prev.getRotation(), p.getRotation())));
+				}
+				prev = p;
+				l.add(p);
+			}
+			if (l.size() > path.size())
+				return refine(l, center, radius, margin, steps - 1);
+			return l;
+		}
+	}
+
+	/**
+	 * Finds an intermediate {@code Translaton2d} to avoid a collision with the
+	 * specified reef if any ({@code null} if no colllision can occur).
+	 * 
+	 * @param path a list of {@code Pose2d}s
+	 * @param center the center of the reef
+	 * @param radius the radius of the reef
+	 * @param margin the margin around the reef
+	 * @param steps the number of maximum possible refinement steps
+	 * @return a refined version of the specified path (i.e., list of
+	 *         {@code Pose2d}s)
+	 */
+	public static Translation2d intermediate(Translation2d p1, Translation2d p2, Translation2d center, double radius,
+			double margin) {
+		Translation2d v = p2.minus(p1);
+		double s = dot(v, v);
+		if (s < 1e-9)
+			return null;
+		Translation2d w = center.minus(p1);
+		double t = dot(w, v) / s;
+		if (t < 0)
+			t = 0;
+		else if (t > 1)
+			t = 1;
+		Translation2d closest = p1.plus(v.times(t));
+		double closest2center = closest.getDistance(center);
+		if (closest2center > radius + margin)
+			return null;
+		if (closest2center < 1e-9)
+			return center.plus(v.div(v.getNorm()).rotateBy(Rotation2d.kCCW_90deg).times(radius + 2 * margin));
+		return center.plus(closest.minus(center).times((radius + 1.2 * margin) / closest2center));
+	}
+
+	/**
+	 * Finds the inner product of the two specified vectors.
+	 * 
+	 * @param v1 a {@code Translation2d} representing a vector
+	 * @param v2 a {@code Translation2d} representing a vector
+	 * @return the inner product of the two specified vectors
+	 */
+	private static double dot(Translation2d v1, Translation2d v2) {
+		return v1.getX() * v2.getX() + v1.getY() * v2.getY();
+	}
+
+	/**
+	 * Returns the average direction of two Rotation2ds.
+	 */
+	private static Rotation2d average(Rotation2d a, Rotation2d b) {
+		double x = a.getCos() + b.getCos();
+		double y = a.getSin() + b.getSin();
+		return new Rotation2d(Math.atan2(y, x));
 	}
 
 }

@@ -236,8 +236,28 @@ public class Robot extends TimedRobot {
 								sequence(score(13, 4, 19))));
 		m_testingChooser
 				.addOption(
-						"Prepare to Score at Level 3",
-						prepareToScore(3, false));
+						"Score Far from Station (Tag 1)",
+						selectIfConfident(
+								sequence(score(1, 4, 8, 9, 10))));
+		m_testingChooser
+				.addOption(
+						"Score Far from Station (Tag 2)",
+						selectIfConfident(
+								sequence(score(2, 4, 10, 11, 6))));
+		m_testingChooser
+				.addOption(
+						"Score Far from Station (Tag 12)",
+						selectIfConfident(
+								sequence(score(12, 4, 19, 20, 21))));
+		m_testingChooser
+				.addOption(
+						"Score Far from Station (Tag 13)",
+						selectIfConfident(
+								sequence(score(13, 4, 21, 22, 17))));
+		m_testingChooser
+				.addOption(
+						"Left Align to the Closest Tag",
+						toClosestTag(kRobotToTagsLeft));
 		m_testingChooser
 				.addOption(
 						"Prepare to Score at Level 4",
@@ -417,17 +437,21 @@ public class Robot extends TimedRobot {
 	public void bindDriveControls() {
 		m_driveSubsystem.setDefaultCommand(
 				m_driveSubsystem.driveCommand(
-						() -> -m_driverController.getLeftY(),
-						() -> -m_driverController.getLeftX(),
-						() -> -m_driverController.getRightY(),
-						() -> -m_driverController.getRightX(),
+						() -> m_driverController.getLeftY(),
+						() -> m_driverController.getLeftX(),
+						() -> m_driverController.getRightY(),
+						() -> m_driverController.getRightX(),
 						() -> m_driverController.getL2Axis() - m_driverController.getR2Axis(),
 						m_driverController.getHID()::getCreateButton)); // makes the robot robot-oriented
 
 		m_driverController.L1().whileTrue(
-				toClosestTag(kRobotToTagsLeft).withName("toClosestTag(kRobotToTagsLeft)"));
+				toTagLeft(
+						() -> m_driverController.getRightY(),
+						() -> m_driverController.getRightX()).withName("toClosestTag(kRobotToTagsLeft)"));
 		m_driverController.R1().whileTrue(
-				toClosestTag(kRobotToTagsRight).withName("toClosestTag(kRobotToTagsRight)"));
+				toTagRight(
+						() -> m_driverController.getRightY(),
+						() -> m_driverController.getRightX()).withName("toClosestTag(kRobotToTagsRight)"));
 		m_driverController.PS().onTrue(toClosestTag(kRobotToTags).withName("toClosestTag(kRobotToTagMiddle)"));
 		m_driverController.options().onTrue(m_driveSubsystem.resetHeading());
 
@@ -544,6 +568,7 @@ public class Robot extends TimedRobot {
 		if (m_autonomousCommand != null) {
 			m_autonomousCommand.cancel();
 		}
+		m_cheeseStickSubsystem.grab();
 	}
 
 	@Override
