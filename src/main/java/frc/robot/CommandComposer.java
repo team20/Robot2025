@@ -971,7 +971,7 @@ public class CommandComposer {
 		var a = DriveSubsystem.orientation(forwardOrientation, strafeOrientation);
 		int i = -1;
 		if (a != null)
-			i = ((int) Math.round(a.plus(Rotation2d.k180deg).getDegrees() / 60) + 6) % 6;
+			i = ((int) Math.round(a.getDegrees() / 60) + 6) % 6;
 		System.out.println(i);
 		return i;
 	}
