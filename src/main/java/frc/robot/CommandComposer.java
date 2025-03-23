@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
+import java.util.stream.IntStream;
 
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
@@ -306,7 +307,7 @@ public class CommandComposer {
 			p.addCommands(m_wristSubsystem.goToAngle(kGrabberAngleLevelFour - 10).withTimeout(1));
 		if (retreatDistance > 0)
 			p.addCommands(moveStraight(-retreatDistance, 0.16, 16)); // TODO: Optimize
-		return sequence(prepare, m_cheeseStickSubsystem.release(), waitSeconds(.7), p); // TODO: Check
+		return sequence(prepare, m_cheeseStickSubsystem.release(), waitSeconds(0.8), p); // TODO: Check
 	}
 
 	/**
@@ -331,7 +332,7 @@ public class CommandComposer {
 		return sequence(
 				m_cheeseStickSubsystem.grab(),
 				toStation(tagIDStation),
-				parallel(m_wristSubsystem.goToAngle(270)),
+				parallel(m_wristSubsystem.goToAngle(kBaseAngle)),
 				pickupAtCoralStation(),
 				score(tagID, level, pickup, retreatDistance, robotToTags));
 	}
@@ -366,16 +367,17 @@ public class CommandComposer {
 	public static Command prepareForCoralPickup() {
 		return sequence(
 				m_elevatorSubsystem.goToCoralStationHeight(),
-				m_wristSubsystem.goToAngle(270)).withName("Prepare For Coral Pickup");
+				m_wristSubsystem.goToAngle(kBaseAngle)).withName("Prepare For Coral Pickup");
 	}
 
 	public static Command goToBase() {
 		return sequence(
-				parallel(m_wristSubsystem.goToAngle(270), m_cheeseStickSubsystem.grab()),
-				m_elevatorSubsystem.goToBaseHeight()).withName("Go To Base");
+				parallel(m_wristSubsystem.goToAngle(kBaseAngle), m_cheeseStickSubsystem.grab()),
+				m_elevatorSubsystem.goToBaseHeight(),
+				waitSeconds(0.1)).withName("Go To Base");
 		// TODO: Check
 		// return sequence(
-		// m_wristSubsystem.goToAngle(270),
+		// m_wristSubsystem.goToAngle(kBaseAngle),
 		// m_elevatorSubsystem.goToBaseHeight(),
 		// m_cheeseStickSubsystem.grab(),
 		// waitSeconds(1)).withName("Go To Base");
@@ -442,8 +444,9 @@ public class CommandComposer {
 
 	public static Command getTwoScore(int tagID1, int tagIDStation, int tagID2) {
 		return sequence(
-				score(tagID1, 4, false, 0.5, kRobotToTagsRight),
-				score(tagIDStation, tagID2, 4, true, 0.5, kRobotToTagsLeft));
+				score(tagID1, 4, false, 0.6, kRobotToTagsRight),
+				score(tagIDStation, tagID2, 4, true, 0.6, kRobotToTagsRight)); // TODO: CHANGE BACK TO LEFT, RIGHT TO
+																				// AVOID BAD 19 BRANCH
 	}
 
 	public static Command getLeftTwoScoreBlue() {
@@ -546,6 +549,22 @@ public class CommandComposer {
 				moveStraight(distance, distanceTolerance, angleTolerance),
 				waitSeconds(2),
 				moveStraight(-distance, distanceTolerance, angleTolerance));
+	}
+
+	/**
+	 * Constructs a new {@code DriveCommand} whose purpose is to move
+	 * the robot according to the specified {@code Transform2d}.
+	 * 
+	 * @param driveSubsystem the {@code DriveSubsystem} to use
+	 * @param transform a {@code Transform} representing the movement
+	 * @param distanceTolerance the distance error in meters which is tolerable
+	 * @param angleToleranceInDegrees the angle error in degrees which is tolerable
+	 */
+	public static Command move(Transform2d transform, double distanceTolerance,
+			double angleToleranceInDegrees) {
+		return new DriveCommand(m_driveSubsystem, distanceTolerance, angleToleranceInDegrees, () -> {
+			return m_driveSubsystem.getPose().plus(transform);
+		});
 	}
 
 	/**
@@ -953,6 +972,45 @@ public class CommandComposer {
 		double x = a.getCos() + b.getCos();
 		double y = a.getSin() + b.getSin();
 		return new Rotation2d(Math.atan2(y, x));
+	}
+
+	/**
+	 * Returns a {@code Command} for testing auto-scoring at the specified level.
+	 * 
+	 * @param level the target scoring level
+	 * @return a {@code Command} for testing auto-scoring at the specified level
+	 */
+	public static Command testScore(int level) {
+		return sequence(
+				IntStream.range(0, 3)
+						.mapToObj(
+								(i -> sequence(
+										testScore(
+												level, move(transform(-0.7, 0.5 * i, -20 * i), 0.1, 10),
+												kRobotToTagsLeft),
+										testScore(
+												level, move(transform(-0.7, -0.5 * i, 20 * i), 0.1, 10),
+												kRobotToTagsRight))))
+						.toList()
+						.toArray(new Command[0]));
+	}
+
+	/**
+	 * Returns a {@code Command} for testing auto-scoring at the specified level.
+	 * 
+	 * @param level the target scoring level
+	 * @param align a {@code Command} for aligning the robot
+	 * @param robotToTags the {@code Tranform2d} representing the pose of the
+	 *        target {@code AprilTag} relative to the robot when the robot is
+	 *        aligned
+	 * @return a {@code Command} for testing auto-scoring at the specified level
+	 */
+	private static Command testScore(int level, Command align, Transform2d... robotToTags) {
+		return sequence(
+				goToBase(),
+				scoreClosest(level, false, 0.5, robotToTags),
+				align,
+				waitSeconds(2));
 	}
 
 }

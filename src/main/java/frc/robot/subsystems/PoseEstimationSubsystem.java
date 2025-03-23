@@ -3,6 +3,7 @@ package frc.robot.subsystems;
 import static frc.robot.Constants.AutoAlignConstants.*;
 
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -12,6 +13,7 @@ import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.PhotonPoseEstimator.PoseStrategy;
 import org.photonvision.targeting.PhotonPipelineResult;
+import org.photonvision.targeting.PhotonTrackedTarget;
 
 import edu.wpi.first.math.MathSharedStore;
 import edu.wpi.first.math.Pair;
@@ -140,7 +142,7 @@ public class PoseEstimationSubsystem extends SubsystemBase {
 			var poseEstimator = e.getValue().getFirst();
 			var posePublisher = e.getValue().getSecond();
 			for (var r : camera.getAllUnreadResults()) // for every result r
-				if (useful(r, 0.2, 4, firstCamera)) {
+				if (useful(r, 0.1, 4, firstCamera)) {
 					m_mostRecentTimestamp = r.getTimestampSeconds();
 					Optional<EstimatedRobotPose> p = poseEstimator.update(r);
 					if (p.isPresent()) { // if successful
@@ -189,13 +191,13 @@ public class PoseEstimationSubsystem extends SubsystemBase {
 	 */
 	private boolean useful(PhotonPipelineResult r, double poseAmbiguityThreshold, double distanceThreshold,
 			boolean firstCamera) {
-		if ((!r.hasTargets()) || (!firstCamera && r.getTargets().size() <= 1))
-			return false;
+		var l = new LinkedList<PhotonTrackedTarget>();
 		for (var t : r.getTargets())
-			if (t.poseAmbiguity > poseAmbiguityThreshold
-					|| t.getBestCameraToTarget().getTranslation().getNorm() > distanceThreshold)
-				return false;
-		return true;
+			if (t.poseAmbiguity < poseAmbiguityThreshold
+					&& t.getBestCameraToTarget().getTranslation().getNorm() < distanceThreshold)
+				l.add(t);
+		r.targets = l;
+		return r.hasTargets() && (firstCamera || r.getTargets().size() > 1);
 	}
 
 	/**

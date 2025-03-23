@@ -187,23 +187,15 @@ public class Robot extends TimedRobot {
 		m_testingChooser
 				.addOption(
 						"L4 Score Left and Right (Closest)",
-						selectIfConfident(
-								sequence(
-										goToBase(),
-										scoreClosest(4, false, 1.5, kRobotToTagsLeft),
-										waitSeconds(2),
-										goToBase(),
-										scoreClosest(4, false, 1.5, kRobotToTagsRight))));
+						selectIfConfident(testScore(4)));
 		m_testingChooser
 				.addOption(
 						"L3 Score Left and Right (Closest)",
-						selectIfConfident(
-								sequence(
-										goToBase(),
-										scoreClosest(3, false, 1.5, kRobotToTagsLeft),
-										waitSeconds(2),
-										goToBase(),
-										scoreClosest(3, false, 1.5, kRobotToTagsRight))));
+						selectIfConfident(testScore(3)));
+		m_testingChooser
+				.addOption(
+						"L2 Score Left and Right (Closest)",
+						selectIfConfident(testScore(2)));
 		m_testingChooser
 				.addOption(
 						"Score from Station (Tag 1)",
