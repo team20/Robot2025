@@ -678,7 +678,7 @@ public class CommandComposer {
 	private static Command toTag(Supplier<Integer> tagID, double forwardAdjustment, Transform2d... robotToTags) {
 		return follow(
 				0.01, 1,
-				0.08, 16, // TODO: Optimize
+				0.16, 16, // TODO: Optimize
 				() -> pathToTag(tagID, forwardAdjustment, robotToTags));
 	}
 
