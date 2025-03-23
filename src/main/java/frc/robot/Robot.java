@@ -323,19 +323,23 @@ public class Robot extends TimedRobot {
 	public void bindDriveControls() {
 		m_driveSubsystem.setDefaultCommand(
 				m_driveSubsystem.driveCommand(
-						() -> -m_driverController.getLeftY(),
-						() -> -m_driverController.getLeftX(),
-						() -> -m_driverController.getRightY(),
-						() -> -m_driverController.getRightX(),
+						() -> m_driverController.getLeftY(),
+						() -> m_driverController.getLeftX(),
+						() -> m_driverController.getRightY(),
+						() -> m_driverController.getRightX(),
 						() -> m_driverController.getL2Axis() - m_driverController.getR2Axis(),
 						m_driverController.getHID()::getCreateButton)); // makes the robot
 		// robot-oriented
 
 		/// TODO: button binding needed with the correct button
 		m_driverController.L1().whileTrue(
-				toClosestTag(kRobotToTagsLeft).withName("toClosestTag(kRobotToTagsLeft)"));
+				toTagLeft(
+						() -> m_driverController.getRightY(),
+						() -> m_driverController.getRightX()).withName("toClosestTag(kRobotToTagsLeft)"));
 		m_driverController.R1().whileTrue(
-				toClosestTag(kRobotToTagsRight).withName("toClosestTag(kRobotToTagsRight)"));
+				toTagRight(
+						() -> m_driverController.getRightY(),
+						() -> m_driverController.getRightX()).withName("toClosestTag(kRobotToTagsRight)"));
 		m_driverController.PS().onTrue(toClosestTag(kRobotToTags).withName("toClosestTag(kRobotToTagMiddle)"));
 		m_driverController.options().onTrue(m_driveSubsystem.resetHeading());
 		m_driverController.square().onTrue(m_driveSubsystem.toggleCoastMode());
