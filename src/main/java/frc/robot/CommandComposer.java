@@ -2,6 +2,7 @@ package frc.robot;
 
 import static edu.wpi.first.wpilibj2.command.Commands.*;
 import static frc.robot.Constants.AutoAlignConstants.*;
+import static frc.robot.Constants.DriveConstants.*;
 import static frc.robot.Constants.ElevatorConstants.*;
 import static frc.robot.Constants.WristConstants.*;
 import static frc.robot.subsystems.PoseEstimationSubsystem.*;
@@ -678,7 +679,7 @@ public class CommandComposer {
 	private static Command toTag(Supplier<Integer> tagID, double forwardAdjustment, Transform2d... robotToTags) {
 		return follow(
 				0.01, 1,
-				0.08, 16, // TODO: Optimize
+				kIntermediateTolerance, 16, // TODO: Optimize
 				() -> pathToTag(tagID, forwardAdjustment, robotToTags));
 	}
 
@@ -794,10 +795,10 @@ public class CommandComposer {
 						.mapToObj(
 								(i -> sequence(
 										testScore(
-												level, move(transform(-0.7, 0.5 * i, -20 * i), 0.1, 10),
+												level, move(transform(-0.9, 0.5 * i, -20 * i), 0.1, 10),
 												kRobotToTagsLeft),
 										testScore(
-												level, move(transform(-0.7, -0.5 * i, 20 * i), 0.1, 10),
+												level, move(transform(-0.9, -0.5 * i, 20 * i), 0.1, 10),
 												kRobotToTagsRight))))
 						.toList()
 						.toArray(new Command[0]));

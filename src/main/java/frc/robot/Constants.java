@@ -41,7 +41,7 @@ public class Constants {
 	}
 
 	public static final class CheeseStickConstants {
-		public static final int kServoPort = 0;
+		public static final int kServoPort = 1;
 		public static final double kReleaseDistance = 0.4;
 		/**
 		 * Set this value to how far the cheese stick wheels extend beyond the lexan.
@@ -145,6 +145,7 @@ public class Constants {
 		public static final double kDriveI = 0;
 		public static final double kDriveD = 0;
 		public static final double kDriveMaxAcceleration = 2 * kDriveMaxSpeed; // kDriveMaxSpeed in 1.5 sec
+		public static final double kIntermediateTolerance = .32;
 
 		public static final double kTurnP = 5;
 		public static final double kTurnI = 0;
@@ -250,7 +251,7 @@ public class Constants {
 		 * {@code AprilTag} to align the robot to coral stations.
 		 */
 		static Transform2d[] kRobotToStationTags = { /* transform(1.1, 0.0, 180), */ transform(0.9, 0.0, 180),
-				transform(0.1, 0, 180) };
+				transform(0.4, 0, 180) };
 		// TODO: Check: smaller x = closer to tag; smaller y = more to the left
 
 		/**
