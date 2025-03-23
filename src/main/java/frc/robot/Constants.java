@@ -257,16 +257,16 @@ public class Constants {
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
 		 * {@code AprilTag} to align the robot to the left of that {@code AprilTag}.
 		 */
-		static Transform2d[] kRobotToTagsLeft = { /* transform(1.1, 0, 180), */ transform(0.9, 0, 180),
-				transform(0.48, -0.200, 180) };
+		static Transform2d[] kRobotToTagsLeft = { transform(1.1, -0.20, 180), transform(0.9, -0.20, 180),
+				transform(0.48, -0.20, 180) };
 		// TODO: Check: smaller x = closer to tag; smaller y = more to the left
 
 		/**
 		 * The {@code Pose2d}s of the robot relative to the {@code Pose2d} of the target
 		 * {@code AprilTag} to align the robot to the right of that {@code AprilTag}.
 		 */
-		static Transform2d[] kRobotToTagsRight = { /* transform(1.1, 0, 180), */ transform(0.9, 0, 180),
-				transform(0.48, 0.180, 180) };
+		static Transform2d[] kRobotToTagsRight = { transform(1.1, 0.18, 180), transform(0.9, 0.18, 180),
+				transform(0.48, 0.18, 180) };
 		// TODO: Check: smaller x = closer to the tag; smaller y = more to the left
 
 		/**

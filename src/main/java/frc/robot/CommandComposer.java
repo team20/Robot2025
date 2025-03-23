@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
+import java.util.stream.IntStream;
 
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
@@ -550,6 +551,22 @@ public class CommandComposer {
 
 	/**
 	 * Constructs a new {@code DriveCommand} whose purpose is to move
+	 * the robot according to the specified {@code Transform2d}.
+	 * 
+	 * @param driveSubsystem the {@code DriveSubsystem} to use
+	 * @param transform a {@code Transform} representing the movement
+	 * @param distanceTolerance the distance error in meters which is tolerable
+	 * @param angleToleranceInDegrees the angle error in degrees which is tolerable
+	 */
+	public static Command move(Transform2d transform, double distanceTolerance,
+			double angleToleranceInDegrees) {
+		return new DriveCommand(m_driveSubsystem, distanceTolerance, angleToleranceInDegrees, () -> {
+			return m_driveSubsystem.getPose().plus(transform);
+		});
+	}
+
+	/**
+	 * Constructs a new {@code DriveCommand} whose purpose is to move
 	 * the robot forward or backward.
 	 * 
 	 * @param driveSubsystem the {@code DriveSubsystem} to use
@@ -763,6 +780,45 @@ public class CommandComposer {
 					a.set(true);
 				})),
 				() -> m_poseEstimationSubsystem.confidence() > 0.3);
+	}
+
+	/**
+	 * Returns a {@code Command} for testing auto-scoring at the specified level.
+	 * 
+	 * @param level the target scoring level
+	 * @return a {@code Command} for testing auto-scoring at the specified level
+	 */
+	public static Command testScore(int level) {
+		return sequence(
+				IntStream.range(0, 3)
+						.mapToObj(
+								(i -> sequence(
+										testScore(
+												level, move(transform(-0.7, 0.5 * i, -20 * i), 0.1, 10),
+												kRobotToTagsLeft),
+										testScore(
+												level, move(transform(-0.7, -0.5 * i, 20 * i), 0.1, 10),
+												kRobotToTagsRight))))
+						.toList()
+						.toArray(new Command[0]));
+	}
+
+	/**
+	 * Returns a {@code Command} for testing auto-scoring at the specified level.
+	 * 
+	 * @param level the target scoring level
+	 * @param align a {@code Command} for aligning the robot
+	 * @param robotToTags the {@code Tranform2d} representing the pose of the
+	 *        target {@code AprilTag} relative to the robot when the robot is
+	 *        aligned
+	 * @return a {@code Command} for testing auto-scoring at the specified level
+	 */
+	private static Command testScore(int level, Command align, Transform2d... robotToTags) {
+		return sequence(
+				goToBase(),
+				scoreClosest(level, false, 0.5, robotToTags),
+				align,
+				waitSeconds(2));
 	}
 
 }
