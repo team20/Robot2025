@@ -80,7 +80,7 @@ public class Robot extends TimedRobot {
 	private final CommandPS5Controller m_operatorController = new CommandPS5Controller(kOperatorControllerPort);
 	private final PowerDistribution m_pdh = new PowerDistribution();
 	private final VisionSimulator m_visionSimulator = new VisionSimulator(m_driveSubsystem,
-			pose(kFieldLayout.getFieldLength() / 2 + 1.5, kFieldLayout.getFieldWidth() / 2, 180), 0.01);
+			pose(kFieldLayout.getFieldLength() / 2, kFieldLayout.getFieldWidth() / 2 - 1.2, 180), 0.01);
 	SimCameraProperties cameraProp = new SimCameraProperties() {
 		{
 			setCalibration(640, 480, Rotation2d.fromDegrees(110));
