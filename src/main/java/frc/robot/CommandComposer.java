@@ -794,7 +794,7 @@ public class CommandComposer {
 	 *         {@code Pose2d}s)
 	 */
 	private static List<Pose2d> refine(List<Pose2d> path, Translation2d center) {
-		return refine(path, center, reefRadius, 1.2, 3);
+		return refine(path, center, reefRadius + 1.2, 0.24, 3);
 	}
 
 	/**
@@ -836,34 +836,34 @@ public class CommandComposer {
 	 * @param previous a {@code Translaton2d} representing the previous position
 	 * @param current a {@code Translaton2d} representing the current position
 	 * @param center the center of the reef
-	 * @param radius the radius of the reef
-	 * @param margin the margin around the reef
+	 * @param radius the radius of the inner circle (> the radius of the reef)
+	 * @param margin the margin between the inner and outer circles
 	 * @param steps the number of maximum possible refinement steps
 	 * @return a refined version of the specified path (i.e., list of
 	 *         {@code Pose2d}s)
 	 */
 	public static Translation2d intermediate(Translation2d previous, Translation2d current,
 			Translation2d center, double radius, double margin) {
-		if (previous.getDistance(center) < radius + margin && current.getDistance(center) < radius + margin)
-			return null; // no intermediate if prev. and current are within radius + margin from center
+		if (previous.getDistance(center) < radius && current.getDistance(center) < radius)
+			return null; // no intermediate if prev. and current are within the inner circle
 		Translation2d v = current.minus(previous); // vector from previous to current
 		Translation2d w = center.minus(previous); // vector from previous to center
 		double d = dot(v, v);
 		if (d < 1e-9) // if previous and current are nearly the same
-			return null;
+			return null; // no intermediate
 		double t = dot(w, v) / d;
-		if (t < 0 || t > 1) // if closest position to center is outside segment between previous and current
+		if (t <= 0 || t >= 1) // if no position on segment between previous and current is closest to center
 			return null; // no intermediate
 		Translation2d c = previous.plus(v.times(t)); // closest position (between previous and current) to center
 		d = c.getDistance(center);
-		if (d > radius + margin) // if c is at least radius + margin from center
+		if (d > radius) // if c is outside the inner circle
 			return null; // no intermediate
 		if (d < 1e-9) // if c is nearly at center,
-			// intermediate: position offset from center by radius + 1.2 margin,
-			// perpendicular to v
-			return center.plus(v.div(v.getNorm()).rotateBy(Rotation2d.kCCW_90deg).times(radius + 1.2 * margin));
-		// intermediate: position offset from center to c by radius + 1.2 margin
-		return center.plus(c.minus(center).times((radius + 1.2 * margin) / d));
+			// intermediate: position on outer circle, direction from center perpendicular
+			// to v
+			return center.plus(v.div(v.getNorm()).rotateBy(Rotation2d.kCCW_90deg).times(radius + margin));
+		// intermediate: intersection of outer circle and line from center through c
+		return center.plus(c.minus(center).times((radius + margin) / d));
 	}
 
 	/**
