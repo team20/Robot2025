@@ -245,7 +245,7 @@ public class PoseEstimationSubsystem extends SubsystemBase {
 	 *         robot ({@code null} if no such {@code AprilTag})
 	 */
 	public Integer closestTagID() {
-		return closestTagID(getEstimatedPose(), 90, 3);
+		return closestTagID(getEstimatedPose(), 180, 3);
 	}
 
 	/**

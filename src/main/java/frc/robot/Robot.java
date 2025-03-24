@@ -79,10 +79,8 @@ public class Robot extends TimedRobot {
 	private final CommandPS5Controller m_driverController = new CommandPS5Controller(kDriverControllerPort);
 	private final CommandPS5Controller m_operatorController = new CommandPS5Controller(kOperatorControllerPort);
 	private final PowerDistribution m_pdh = new PowerDistribution();
-	private final VisionSimulator m_visionSimulator = RobotBase.isReal() ? null
-			: new VisionSimulator(m_driveSubsystem,
-					pose(kFieldLayout.getFieldLength() / 2, kFieldLayout.getFieldWidth() / 2, 0),
-					0.05); // movement overestimation by 5%
+	private final VisionSimulator m_visionSimulator = new VisionSimulator(m_driveSubsystem,
+			pose(kFieldLayout.getFieldLength() / 2, kFieldLayout.getFieldWidth() / 2 - 1.2, 180), 0.01);
 	SimCameraProperties m_cameraProp = new SimCameraProperties() {
 		{
 			setCalibration(640, 480, Rotation2d.fromDegrees(110));
@@ -409,21 +407,21 @@ public class Robot extends TimedRobot {
 	public void bindDriveControls() {
 		m_driveSubsystem.setDefaultCommand(
 				m_driveSubsystem.driveCommand(
-						() -> m_driverController.getLeftY(),
-						() -> m_driverController.getLeftX(),
-						() -> m_driverController.getRightY(),
-						() -> m_driverController.getRightX(),
+						() -> -m_driverController.getLeftY(),
+						() -> -m_driverController.getLeftX(),
+						() -> -m_driverController.getRightY(),
+						() -> -m_driverController.getRightX(),
 						() -> m_driverController.getL2Axis() - m_driverController.getR2Axis(),
 						m_driverController.getHID()::getCreateButton)); // makes the robot robot-oriented
 
 		m_driverController.L1().whileTrue(
 				toTagLeft(
-						() -> m_driverController.getRightY(),
-						() -> m_driverController.getRightX()).withName("toClosestTag(kRobotToTagsLeft)"));
+						() -> -m_driverController.getRightY(),
+						() -> -m_driverController.getRightX()).withName("toClosestTag(kRobotToTagsLeft)"));
 		m_driverController.R1().whileTrue(
 				toTagRight(
-						() -> m_driverController.getRightY(),
-						() -> m_driverController.getRightX()).withName("toClosestTag(kRobotToTagsRight)"));
+						() -> -m_driverController.getRightY(),
+						() -> -m_driverController.getRightX()).withName("toClosestTag(kRobotToTagsRight)"));
 		m_driverController.PS().onTrue(toClosestTag(kRobotToTags).withName("toClosestTag(kRobotToTagMiddle)"));
 		m_driverController.options().onTrue(m_driveSubsystem.resetHeading());
 

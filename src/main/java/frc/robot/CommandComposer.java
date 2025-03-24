@@ -105,7 +105,7 @@ public class CommandComposer {
 	 */
 	public static Command removeAlgaeLevelTwo(Supplier<Integer> tagID) {
 		return sequence(
-				toTag(tagID, 0, kRobotToTags), // .withTimeout(4), This timeout seems to affect alignment accuracy
+				toTag(tagID, 0, kRobotToTags).withTimeout(2.3), // This timeout seems to affect alignment accuracy
 				m_cheeseStickSubsystem.grab(),
 				removeAlgaeLevelTwo(),
 				parallel(
@@ -316,7 +316,7 @@ public class CommandComposer {
 			p.addCommands(m_wristSubsystem.goToAngle(kGrabberAngleLevelFour - 10).withTimeout(1));
 		if (retreatDistance > 0)
 			p.addCommands(moveStraight(-retreatDistance, 0.16, 16)); // TODO: Optimize
-		return sequence(prepare, m_cheeseStickSubsystem.release(), waitSeconds(0.8), p); // TODO: Check
+		return sequence(prepare, m_cheeseStickSubsystem.release(), waitSeconds(0.85), p); // TODO: Check
 	}
 
 	/**
@@ -664,7 +664,7 @@ public class CommandComposer {
 
 	public static Command getThreeScore(int tagID1, int tagIDStation, int tagID2, int tagID3) {
 		return sequence(
-				score(tagID1, 4, false, 0.5, kRobotToTagsRight),
+				score(tagID1, 4, false, 0.7, kRobotToTagsLeft),
 				score(tagIDStation, tagID2, 4, true, 0.5, kRobotToTagsLeft),
 				score(tagIDStation, tagID3, 4, true, 0.5, kRobotToTagsLeft));
 	}
@@ -1060,29 +1060,28 @@ public class CommandComposer {
 			int steps) {
 		if (steps <= 0)
 			return path;
-		else {
-			var l = new LinkedList<Pose2d>();
-			Pose2d prev = null;
-			for (var p : path) {
-				if (prev != null) {
-					var t = intermediate(prev.getTranslation(), p.getTranslation(), center, radius, margin);
-					if (t != null)
-						l.add(new Pose2d(t, average(prev.getRotation(), p.getRotation())));
-				}
-				prev = p;
-				l.add(p);
+		var refined = new LinkedList<Pose2d>(); // refinement result
+		Pose2d previous = null;
+		for (var current : path) {
+			if (previous != null) {
+				var i = intermediate(previous.getTranslation(), current.getTranslation(), center, radius, margin);
+				if (i != null) // if intermediate i is created
+					refined.add(new Pose2d(i, average(previous.getRotation(), current.getRotation())));
 			}
-			if (l.size() > path.size())
-				return refine(l, center, radius, margin, steps - 1);
-			return l;
+			previous = current;
+			refined.add(current); // add the current position to the refinment result
 		}
+		if (refined.size() == path.size()) // if no change, no further refinement
+			return refined;
+		return refine(refined, center, radius, margin, steps - 1);
 	}
 
 	/**
 	 * Finds an intermediate {@code Translaton2d} to avoid a collision with the
 	 * specified reef if any ({@code null} if no colllision can occur).
 	 * 
-	 * @param path a list of {@code Pose2d}s
+	 * @param previous a {@code Translaton2d} representing the previous position
+	 * @param current a {@code Translaton2d} representing the current position
 	 * @param center the center of the reef
 	 * @param radius the radius of the reef
 	 * @param margin the margin around the reef
@@ -1090,27 +1089,28 @@ public class CommandComposer {
 	 * @return a refined version of the specified path (i.e., list of
 	 *         {@code Pose2d}s)
 	 */
-	public static Translation2d intermediate(Translation2d p1, Translation2d p2, Translation2d center, double radius,
-			double margin) {
-		if (p1.minus(center).getNorm() < radius + margin && p2.minus(center).getNorm() < radius + margin)
+	public static Translation2d intermediate(Translation2d previous, Translation2d current,
+			Translation2d center, double radius, double margin) {
+		if (previous.getDistance(center) < radius + margin && current.getDistance(center) < radius + margin)
+			return null; // no intermediate if prev. and current are within radius + margin from center
+		Translation2d v = current.minus(previous); // vector from previous to current
+		Translation2d w = center.minus(previous); // vector from previous to center
+		double d = dot(v, v);
+		if (d < 1e-9) // if previous and current are nearly the same
 			return null;
-		Translation2d v = p2.minus(p1);
-		double s = dot(v, v);
-		if (s < 1e-9)
-			return null;
-		Translation2d w = center.minus(p1);
-		double t = dot(w, v) / s;
-		if (t < 0)
-			t = 0;
-		else if (t > 1)
-			t = 1;
-		Translation2d closest = p1.plus(v.times(t));
-		double closest2center = closest.getDistance(center);
-		if (closest2center > radius + margin)
-			return null;
-		if (closest2center < 1e-9)
-			return center.plus(v.div(v.getNorm()).rotateBy(Rotation2d.kCCW_90deg).times(radius + 2 * margin));
-		return center.plus(closest.minus(center).times((radius + 1.2 * margin) / closest2center));
+		double t = dot(w, v) / d;
+		if (t < 0 || t > 1) // if closest position to center is outside segment between previous and current
+			return null; // no intermediate
+		Translation2d c = previous.plus(v.times(t)); // closest position (between previous and current) to center
+		d = c.getDistance(center);
+		if (d > radius + margin) // if c is at least radius + margin from center
+			return null; // no intermediate
+		if (d < 1e-9) // if c is nearly at center,
+			// intermediate: position offset from center by radius + 1.2 margin,
+			// perpendicular to v
+			return center.plus(v.div(v.getNorm()).rotateBy(Rotation2d.kCCW_90deg).times(radius + 1.2 * margin));
+		// intermediate: position offset from center to c by radius + 1.2 margin
+		return center.plus(c.minus(center).times((radius + 1.2 * margin) / d));
 	}
 
 	/**
@@ -1218,8 +1218,7 @@ public class CommandComposer {
 		var a = DriveSubsystem.orientation(forwardOrientation, strafeOrientation);
 		int i = -1;
 		if (a != null)
-			i = ((int) Math.round(a.plus(Rotation2d.k180deg).getDegrees() / 60) + 6) % 6;
-		System.out.println(i);
+			i = ((int) Math.round(a.getDegrees() / 60) + 6) % 6;
 		return i;
 	}
 
