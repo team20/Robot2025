@@ -2,6 +2,7 @@ package frc.robot;
 
 import static edu.wpi.first.wpilibj2.command.Commands.*;
 import static frc.robot.Constants.AutoAlignConstants.*;
+import static frc.robot.Constants.DriveConstants.*;
 import static frc.robot.Constants.ElevatorConstants.*;
 import static frc.robot.Constants.WristConstants.*;
 import static frc.robot.subsystems.PoseEstimationSubsystem.*;
@@ -346,24 +347,23 @@ public class CommandComposer {
 	}
 
 	/**
-	 * Returns a {@code Command} to obtain corals at the specified station and score
-	 * at the specified {@code AprilTag}s with both left and right alignments.
+	 * Returns a {@code Command} to align to specified station and
+	 * {@code AprilTag}s.
 	 * 
 	 * @param tagIDStation the ID of the {@code AprilTag} at the coral station
 	 * @param tagIDs the ID of the {@code AprilTag}s to align to in order to score
 	 * @param level the target scoring level
-	 * @return a {@code Command} to obtain corals at the specified station and score
-	 *         at the specified {@code AprilTag}s with both left and right
-	 *         alignments
+	 * @return a {@code Command} to align to specified station and
+	 *         {@code AprilTag}s
 	 */
-	public static Command score(int tagIDStation, int level, int... tagIDs) {
+	public static Command align(int tagIDStation, int level, int... tagIDs) {
 		return sequence(
 				Arrays.stream(tagIDs)
 						.mapToObj(
 								t -> sequence(
-										score(tagIDStation, t, level, true, 0.5, kRobotToTagsLeft),
-										score(tagIDStation, t, level, true, 0.5, kRobotToTagsRight)))
-						.toList().toArray(new Command[0]));
+										toTag(tagIDStation, kRobotToStationTags),
+										toTag(t, t % 2 == 0 ? kRobotToTagsLeft : kRobotToTagsRight), waitSeconds(1)))
+						.toList().toArray(new Command[0])).andThen(moveStraight(-0.5, 0.1, 10));
 	}
 
 	public static Command toStation(int tagID) {
@@ -769,96 +769,6 @@ public class CommandComposer {
 	}
 
 	/**
-	 * Returns a {@code Command} for aligning to the specified {@code AprilTag}.
-	 * 
-	 * @param forwardOrientation Forward orientation supplier. Positive values make
-	 *        the robot face forward (+X direction).
-	 * @param strafeOrientation Strafe orientation supplier. Positive values make
-	 *        the robot face left (+Y direction).
-	 * @return a {@code Command} for aligning to the specified {@code AprilTag}
-	 */
-	public static Command toTagLeft(DoubleSupplier forwardOrientation, DoubleSupplier strafeOrientation) {
-		return new SelectCommand<Object>(Map
-				.of(
-						-1, toClosestTag(kRobotToTagsLeft),
-						0, toTag(tagID(0), 0, kRobotToTagsRight),
-						1, toTag(tagID(1), 0, kRobotToTagsRight),
-						2, toTag(tagID(2), 0, kRobotToTagsLeft),
-						3, toTag(tagID(3), 0, kRobotToTagsLeft),
-						4, toTag(tagID(4), 0, kRobotToTagsLeft),
-						5, toTag(tagID(5), 0, kRobotToTagsRight)),
-				() -> index(forwardOrientation, strafeOrientation));
-	}
-
-	/**
-	 * Returns a {@code Command} for aligning to the specified {@code AprilTag}.
-	 * 
-	 * @param forwardOrientation Forward orientation supplier. Positive values make
-	 *        the robot face forward (+X direction).
-	 * @param strafeOrientation Strafe orientation supplier. Positive values make
-	 *        the robot face left (+Y direction).
-	 * @return a {@code Command} for aligning to the specified {@code AprilTag}
-	 */
-	public static Command toTagRight(DoubleSupplier forwardOrientation, DoubleSupplier strafeOrientation) {
-		return new SelectCommand<Object>(Map
-				.of(
-						-1, toClosestTag(kRobotToTagsRight),
-						0, toTag(tagID(0), 0, kRobotToTagsLeft),
-						1, toTag(tagID(1), 0, kRobotToTagsLeft),
-						2, toTag(tagID(2), 0, kRobotToTagsRight),
-						3, toTag(tagID(3), 0, kRobotToTagsRight),
-						4, toTag(tagID(4), 0, kRobotToTagsRight),
-						5, toTag(tagID(5), 0, kRobotToTagsLeft)),
-				() -> index(forwardOrientation, strafeOrientation));
-	}
-
-	/**
-	 * Returns the {@code Suppler} providing the ID of the {@code AprilTag}
-	 * corresponding to the specified index.
-	 * 
-	 * @param index an index (0 through 5)
-	 * @return the {@code Suppler} providing the ID of the {@code AprilTag}
-	 *         corresponding to the specified index
-	 */
-	private static Supplier<Integer> tagID(int index) {
-		var red = Map.of(
-				0, 10,
-				1, 11,
-				2, 6,
-				3, 7,
-				4, 8,
-				5, 9);
-		var blue = Map.of(
-				0, 21,
-				1, 20,
-				2, 19,
-				3, 18,
-				4, 17,
-				5, 22);
-		return () -> DriverStation.getAlliance().get() == DriverStation.Alliance.Red ? red.get(index) : blue.get(index);
-	}
-
-	/**
-	 * Returns the index (between 0 and 5 inclusive) based on the provided
-	 * {@code DoubleSuppler}s.
-	 * 
-	 * @param forwardOrientation Forward orientation supplier. Positive values make
-	 *        the robot face forward (+X direction).
-	 * @param strafeOrientation Strafe orientation supplier. Positive values make
-	 *        the robot face left (+Y direction).
-	 * @return the index (between 0 and 5 inclusive) based on the provided
-	 *         {@code DoubleSuppler}s
-	 */
-	public static int index(DoubleSupplier forwardOrientation, DoubleSupplier strafeOrientation) {
-		var a = DriveSubsystem.orientation(forwardOrientation, strafeOrientation);
-		int i = -1;
-		if (a != null)
-			i = ((int) Math.round(a.plus(Rotation2d.k180deg).getDegrees() / 60) + 6) % 6;
-		System.out.println(i);
-		return i;
-	}
-
-	/**
 	 * Creates a {@code Command} to automatically align the robot to the closest
 	 * {@code AprilTag}.
 	 *
@@ -936,7 +846,7 @@ public class CommandComposer {
 	private static Command toTag(Supplier<Integer> tagID, double forwardAdjustment, Transform2d... robotToTags) {
 		return follow(
 				0.01, 1,
-				0.16, 16, // TODO: Optimize
+				kIntermediateTolerance, 16, // TODO: Optimize
 				() -> pathToTag(tagID, forwardAdjustment, robotToTags));
 	}
 
@@ -1131,7 +1041,7 @@ public class CommandComposer {
 	 *         {@code Pose2d}s)
 	 */
 	private static List<Pose2d> refine(List<Pose2d> path, Translation2d center) {
-		return refine(path, center, reefRadius, 1.2, 5);
+		return refine(path, center, reefRadius, 1.2, 3);
 	}
 
 	/**
@@ -1182,6 +1092,8 @@ public class CommandComposer {
 	 */
 	public static Translation2d intermediate(Translation2d p1, Translation2d p2, Translation2d center, double radius,
 			double margin) {
+		if (p1.minus(center).getNorm() < radius + margin && p2.minus(center).getNorm() < radius + margin)
+			return null;
 		Translation2d v = p2.minus(p1);
 		double s = dot(v, v);
 		if (s < 1e-9)
@@ -1222,6 +1134,96 @@ public class CommandComposer {
 	}
 
 	/**
+	 * Returns a {@code Command} for aligning to the specified {@code AprilTag}.
+	 * 
+	 * @param forwardOrientation Forward orientation supplier. Positive values make
+	 *        the robot face forward (+X direction).
+	 * @param strafeOrientation Strafe orientation supplier. Positive values make
+	 *        the robot face left (+Y direction).
+	 * @return a {@code Command} for aligning to the specified {@code AprilTag}
+	 */
+	public static Command toTagLeft(DoubleSupplier forwardOrientation, DoubleSupplier strafeOrientation) {
+		return new SelectCommand<Object>(Map
+				.of(
+						-1, toClosestTag(kRobotToTagsLeft),
+						0, toTag(tagID(0), 0, kRobotToTagsRight),
+						1, toTag(tagID(1), 0, kRobotToTagsRight),
+						2, toTag(tagID(2), 0, kRobotToTagsLeft),
+						3, toTag(tagID(3), 0, kRobotToTagsLeft),
+						4, toTag(tagID(4), 0, kRobotToTagsLeft),
+						5, toTag(tagID(5), 0, kRobotToTagsRight)),
+				() -> index(forwardOrientation, strafeOrientation));
+	}
+
+	/**
+	 * Returns a {@code Command} for aligning to the specified {@code AprilTag}.
+	 * 
+	 * @param forwardOrientation Forward orientation supplier. Positive values make
+	 *        the robot face forward (+X direction).
+	 * @param strafeOrientation Strafe orientation supplier. Positive values make
+	 *        the robot face left (+Y direction).
+	 * @return a {@code Command} for aligning to the specified {@code AprilTag}
+	 */
+	public static Command toTagRight(DoubleSupplier forwardOrientation, DoubleSupplier strafeOrientation) {
+		return new SelectCommand<Object>(Map
+				.of(
+						-1, toClosestTag(kRobotToTagsRight),
+						0, toTag(tagID(0), 0, kRobotToTagsLeft),
+						1, toTag(tagID(1), 0, kRobotToTagsLeft),
+						2, toTag(tagID(2), 0, kRobotToTagsRight),
+						3, toTag(tagID(3), 0, kRobotToTagsRight),
+						4, toTag(tagID(4), 0, kRobotToTagsRight),
+						5, toTag(tagID(5), 0, kRobotToTagsLeft)),
+				() -> index(forwardOrientation, strafeOrientation));
+	}
+
+	/**
+	 * Returns the {@code Suppler} providing the ID of the {@code AprilTag}
+	 * corresponding to the specified index.
+	 * 
+	 * @param index an index (0 through 5)
+	 * @return the {@code Suppler} providing the ID of the {@code AprilTag}
+	 *         corresponding to the specified index
+	 */
+	private static Supplier<Integer> tagID(int index) {
+		var red = Map.of(
+				0, 10,
+				1, 11,
+				2, 6,
+				3, 7,
+				4, 8,
+				5, 9);
+		var blue = Map.of(
+				0, 21,
+				1, 20,
+				2, 19,
+				3, 18,
+				4, 17,
+				5, 22);
+		return () -> DriverStation.getAlliance().get() == DriverStation.Alliance.Red ? red.get(index) : blue.get(index);
+	}
+
+	/**
+	 * Returns the index (between 0 and 5 inclusive) based on the provided
+	 * {@code DoubleSuppler}s.
+	 * 
+	 * @param forwardOrientation Forward orientation supplier. Positive values make
+	 *        the robot face forward (+X direction).
+	 * @param strafeOrientation Strafe orientation supplier. Positive values make
+	 *        the robot face left (+Y direction).
+	 * @return the index (between 0 and 5 inclusive) based on the provided
+	 *         {@code DoubleSuppler}s
+	 */
+	public static int index(DoubleSupplier forwardOrientation, DoubleSupplier strafeOrientation) {
+		var a = DriveSubsystem.orientation(forwardOrientation, strafeOrientation);
+		int i = -1;
+		if (a != null)
+			i = ((int) Math.round(a.plus(Rotation2d.k180deg).getDegrees() / 60) + 6) % 6;
+		System.out.println(i);
+		return i;
+	}
+
+	/**
 	 * Returns a {@code Command} for testing auto-scoring at the specified level.
 	 * 
 	 * @param level the target scoring level
@@ -1233,10 +1235,10 @@ public class CommandComposer {
 						.mapToObj(
 								(i -> sequence(
 										testScore(
-												level, move(transform(-0.7, 0.5 * i, -20 * i), 0.1, 10),
+												level, move(transform(-0.9, 0.5 * i, -20 * i), 0.1, 10),
 												kRobotToTagsLeft),
 										testScore(
-												level, move(transform(-0.7, -0.5 * i, 20 * i), 0.1, 10),
+												level, move(transform(-0.9, -0.5 * i, 20 * i), 0.1, 10),
 												kRobotToTagsRight))))
 						.toList()
 						.toArray(new Command[0]));

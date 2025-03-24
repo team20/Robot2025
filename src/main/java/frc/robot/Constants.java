@@ -41,7 +41,7 @@ public class Constants {
 	}
 
 	public static final class CheeseStickConstants {
-		public static final int kServoPort = 0;
+		public static final int kServoPort = 1;
 		public static final double kReleaseDistance = 0.4;
 		/**
 		 * Set this value to how far the cheese stick wheels extend beyond the lexan.
@@ -136,17 +136,17 @@ public class Constants {
 		public static final double kTeleopDriveMaxSpeed = 12.0; // 12 meters per second
 		public static final double kTeleopTurnMaxAngularSpeed = Math.toRadians(360 * 5);// 5 rotations per second
 
-		public static final double kDriveMaxSpeed = 2.0; // 5 meters per second
-		public static final double kDriveMinSpeed = 1; // 0.2 meters per second
+		public static final double kDriveMaxSpeed = 12.0; // 12 meters per second
+		public static final double kDriveMinSpeed = 1; // 1 meter per second
 		public static final double kTurnMaxAngularSpeed = Math.toRadians(360); // 1 rotation per second
 		public static final double kTurnMinAngularSpeed = Math.toRadians(0); // 0 degree per second
 
 		// DriveCommand.java Constants
-		public static final double kDriveP = 3;
+		public static final double kDriveP = 5.5;
 		public static final double kDriveI = 0;
 		public static final double kDriveD = 0;
 		public static final double kDriveMaxAcceleration = 2 * kDriveMaxSpeed; // kDriveMaxSpeed in 0.5 sec
-		// TODO: Optimize: up to 8?
+		public static final double kIntermediateTolerance = .32;
 
 		public static final double kTurnP = 5;
 		public static final double kTurnI = 0;
@@ -254,7 +254,7 @@ public class Constants {
 		 * {@code AprilTag} to align the robot to coral stations.
 		 */
 		static Transform2d[] kRobotToStationTags = { /* transform(1.1, 0.0, 180), */ transform(0.9, 0.0, 180),
-				transform(0.1, 0, 180) };
+				transform(0.4, 0, 180) };
 		// TODO: Check: smaller x = closer to tag; smaller y = more to the left
 
 		/**
