@@ -145,6 +145,11 @@ public class Constants {
 		public static final double kDriveI = 0;
 		public static final double kDriveD = 0;
 		public static final double kDriveMaxAcceleration = 2 * kDriveMaxSpeed; // kDriveMaxSpeed in 0.5 sec
+
+		public static final double kIntermediateTolerance = .5;
+		public static final double kTurnP = 5;
+		public static final double kTurnI = 0;
+		public static final double kTurnD = 0.1;
 		public static final double kTurnMaxAcceleration = 2 * kTurnMaxAngularSpeed; // kTurnMaxAngularSpeed in 0.5
 	}
 
