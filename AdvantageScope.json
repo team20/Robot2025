@@ -1,9 +1,9 @@
 {
   "hubs": [
     {
-      "x": 0,
-      "y": 42,
-      "width": 1468,
+      "x": 91,
+      "y": 37,
+      "width": 1379,
       "height": 786,
       "state": {
         "sidebar": {
@@ -21,7 +21,7 @@
           ]
         },
         "tabs": {
-          "selected": 6,
+          "selected": 1,
           "tabs": [
             {
               "type": 0,
@@ -36,6 +36,15 @@
               "title": "2D Field",
               "controller": {
                 "sources": [
+                  {
+                    "type": "arrow",
+                    "logKey": "NT:/SmartDashboard/Pose@Simulation",
+                    "logType": "Pose2d",
+                    "visible": true,
+                    "options": {
+                      "position": "center"
+                    }
+                  },
                   {
                     "type": "robot",
                     "logKey": "NT:/SmartDashboard/Pose@PoseEstimationSubsystem",
@@ -55,20 +64,20 @@
                   },
                   {
                     "type": "arrow",
-                    "logKey": "NT:/SmartDashboard/Pose@PhotonPoseEstimator",
-                    "logType": "Pose2d",
+                    "logKey": "NT:/SmartDashboard/Pose@FrontCamera",
+                    "logType": "Pose3d",
                     "visible": true,
                     "options": {
-                      "position": "front"
+                      "position": "back"
                     }
                   },
                   {
                     "type": "arrow",
-                    "logKey": "NT:/SmartDashboard/Pose@Simulation",
-                    "logType": "Pose2d",
+                    "logKey": "NT:/SmartDashboard/Pose@BackCamera",
+                    "logType": "Pose3d",
                     "visible": true,
                     "options": {
-                      "position": "center"
+                      "position": "front"
                     }
                   }
                 ],
@@ -112,9 +121,9 @@
                 "cameraIndex": -2,
                 "orbitFov": 50,
                 "cameraPosition": [
-                  2.0700545707349356,
-                  3.478507759966968,
-                  3.3680506725973656
+                  2.110257451553458,
+                  3.5363538642116903,
+                  3.4334621557995226
                 ],
                 "cameraTarget": [
                   0,
@@ -156,78 +165,12 @@
                 "cameraPosition": [
                   2.1636313378975607,
                   3.422523295896897,
-                  3.489558506042684
+                  3.489558506042685
                 ],
                 "cameraTarget": [
                   -0.9279226425328596,
                   0.5,
                   0.689416832916985
-                ]
-              },
-              "controlsHeight": 200
-            },
-            {
-              "type": 3,
-              "title": "Front Camera",
-              "controller": {
-                "sources": [
-                  {
-                    "type": "cameraOverride",
-                    "logKey": "NT:/SmartDashboard/Cameras/FrontCamera",
-                    "logType": "Pose3d",
-                    "visible": true,
-                    "options": {}
-                  }
-                ],
-                "game": "2025 Field (Welded)",
-                "origin": "blue"
-              },
-              "controllerUUID": "e6nepse8od2khbwhvxrwald3mekrjmjz",
-              "renderer": {
-                "cameraIndex": 0,
-                "orbitFov": 50,
-                "cameraPosition": [
-                  -4.8313257759513295,
-                  0.1999999999999994,
-                  -1.0709671220094679
-                ],
-                "cameraTarget": [
-                  -4.379733264328502,
-                  0.5420201433256684,
-                  -0.24690011926898925
-                ]
-              },
-              "controlsHeight": 200
-            },
-            {
-              "type": 3,
-              "title": "Back Camera",
-              "controller": {
-                "sources": [
-                  {
-                    "type": "cameraOverride",
-                    "logKey": "NT:/SmartDashboard/Cameras/BackCamera",
-                    "logType": "Pose3d",
-                    "visible": true,
-                    "options": {}
-                  }
-                ],
-                "game": "2025 Field (Welded)",
-                "origin": "blue"
-              },
-              "controllerUUID": "rfgfnrr407g4ms0uvb009d90iqysrt0p",
-              "renderer": {
-                "cameraIndex": 1,
-                "orbitFov": 50,
-                "cameraPosition": [
-                  -5.215785546419797,
-                  0.4999999999999991,
-                  -1.7725301518872785
-                ],
-                "cameraTarget": [
-                  -5.696360259505379,
-                  0.4999999999999986,
-                  -2.649483939234542
                 ]
               },
               "controlsHeight": 200
@@ -352,52 +295,6 @@
                 "size": 30
               },
               "controllerUUID": "bmgqrhbyjsrwa6xvd41krqbb7zic2qs3",
-              "renderer": null,
-              "controlsHeight": 200
-            },
-            {
-              "type": 1,
-              "title": "Current/Voltage",
-              "controller": {
-                "leftSources": [
-                  {
-                    "type": "stepped",
-                    "logKey": "NT:/SmartDashboard/PowerDistribution[0]/TotalCurrent",
-                    "logType": "Number",
-                    "visible": true,
-                    "options": {
-                      "color": "#2b66a2",
-                      "size": "normal"
-                    }
-                  }
-                ],
-                "rightSources": [
-                  {
-                    "type": "stepped",
-                    "logKey": "NT:/SmartDashboard/PowerDistribution[0]/Voltage",
-                    "logType": "Number",
-                    "visible": true,
-                    "options": {
-                      "color": "#e5b31b",
-                      "size": "normal"
-                    }
-                  }
-                ],
-                "discreteSources": [],
-                "leftLockedRange": null,
-                "rightLockedRange": null,
-                "leftUnitConversion": {
-                  "type": null,
-                  "factor": 1
-                },
-                "rightUnitConversion": {
-                  "type": null,
-                  "factor": 1
-                },
-                "leftFilter": 0,
-                "rightFilter": 0
-              },
-              "controllerUUID": "2kcdwl2znais71gcdimnmph7e4vygxej",
               "renderer": null,
               "controlsHeight": 200
             },
@@ -534,6 +431,52 @@
                 "rightFilter": 0
               },
               "controllerUUID": "wvdwk5xc4mx1qhcvs9cvxyic6zx522vo",
+              "renderer": null,
+              "controlsHeight": 200
+            },
+            {
+              "type": 1,
+              "title": "Current/Voltage",
+              "controller": {
+                "leftSources": [
+                  {
+                    "type": "stepped",
+                    "logKey": "NT:/SmartDashboard/PowerDistribution[0]/TotalCurrent",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#2b66a2",
+                      "size": "normal"
+                    }
+                  }
+                ],
+                "rightSources": [
+                  {
+                    "type": "stepped",
+                    "logKey": "NT:/SmartDashboard/PowerDistribution[0]/Voltage",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#e5b31b",
+                      "size": "normal"
+                    }
+                  }
+                ],
+                "discreteSources": [],
+                "leftLockedRange": null,
+                "rightLockedRange": null,
+                "leftUnitConversion": {
+                  "type": null,
+                  "factor": 1
+                },
+                "rightUnitConversion": {
+                  "type": null,
+                  "factor": 1
+                },
+                "leftFilter": 0,
+                "rightFilter": 0
+              },
+              "controllerUUID": "2kcdwl2znais71gcdimnmph7e4vygxej",
               "renderer": null,
               "controlsHeight": 200
             }
