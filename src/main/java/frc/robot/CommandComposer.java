@@ -104,7 +104,7 @@ public class CommandComposer {
 	 */
 	public static Command removeAlgaeLevelTwo(Supplier<Integer> tagID) {
 		return sequence(
-				toTag(tagID, 0, kRobotToTags), // .withTimeout(4), This timeout seems to affect alignment accuracy
+				toTag(tagID, 0, kRobotToTags).withTimeout(2.3), // This timeout seems to affect alignment accuracy
 				m_cheeseStickSubsystem.grab(),
 				removeAlgaeLevelTwo(),
 				parallel(
@@ -308,7 +308,7 @@ public class CommandComposer {
 			p.addCommands(m_wristSubsystem.goToAngle(kGrabberAngleLevelFour - 10).withTimeout(1));
 		if (retreatDistance > 0)
 			p.addCommands(moveStraight(-retreatDistance, 0.16, 16)); // TODO: Optimize
-		return sequence(prepare, m_cheeseStickSubsystem.release(), waitSeconds(0.8), p); // TODO: Check
+		return sequence(prepare, m_cheeseStickSubsystem.release(), waitSeconds(0.85), p); // TODO: Check
 	}
 
 	/**
@@ -498,7 +498,7 @@ public class CommandComposer {
 
 	public static Command getThreeScore(int tagID1, int tagIDStation, int tagID2, int tagID3) {
 		return sequence(
-				score(tagID1, 4, false, 0.5, kRobotToTagsRight),
+				score(tagID1, 4, false, 0.7, kRobotToTagsLeft),
 				score(tagIDStation, tagID2, 4, true, 0.5, kRobotToTagsLeft),
 				score(tagIDStation, tagID3, 4, true, 0.5, kRobotToTagsLeft));
 	}

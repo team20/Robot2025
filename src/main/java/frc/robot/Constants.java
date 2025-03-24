@@ -135,21 +135,16 @@ public class Constants {
 		public static final double kTeleopDriveMaxSpeed = 12.0; // 5 meters per second
 		public static final double kTeleopTurnMaxAngularSpeed = Math.toRadians(360 * 5);
 
-		public static final double kDriveMaxSpeed = 12.0; // 12 meters per second
-		public static final double kDriveMinSpeed = 1; // 1 meter per second
+		public static final double kDriveMaxSpeed = 12.0; // 5 meters per second
+		public static final double kDriveMinSpeed = 1.2; // 0.2 meters per second
 		public static final double kTurnMaxAngularSpeed = Math.toRadians(360); // 1 rotation per second
 		public static final double kTurnMinAngularSpeed = Math.toRadians(0); // 0 degree per second
 
 		// DriveCommand.java Constants
-		public static final double kDriveP = 5.5;
+		public static final double kDriveP = 5.25;
 		public static final double kDriveI = 0;
 		public static final double kDriveD = 0;
 		public static final double kDriveMaxAcceleration = 2 * kDriveMaxSpeed; // kDriveMaxSpeed in 0.5 sec
-		public static final double kIntermediateTolerance = .5;
-
-		public static final double kTurnP = 5;
-		public static final double kTurnI = 0;
-		public static final double kTurnD = 0.1;
 		public static final double kTurnMaxAcceleration = 2 * kTurnMaxAngularSpeed; // kTurnMaxAngularSpeed in 0.5
 	}
 
@@ -202,8 +197,8 @@ public class Constants {
 		public static final int kSmartCurrentLimit = 20;
 		public static final int kSecondaryCurrentLimit = 20;
 		public static final int kGrabberAngleLevelFour = 230; // 228 with wrist offset
-		public static final int kGrabberAngleLevelThree = 243; // 232 with wrist offset
-		public static final int kGrabberAngleLevelTwo = 227;
+		public static final int kGrabberAngleLevelThree = 240; // 232 with wrist offset
+		public static final int kGrabberAngleLevelTwo = 235;
 		public static final int kBaseAngle = 263;
 		public static final double kAlgaeWristHeight = 170;
 
@@ -216,7 +211,7 @@ public class Constants {
 		public static final double kD = 0;
 		// public static final double kD = 0.003; // for simulation
 
-		public static final double kTolerance = 5;
+		public static final double kTolerance = 1;
 	}
 
 	public static final class AutoAlignConstants {
@@ -251,7 +246,7 @@ public class Constants {
 		 * {@code AprilTag} to align the robot to coral stations.
 		 */
 		static Transform2d[] kRobotToStationTags = { transform(1.1, 0.0, 180), transform(0.9, 0.0, 180),
-				transform(0.1, 0, 180) };
+				transform(0.05, 0, 180) };
 		// TODO: Check: smaller x = closer to tag; smaller y = more to the left
 
 		/**
@@ -259,7 +254,7 @@ public class Constants {
 		 * {@code AprilTag} to align the robot to the left of that {@code AprilTag}.
 		 */
 		static Transform2d[] kRobotToTagsLeft = { transform(1.1, -0.20, 180), transform(0.9, -0.20, 180),
-				transform(0.48, -0.20, 180) };
+				transform(0.45, -0.20, 180) };
 		// TODO: Check: smaller x = closer to tag; smaller y = more to the left
 
 		/**
@@ -267,7 +262,7 @@ public class Constants {
 		 * {@code AprilTag} to align the robot to the right of that {@code AprilTag}.
 		 */
 		static Transform2d[] kRobotToTagsRight = { transform(1.1, 0.18, 180), transform(0.9, 0.18, 180),
-				transform(0.48, 0.18, 180) };
+				transform(0.45, 0.18, 180) };
 		// TODO: Check: smaller x = closer to the tag; smaller y = more to the left
 
 		/**
@@ -278,14 +273,14 @@ public class Constants {
 				1, 0.0, // L1
 				2, 0.0, // L2
 				3, 0.0, // L3
-				4, 0.03); // L4
+				4, -0.03); // L4
 		// TODO: Check (positive: closer to the tag)
 
 		/**
 		 * A {@code Map} storing the additional distance to move forward/backward for
 		 * some {@code AprilTag}s (positive: closer to the tag).
 		 */
-		static Map<Integer, Double> kTagForwardAdjustments = Map.of();
+		static Map<Integer, Double> kTagForwardAdjustments = Map.of(13, 0.03, 19, 0.05, 10, -0.07);
 		// .of(17, -0.1, 19, -0.02, 20, -0.06, 21, -0.1, 22, -0.07);
 		// Map.of(18, 0.015, 22, 0.01);
 
@@ -293,7 +288,7 @@ public class Constants {
 		 * A {@code Map} storing the additional distance to move to left/right for
 		 * some {@code AprilTag}s (positive: left when facing toward the tag).
 		 */
-		static Map<Integer, Double> kTagSideAdjustments = Map.of();
+		static Map<Integer, Double> kTagSideAdjustments = Map.of(9, -0.02, 8, -0.02);
 		// Map.of(12, -0.3, 13, 0.3, 19, -0.05);
 		// Map.of(19, -0.02, 21, -0.01, 22, -0.01);
 
