@@ -818,11 +818,11 @@ public class CommandComposer {
 		for (var current : path) {
 			if (previous != null) {
 				var i = intermediate(previous.getTranslation(), current.getTranslation(), center, radius, margin);
-				if (i != null) // if intermediate i is created
+				if (i != null) // if an intermediate position is created
 					refined.add(new Pose2d(i, average(previous.getRotation(), current.getRotation())));
 			}
 			previous = current;
-			refined.add(current); // add the current position to the refinment result
+			refined.add(current); // add the current position to the refinement result
 		}
 		if (refined.size() == path.size()) // if no change, no further refinement
 			return refined;
