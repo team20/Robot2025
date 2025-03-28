@@ -183,7 +183,7 @@ public class Constants {
 		public static final double kTolerance = 0.04;
 		public static final double kLevelOneHeight = Units.inchesToMeters(3);
 		public static final double kLevelTwoHeight = Units.inchesToMeters(11.8);
-		public static final double kLevelThreeHeight = Units.inchesToMeters(30.71);
+		public static final double kLevelThreeHeight = Units.inchesToMeters(24.8);
 		public static final double kLevelFourHeight = Units.inchesToMeters(51.05);
 		public static final double kMaxExtension = Units.inchesToMeters(51 + 0.1);
 		// TODO: The amount that the elevator decreases in order to score
@@ -201,8 +201,8 @@ public class Constants {
 		public static final int kWristMotorPort = 27;
 		public static final int kSmartCurrentLimit = 20;
 		public static final int kSecondaryCurrentLimit = 20;
-		public static final int kGrabberAngleLevelFour = 230; // 228 with wrist offset
-		public static final int kGrabberAngleLevelThree = 240; // 232 with wrist offset
+		public static final int kGrabberAngleLevelFour = 228; // 228 with wrist offset
+		public static final int kGrabberAngleLevelThree = 229; // 232 with wrist offset
 		public static final int kGrabberAngleLevelTwo = 235;
 		public static final int kBaseAngle = 263;
 		public static final double kAlgaeWristHeight = 170;
@@ -216,7 +216,7 @@ public class Constants {
 		public static final double kD = 0;
 		// public static final double kD = 0.003; // for simulation
 
-		public static final double kTolerance = 1;
+		public static final double kTolerance = 1.25;
 	}
 
 	public static final class AutoAlignConstants {
@@ -280,22 +280,20 @@ public class Constants {
 				3, 0.0, // L3
 				4, -0.03); // L4
 		// TODO: Check (positive: closer to the tag)
-
 		/**
 		 * A {@code Map} storing the additional distance to move forward/backward for
 		 * some {@code AprilTag}s (positive: closer to the tag).
 		 */
-		static Map<Integer, Double> kTagForwardAdjustments = Map.of(13, 0.03, 19, 0.05, 10, -0.07);
-		// .of(17, -0.1, 19, -0.02, 20, -0.06, 21, -0.1, 22, -0.07);
+		static Map<Integer, Double> kTagForwardAdjustments = Map.of();
+		// Practice Field Offsets 13, 0.03, 19, 0.05, 10, -0.07
 		// Map.of(18, 0.015, 22, 0.01);
 
 		/**
 		 * A {@code Map} storing the additional distance to move to left/right for
 		 * some {@code AprilTag}s (positive: left when facing toward the tag).
 		 */
-		static Map<Integer, Double> kTagSideAdjustments = Map.of(9, -0.02, 8, -0.02);
-		// Map.of(12, -0.3, 13, 0.3, 19, -0.05);
-		// Map.of(19, -0.02, 21, -0.01, 22, -0.01);
+		static Map<Integer, Double> kTagSideAdjustments = Map.of(9, -0.02, 19, -0.02);
+		// Practice Field Offsets Map.of(9, -0.02, 8, -0.02)
 
 	}
 
