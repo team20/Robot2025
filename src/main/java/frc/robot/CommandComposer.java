@@ -112,25 +112,18 @@ public class CommandComposer {
 
 	public static Command removeAlgaeLevelThree() {
 		return sequence(
-				m_elevatorSubsystem.goToLevelTwoHeight(),
-				m_wristSubsystem.goToAngle(kAlgaeWristHeight),
-				m_elevatorSubsystem.goToAlgaeThreeHeight()).withName("Remove Algae Level Three");
+				m_elevatorSubsystem.goToLevelTwoHeight().withTimeout(0.55),
+				parallel(
+						m_wristSubsystem.goToAngle(kAlgaeWristHeight),
+						m_elevatorSubsystem.goToAlgaeThreeHeight()).withName("Remove Algae Level Three"));
 	}
 
 	public static Command removeAlgaeLevelTwo() {
 		return sequence(
-				m_elevatorSubsystem.goToCoralStationHeight(),
-				m_wristSubsystem.goToAngle(kAlgaeWristHeight),
-				m_elevatorSubsystem.goToAlgaeTwoHeight()).withName("Remove Algae Level Two");
-	}
-
-	public static Command releaseFlickAndDriveBack() {
-		return sequence(
-				m_cheeseStickSubsystem.release(),
+				m_elevatorSubsystem.goToCoralStationHeight().withTimeout(0.45),
 				parallel(
-						m_wristSubsystem.goToAngle(kGrabberAngleLevelFour - 20),
-						moveStraight(-0.3, 0.01, 1),
-						m_cheeseStickSubsystem.grab())).withName("Release Flick And Drive Back");
+						m_wristSubsystem.goToAngle(kAlgaeWristHeight),
+						m_elevatorSubsystem.goToAlgaeTwoHeight()).withName("Remove Algae Level Two"));
 	}
 
 	/**
@@ -302,8 +295,9 @@ public class CommandComposer {
 	 */
 	private static Command score(Command prepare, int level, double retreatDistance) {
 		var p = new ParallelCommandGroup();
-		if (level == 4)
-			p.addCommands(m_wristSubsystem.goToAngle(kGrabberAngleLevelFour - 10).withTimeout(1));
+		// if (level == 4)
+		// p.addCommands(m_wristSubsystem.goToAngle(kGrabberAngleLevelFour-5).withTimeout(1));
+		// // TODO: Flick needed?
 		if (retreatDistance > 0)
 			p.addCommands(moveStraight(-retreatDistance, 0.16, 16)); // TODO: Optimize
 		return sequence(prepare, m_cheeseStickSubsystem.release(), waitSeconds(0.85), p); // TODO: Check
