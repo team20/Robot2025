@@ -10,11 +10,7 @@ import static frc.robot.subsystems.PoseEstimationSubsystem.*;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.function.BooleanSupplier;
-import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
-import java.util.stream.IntStream;
 
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
@@ -22,11 +18,8 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.Alert;
-import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
-import edu.wpi.first.wpilibj2.command.SelectCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.commands.DriveCommand;
 import frc.robot.commands.PathDriveCommand;
@@ -509,17 +502,6 @@ public class CommandComposer {
 				.withName("Red-Right | Three Score ");
 	}
 
-	public static Command testAbsoluteOrientation(double duration) {
-		DoubleSupplier z = () -> 0;
-		BooleanSupplier f = () -> false;
-		return sequence(
-				m_driveSubsystem.driveCommand(z, z, z, () -> 1, f).withTimeout(duration), // 90 degrees
-				m_driveSubsystem.driveCommand(z, z, () -> -1, z, f).withTimeout(duration), // 180 degrees
-				m_driveSubsystem.driveCommand(z, z, z, () -> -1, f).withTimeout(duration), // 270 degrees
-				m_driveSubsystem.driveCommand(z, z, () -> 1, () -> 1, f).withTimeout(duration), // 45 degrees
-				m_driveSubsystem.driveCommand(z, z, () -> 1, z, f).withTimeout(duration)); // 0 degrees
-	}
-
 	/**
 	 * Returns a {@code Command} for moving forward and then backward.
 	 * 
@@ -568,24 +550,6 @@ public class CommandComposer {
 		return new DriveCommand(m_driveSubsystem, distanceTolerance, angleToleranceInDegrees, () -> {
 			return m_driveSubsystem.getPose().plus(new Transform2d(displacement, 0, Rotation2d.kZero));
 		});
-	}
-
-	/**
-	 * Returns a {@code Command} for moving the robot on a square.
-	 * 
-	 * @param sideLength the side length of the square in meters
-	 * @param distanceTolerance the distance error in meters which is tolerable
-	 * @param angleTolerance the angle error in degrees which is tolerable
-	 * @param timeout the maximum amount of the time given to the {@code Command}
-	 * 
-	 * @return a {@code Command} for moving the robot on a circle
-	 */
-	public static Command moveOnSquare(double sideLength, double distanceTolerance,
-			double angleTolerance, double timeout) {
-		Supplier<Pose2d> s = () -> m_driveSubsystem.getPose()
-				.plus(transform(sideLength, 0, 90));
-		return new PathDriveCommand(m_driveSubsystem, distanceTolerance, angleTolerance, distanceTolerance,
-				angleTolerance, () -> List.of(s, s, s, s));
 	}
 
 	/**
@@ -747,66 +711,6 @@ public class CommandComposer {
 	 */
 	private static Transform2d adjust(double forwardAdjustment, double sideAdjustment, Transform2d t) {
 		return new Transform2d(t.getX() - forwardAdjustment, t.getY() - sideAdjustment, t.getRotation());
-	}
-
-	/**
-	 * Returns a {@code Command} that selects the specified {@code Command} only if
-	 * the {@code PoseEstimationSubsystem} has seen an {@code AprilTag} during the
-	 * last 6 seconds.
-	 * 
-	 * @param command a {@code Command}
-	 * @return a {@code Command} that selects the specified {@code Command} only if
-	 *         the {@code PoseEstimationSubsystem} has seen an {@code AprilTag}
-	 *         during the last 6 seconds
-	 */
-	public static Command selectIfConfident(Command command) {
-		return new SelectCommand<Boolean>(Map
-				.of(true, command, false, runOnce(() -> {
-					@SuppressWarnings("resource")
-					var a = new Alert("Pose Confidence (" + m_poseEstimationSubsystem.confidence() + ") Too Low!",
-							AlertType.kError);
-					a.set(true);
-				})),
-				() -> m_poseEstimationSubsystem.confidence() > 0.3);
-	}
-
-	/**
-	 * Returns a {@code Command} for testing auto-scoring at the specified level.
-	 * 
-	 * @param level the target scoring level
-	 * @return a {@code Command} for testing auto-scoring at the specified level
-	 */
-	public static Command testScore(int level) {
-		return sequence(
-				IntStream.range(0, 3)
-						.mapToObj(
-								(i -> sequence(
-										testScore(
-												level, move(transform(-0.9, 0.5 * i, -20 * i), 0.1, 10),
-												kRobotToTagsLeft),
-										testScore(
-												level, move(transform(-0.9, -0.5 * i, 20 * i), 0.1, 10),
-												kRobotToTagsRight))))
-						.toList()
-						.toArray(new Command[0]));
-	}
-
-	/**
-	 * Returns a {@code Command} for testing auto-scoring at the specified level.
-	 * 
-	 * @param level the target scoring level
-	 * @param align a {@code Command} for aligning the robot
-	 * @param robotToTags the {@code Tranform2d} representing the pose of the
-	 *        target {@code AprilTag} relative to the robot when the robot is
-	 *        aligned
-	 * @return a {@code Command} for testing auto-scoring at the specified level
-	 */
-	private static Command testScore(int level, Command align, Transform2d... robotToTags) {
-		return sequence(
-				goToBase(),
-				scoreClosest(level, false, 0.5, robotToTags),
-				align,
-				waitSeconds(2));
 	}
 
 }

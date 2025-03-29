@@ -4,14 +4,11 @@
 
 package frc.robot;
 
-import static edu.wpi.first.math.util.Units.*;
-import static edu.wpi.first.wpilibj2.command.Commands.*;
 import static frc.robot.CommandComposer.*;
 import static frc.robot.Constants.AlgaeConstants.*;
 import static frc.robot.Constants.AutoAlignConstants.*;
 import static frc.robot.Constants.ClimberConstants.*;
 import static frc.robot.Constants.ControllerConstants.*;
-import static frc.robot.Constants.DriveConstants.*;
 import static frc.robot.Constants.ElevatorConstants.*;
 import static frc.robot.Constants.WristConstants.*;
 import static frc.robot.subsystems.PoseEstimationSubsystem.*;
@@ -50,7 +47,6 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.simulation.VisionSimulator;
 import frc.robot.subsystems.AlgaeGrabberSubsystem;
 import frc.robot.subsystems.ArduinoSubsystem;
@@ -127,8 +123,6 @@ public class Robot extends TimedRobot {
 						"Algae Flywheel Motor", kGrabberAnglePort, "Algae Pivot Motor"));
 		DriverStation.startDataLog(DataLogManager.getLog());
 		addAutoCommands();
-		addTestingCommands();
-		addProgrammingCommands();
 		bindClimberControls();
 		bindDriveControls();
 		bindElevatorControls();
@@ -182,117 +176,8 @@ public class Robot extends TimedRobot {
 		m_autoSelector.addOption("Go To Station", toStation(1));
 	}
 
-	public void addTestingCommands() {
-		m_testingChooser
-				.addOption(
-						"Remove Algae (Closest)",
-						selectIfConfident(removeAlgaeLevelTwo(() -> m_poseEstimationSubsystem.closestTagID())));
-		m_testingChooser
-				.addOption(
-						"L4 Score Left and Right (Closest)",
-						selectIfConfident(testScore(4)));
-		m_testingChooser
-				.addOption(
-						"L3 Score Left and Right (Closest)",
-						selectIfConfident(testScore(3)));
-		m_testingChooser
-				.addOption(
-						"L2 Score Left and Right (Closest)",
-						selectIfConfident(testScore(2)));
-		m_testingChooser
-				.addOption(
-						"Score from Station (Tag 1)",
-						selectIfConfident(
-								sequence(score(1, 4, 6))));
-		m_testingChooser
-				.addOption(
-						"Score from Station (Tag 2)",
-						selectIfConfident(
-								sequence(score(2, 4, 8))));
-		m_testingChooser
-				.addOption(
-						"Score from Station (Tag 12)",
-						selectIfConfident(
-								sequence(score(12, 4, 17))));
-		m_testingChooser
-				.addOption(
-						"Score from Station (Tag 13)",
-						selectIfConfident(
-								sequence(score(13, 4, 19))));
-		m_testingChooser
-				.addOption(
-						"Left Align to the Closest Tag",
-						toClosestTag(kRobotToTagsLeft));
-		m_testingChooser
-				.addOption(
-						"Right Align to the Closest Tag",
-						toClosestTag(kRobotToTagsRight));
-		m_testingChooser
-				.addOption(
-						"Check All Subsystems",
-						parallel(
-								sequence(
-										m_elevatorSubsystem.testCommand(2.0),
-										parallel(
-												m_cheeseStickSubsystem.testCommand(2.0),
-												m_wristSubsystem.testCommand(2.0))),
-								m_driveSubsystem.testCommand(0.5, Math.toRadians(45), 1.0)));
-		m_testingChooser
-				.addOption(
-						"Check CheeseStickSubsystem",
-						m_cheeseStickSubsystem.testCommand(2.0));
-		m_testingChooser
-				.addOption(
-						"Check WristSubsystem", m_wristSubsystem.testCommand(2.0));
-		m_testingChooser
-				.addOption(
-						"Check ElevatorSubsystem (Levels 0, 1, 0, 3, 2, 4, and 0)",
-						m_elevatorSubsystem.testCommand(2.0));
-		m_testingChooser
-				.addOption(
-						"Check DriveSubsystem (F/B/L/R/LR/RR and F/B while rotating)",
-						m_driveSubsystem.testCommand(0.5, Math.toRadians(45), 1.0));
-		double distanceTolerance = 0.01;
-		double angleToleranceInDegrees = 1;
-		m_testingChooser
-				.addOption(
-						"Check PID Constants for Driving (5'x5' Square)",
-						moveOnSquare(feetToMeters(5), distanceTolerance, angleToleranceInDegrees, 16));
-		m_testingChooser
-				.addOption(
-						"Check kWheelDiameter (F/B 6 feet)",
-						moveForwardBackward(feetToMeters(6), distanceTolerance, angleToleranceInDegrees));
-		m_testingChooser
-				.addOption(
-						"Slowest Movement Test (F/B/L/R/LR/RR and F/B while rotating)",
-						m_driveSubsystem.testCommand(kDriveMinSpeed, kTurnMinAngularSpeed, 1.0));
-	}
-
 	public void bindAlert(Alert alert, BooleanSupplier event) {
 		CommandScheduler.getInstance().getActiveButtonLoop().bind(() -> alert.set(event.getAsBoolean()));
-	}
-
-	public void addProgrammingCommands() {
-		m_testingChooser
-				.addOption("SysId Drive Quasistatic Forward", m_driveSubsystem.sysidQuasistatic(Direction.kForward));
-		m_testingChooser
-				.addOption("SysId Drive Quasistatic Reverse", m_driveSubsystem.sysidQuasistatic(Direction.kReverse));
-		m_testingChooser.addOption("SysId Drive Dynamic Forward", m_driveSubsystem.sysidDynamic(Direction.kForward));
-		m_testingChooser.addOption("SysId Drive Dynamic Reverse", m_driveSubsystem.sysidDynamic(Direction.kReverse));
-		m_testingChooser
-				.addOption("SysId Wrist Quasistatic Forward", m_wristSubsystem.sysidQuasistatic(Direction.kForward));
-		m_testingChooser
-				.addOption("SysId Wrist Quasistatic Reverse", m_wristSubsystem.sysidQuasistatic(Direction.kReverse));
-		m_testingChooser.addOption("SysId Wrist Dynamic Forward", m_wristSubsystem.sysidDynamic(Direction.kForward));
-		m_testingChooser.addOption("SysId Wrist Dynamic Reverse", m_wristSubsystem.sysidDynamic(Direction.kReverse));
-		m_testingChooser.addOption(
-				"SysId Elevator Quasistatic Forward", m_elevatorSubsystem.sysidQuasistatic(Direction.kForward));
-		m_testingChooser.addOption(
-				"SysId Elevator Quasistatic Reverse", m_elevatorSubsystem.sysidQuasistatic(Direction.kReverse));
-		m_testingChooser
-				.addOption("SysId Elevator Dynamic Forward", m_elevatorSubsystem.sysidDynamic(Direction.kForward));
-		m_testingChooser
-				.addOption("SysId Elevator Dynamic Reverse", m_elevatorSubsystem.sysidDynamic(Direction.kReverse));
 	}
 
 	public void bindDriveControls() {
