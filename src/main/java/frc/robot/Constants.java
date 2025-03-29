@@ -189,7 +189,7 @@ public class Constants {
 		// TODO: The amount that the elevator decreases in order to score
 		public static final double kClearanceHeight = Units.inchesToMeters(15);
 		public static final double kToScoreHeightDecrease = Units.inchesToMeters(0);
-		public static final double kCoralStationHeight = Units.inchesToMeters(17 + 2); // TODO: Change
+		public static final double kCoralStationHeight = Units.inchesToMeters(17 + 2);
 
 		public static final double kAlgaeLevelThreeHeight = Units.inchesToMeters(0.25);
 		public static final double kAlgaeLevelTwoHeight = Units.inchesToMeters(10);
@@ -284,7 +284,7 @@ public class Constants {
 		 * A {@code Map} storing the additional distance to move forward/backward for
 		 * some {@code AprilTag}s (positive: closer to the tag).
 		 */
-		static Map<Integer, Double> kTagForwardAdjustments = Map.of(6, 0.01, 11, 0.01);
+		static Map<Integer, Double> kTagForwardAdjustments = Map.of(6, 0.01, 11, 0.01, 11, -0.01);
 		// Practice Field Offsets 13, 0.03, 19, 0.05, 10, -0.07
 		// Map.of(18, 0.015, 22, 0.01);
 

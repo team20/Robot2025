@@ -177,6 +177,9 @@ public class Robot extends TimedRobot {
 		m_autoSelector.addOption("Right Three Score Blue (Tag 22)", getRightThreeScoreBlue());
 		m_autoSelector.addOption("Left Three Score Red (Tag 11)", getLeftThreeScoreRed());
 		m_autoSelector.addOption("Right Three Score Red (Tag 9)", getRightThreeScoreRed());
+
+		// For Practice Field
+		m_autoSelector.addOption("Go To Station", toStation(1));
 	}
 
 	public void addTestingCommands() {

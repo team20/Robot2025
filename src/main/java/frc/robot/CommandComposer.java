@@ -353,7 +353,7 @@ public class CommandComposer {
 
 	public static Command toStation(int tagID) {
 		return parallel(
-				toTag(tagID, kRobotToStationTags).withTimeout(4.25),
+				toTag(tagID, kRobotToStationTags).withTimeout(3.25), // 4.25 originally
 				prepareForCoralPickup()).withName("Align to Station");
 	}
 
@@ -368,12 +368,6 @@ public class CommandComposer {
 				parallel(m_wristSubsystem.goToAngle(kBaseAngle), m_cheeseStickSubsystem.grab()),
 				m_elevatorSubsystem.goToBaseHeight(),
 				waitSeconds(0.1)).withName("Go To Base");
-		// TODO: Check
-		// return sequence(
-		// m_wristSubsystem.goToAngle(kBaseAngle),
-		// m_elevatorSubsystem.goToBaseHeight(),
-		// m_cheeseStickSubsystem.grab(),
-		// waitSeconds(1)).withName("Go To Base");
 	}
 
 	public static Command pickupAtCoralStation() {
@@ -389,7 +383,6 @@ public class CommandComposer {
 				.withName("Retract Climber and Drive Coast");
 	}
 
-	// TODO: AUTO SEQUENCES START HERE
 	public static Command leave() {
 		return m_driveSubsystem.driveCommand(() -> -0.25, () -> 0, () -> 0, () -> true).withTimeout(10)
 				.withName("Leave Auto");
